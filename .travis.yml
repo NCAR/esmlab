@@ -1,0 +1,37 @@
+sudo: required
+services:
+  - docker
+language: python
+env:
+
+  matrix:
+  - PYTHON=3.6
+
+before_install:
+  - export PATH="$HOME/miniconda3/bin:$PATH"
+
+install:
+  - ./ci/install-travis.sh
+script:
+  - echo "script start"
+  - source activate xreshaper-test
+  - py.test --junitxml=test-reports/junit.xml --cov=./
+
+after_success:
+- bash <(curl -s https://codecov.io/bash)
+# - source ./ci/build.sh
+# - source ./ci/upload-anaconda.sh 
+
+
+#deploy:
+#  provider: pypi
+#  distributions: sdist bdist_wheel
+#  user: andersy005
+#  secure: s4uQXv+SakusVDoPTI5W2VsBkC69UWAAGJynJKQLoD3RIK7abN5goxXLMHlgPl4VTK8eTnu7gmuJ9dSsGmNcthG6d7kUEHRZQmTiMaxXty3YSLtnvAaN5nME2LscApJ+BLBTzDy5haV8+D+qUnYFvh57L8GqQrcWXYCZfWHHD0biQIGC39+MyYwCxuFKgWlm2GrG8SdY352AgkXBF8Nd6N+zbIMSZuIC3+CMU7YVlGcLapg3Ii9Xh15dX1SC1fJTTrn9XdNHD/O7XmOUZAbcOKdZdc4EdRmje2mXdJZbtIInUXMeuT3YLCve+2xkftdZFal3PfEXFui1E0jrN5P6LG1R3ohUSUEl7Io7PTh+LOKpIwXMWeFnLIkK8eQpeJ1EwdYu+tka9krbJa2WIC0+bm+T1dJbnAH+OGlr60YL6GxxtFMN0NTOJesPGaKI7gEpW6M4fXOluVH85kBphR8qB1bsaDd3e5xnjo4R4B/Z39mNQLSfl2n/DhkXd6q1eDKUzUCnso0krRub/2RZMn2evlPLrM3AW4Ab8P/oJhDZvPRjw2e5f16CpoZbhfaEi6edh5cPo4XJV6XVQ4cym66DBl2V0odYWEnBwEBkdUr7Ly/++rL4SHJeRhAjMzu0YSyo/Lw3RU3X3CJ6pWUGVDMwV2IEQPNFCMjOPTW5fNRkxPs=
+#  password: 
+#  on:
+#    tags: true
+#    repo: andersy005/xndframes
+#    python: 3.6
+notifications:
+  email: false

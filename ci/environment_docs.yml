@@ -1,0 +1,15 @@
+name: esmlab-docs
+channels:
+  - conda-forge 
+dependencies:
+  - numpydoc
+  - dask 
+  - distributed
+  - pandas 
+  - zarr 
+  - xarray
+  - netcdf4
+  - python=3.6
+  - sphinx
+  - sphinx_rtd_theme
+  - ipython

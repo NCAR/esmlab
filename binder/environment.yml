@@ -1,0 +1,23 @@
+name: esmlab
+channels:
+  - conda-forge
+  - default
+dependencies:
+  - python=3.6
+  - numpy 
+  - dask 
+  - distributed 
+  - zarr 
+  - xarray
+  - importnb 
+  - pytest 
+  - pytest-cov 
+  - netcdf4
+  - numcodecs
+  - jupyterlab
+  - python-blosc
+  - lz4
+  - nbserverproxy
+  - click
+  - pip:
+    - version-information 
