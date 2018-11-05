@@ -3,3 +3,5 @@
 [![Documentation Status](https://readthedocs.org/projects/esmlab/badge/?version=latest)](https://esmlab.readthedocs.io/en/latest/?badge=latest)
 # esmlab
 Earth System Model Lab (emslab) 
+
+See the [documentation](https://esmlab.readthedocs.io/en/latest/) for more.
