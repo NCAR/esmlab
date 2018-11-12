@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 import xarray as xr
-from esmlab.statistics import (
+from esmlab.statistics_array import (
     _da_weighted_mean,
     _da_weighted_sum,
     _da_weighted_std,
@@ -60,7 +60,7 @@ class EsmDataArrayAccessor(object):
         weights : array_like
 
         dim : str or sequence of str, optional
-           Dimension(s) over which to apply mean. By default weighted mean
+           Dimension(s) over which to apply `weighted mean`. By default weighted mean
            is applied over all dimensions.
 
         apply_nan_mask : bool, default: True

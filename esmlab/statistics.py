@@ -3,71 +3,100 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 import numpy as np
+from .accessors import EsmDataArrayAccessor
 
 
-def _apply_nan_mask(da, weights, avg_over_dims_v):
-    weights = weights.where(da.notnull())
-    np.testing.assert_allclose(
-        (weights / weights.sum(avg_over_dims_v)).sum(avg_over_dims_v), 1.0
-    )
+def _apply_nan_mask_for_two_arrays(x, y, weights):
+    valid = x.notnull() & y.notnull()
+    weights = weights.where(valid)
     return weights
 
 
-def _get_op_over_dims(da, weights, dim):
+def weighted_rmsd(x, y, weights, dim=None):
+    """ Compute weighted root-mean-square-deviation between two `xarray` DataArrays.
+
+    Parameters
+    ----------
+    x, y : DataArray objects
+        xarray objects for which to compute `weighted_rmsd`.
+
+    weights : array_like
+
+    dim : str or sequence of str, optional
+           Dimension(s) over which to apply `weighted rmsd` By default weighted rmsd
+           is applied over all dimensions.
+
+    Returns
+    -------
+    root mean square deviation : float
+    """
+
     if not dim:
         dim = weights.dims
 
-    op_over_dims_v = [k for k in dim if k in da.dims]
-    return op_over_dims_v
+    weights = _apply_nan_mask_for_two_arrays(x, y, weights)
+    dev = (x - y) ** 2
+    dev_mean = dev.esm.weighted_mean(weights=weights, dim=dim, apply_nan_mask=False)
+    return np.sqrt(dev_mean)
 
 
-def _da_weighted_sum(da, weights, dim=None):
+def weighted_cov(x, y, weights, dim=None):
+    """ Compute weighted covariance between two `xarray` DataArrays.
 
-    sum_over_dims_v = _get_op_over_dims(da, weights, dim)
-    if not sum_over_dims_v:
-        raise ValueError(
-            "Unexpected dimensions for variable {0}".format(
-                da.name))
+    Parameters
+    ----------
+    x, y : DataArray objects
+        xarray objects for which to compute `weighted covariance`.
 
-    da_output = (da * weights).sum(sum_over_dims_v)
-    return da_output
+    weights : array_like
 
+    dim : str or sequence of str, optional
+           Dimension(s) over which to apply `weighted covariance`
+           By default weighted covariance is applied over all dimensions.
 
-def _da_weighted_mean(da, weights, dim=None, apply_nan_mask=True):
+    Returns
+    -------
+    covariance : float
+    """
 
-    avg_over_dims_v = _get_op_over_dims(da, weights, dim)
-    if not avg_over_dims_v:
-        raise ValueError(
-            (
-                "Unexpected dimensions for variable {0}: {1}\n\n"
-                "Average over dimensions: {2}"
-            ).format(da.name, da, dim)
-        )
+    if not dim:
+        dim = weights.dims
 
-    if apply_nan_mask:
-        weights = _apply_nan_mask(da, weights, avg_over_dims_v)
+    weights = _apply_nan_mask_for_two_arrays(x, y, weights)
 
-    da_output = (da * weights).sum(avg_over_dims_v) / \
-        weights.sum(avg_over_dims_v)
-    return da_output
+    mean_x = x.esm.weighted_mean(weights=weights, dim=dim, apply_nan_mask=False)
+    mean_y = y.esm.weighted_mean(weights=weights, dim=dim, apply_nan_mask=False)
 
-
-def _da_weighted_std(da, weights, dim=None, apply_nan_mask=True, ddof=0):
-    avg_over_dims_v = _get_op_over_dims(da, weights, dim)
-    if not avg_over_dims_v:
-        raise ValueError(
-            (
-                "Unexpected dimensions for variable {0}: {1}\n\n"
-                "Average over dimensions: {2}"
-            ).format(da.name, da, dim)
-        )
-    if apply_nan_mask:
-        weights = _apply_nan_mask(da, weights, avg_over_dims_v)
-
-    weighted_mean = _da_weighted_mean(
-        da, weights, dim=dim, apply_nan_mask=False)
-    da_output = np.sqrt(
-        (weights * (da - weighted_mean) ** 2).sum(avg_over_dims_v)
-        / (weights.sum(avg_over_dims_v) - ddof)
+    dev_x = x - mean_x
+    dev_y = y - mean_y
+    output = (dev_x * dev_y).esm.weighted_mean(
+        weights=weights, dim=dim, apply_nan_mask=False
     )
-    return da_output
+    return output
+
+
+def weighted_corr(x, y, weights, dim=None):
+    """ Compute weighted correlation between two `xarray` DataArrays.
+
+    Parameters
+    ----------
+    x, y : DataArray objects
+        xarray objects for which to compute `weighted correlation`.
+
+    weights : array_like
+
+    dim : str or sequence of str, optional
+           Dimension(s) over which to apply `weighted correlation`
+           By default weighted correlation is applied over all dimensions.
+
+    Returns
+    -------
+    correlation : float
+    """
+
+    numerator = weighted_cov(x, y, weights, dim)
+    denominator = np.sqrt(
+        weighted_cov(x, x, weights, dim) * weighted_cov(y, y, weights, dim)
+    )
+    output = numerator / denominator
+    return output
