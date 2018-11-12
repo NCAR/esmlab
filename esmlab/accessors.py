@@ -3,10 +3,10 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 import xarray as xr
-from esmlab.dataarray_statistics import (
-    da_weighted_mean,
-    da_weighted_sum,
-    da_weighted_std,
+from esmlab.statistics_array import (
+    _da_weighted_mean,
+    _da_weighted_sum,
+    _da_weighted_std,
 )
 
 
@@ -49,7 +49,7 @@ class EsmDataArrayAccessor(object):
                 and the indicated dimension(s) removed.
         """
 
-        da_output = da_weighted_sum(self._obj, weights, dim=dim)
+        da_output = _da_weighted_sum(self._obj, weights, dim=dim)
         return self.update_attrs(da_output)
 
     def weighted_mean(self, weights, dim=None, apply_nan_mask=True):
@@ -60,7 +60,7 @@ class EsmDataArrayAccessor(object):
         weights : array_like
 
         dim : str or sequence of str, optional
-           Dimension(s) over which to apply mean. By default weighted mean
+           Dimension(s) over which to apply `weighted mean`. By default weighted mean
            is applied over all dimensions.
 
         apply_nan_mask : bool, default: True
@@ -73,7 +73,7 @@ class EsmDataArrayAccessor(object):
              and the indicated dimension(s) removed.
         """
 
-        da_output = da_weighted_mean(
+        da_output = _da_weighted_mean(
             self._obj, weights, dim=dim, apply_nan_mask=apply_nan_mask
         )
         return self.update_attrs(da_output)
@@ -102,7 +102,7 @@ class EsmDataArrayAccessor(object):
              and the indicated dimension(s) removed.
         """
 
-        da_output = da_weighted_std(
+        da_output = _da_weighted_std(
             self._obj, weights, dim=dim, apply_nan_mask=apply_nan_mask, ddof=ddof
         )
         return self.update_attrs(da_output)

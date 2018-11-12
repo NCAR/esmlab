@@ -21,7 +21,7 @@ def _get_op_over_dims(da, weights, dim):
     return op_over_dims_v
 
 
-def da_weighted_sum(da, weights, dim=None):
+def _da_weighted_sum(da, weights, dim=None):
 
     sum_over_dims_v = _get_op_over_dims(da, weights, dim)
     if not sum_over_dims_v:
@@ -33,7 +33,7 @@ def da_weighted_sum(da, weights, dim=None):
     return da_output
 
 
-def da_weighted_mean(da, weights, dim=None, apply_nan_mask=True):
+def _da_weighted_mean(da, weights, dim=None, apply_nan_mask=True):
 
     avg_over_dims_v = _get_op_over_dims(da, weights, dim)
     if not avg_over_dims_v:
@@ -52,7 +52,7 @@ def da_weighted_mean(da, weights, dim=None, apply_nan_mask=True):
     return da_output
 
 
-def da_weighted_std(da, weights, dim=None, apply_nan_mask=True, ddof=0):
+def _da_weighted_std(da, weights, dim=None, apply_nan_mask=True, ddof=0):
     avg_over_dims_v = _get_op_over_dims(da, weights, dim)
     if not avg_over_dims_v:
         raise ValueError(
@@ -64,7 +64,7 @@ def da_weighted_std(da, weights, dim=None, apply_nan_mask=True, ddof=0):
     if apply_nan_mask:
         weights = _apply_nan_mask(da, weights, avg_over_dims_v)
 
-    weighted_mean = da_weighted_mean(
+    weighted_mean = _da_weighted_mean(
         da, weights, dim=dim, apply_nan_mask=False)
     da_output = np.sqrt(
         (weights * (da - weighted_mean) ** 2).sum(avg_over_dims_v)
