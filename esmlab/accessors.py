@@ -31,22 +31,21 @@ class EsmDataArrayAccessor(object):
         return da_output
 
     def weighted_sum(self, weights, dim=None):
-
         """Reduce this DataArray's data by applying `weighted sum` along some dimension(s).
 
             Parameters
             ----------
             weights : array_like
-                    
-            dim : str or sequence of str, optional 
-            Dimension(s) over which to apply mean. By default `weighted sum` 
+
+            dim : str or sequence of str, optional
+            Dimension(s) over which to apply mean. By default `weighted sum`
             is applied over all dimensions.
-            
+
             Returns
             -------
-                
+
             reduced : DataArray
-                New DataArray object with `weighted sum` applied to its data 
+                New DataArray object with `weighted sum` applied to its data
                 and the indicated dimension(s) removed.
         """
 
@@ -59,18 +58,18 @@ class EsmDataArrayAccessor(object):
         Parameters
         ----------
         weights : array_like
-                  
-        dim : str or sequence of str, optional 
-           Dimension(s) over which to apply mean. By default weighted mean 
+
+        dim : str or sequence of str, optional
+           Dimension(s) over which to apply mean. By default weighted mean
            is applied over all dimensions.
 
         apply_nan_mask : bool, default: True
-        
+
         Returns
         -------
-            
+
         reduced : DataArray
-             New DataArray object with ` weighted mean` applied to its data 
+             New DataArray object with ` weighted mean` applied to its data
              and the indicated dimension(s) removed.
         """
 
@@ -85,21 +84,21 @@ class EsmDataArrayAccessor(object):
         Parameters
         ----------
         weights : array_like
-                  
-        dim : str or sequence of str, optional 
-           Dimension(s) over which to apply mean. By default `weighted std` 
+
+        dim : str or sequence of str, optional
+           Dimension(s) over which to apply mean. By default `weighted std`
            is applied over all dimensions.
 
         apply_nan_mask : bool, default: True
 
         ddof : int
 
-        
+
         Returns
         -------
-            
+
         reduced : DataArray
-             New DataArray object with `weighted std` applied to its data 
+             New DataArray object with `weighted std` applied to its data
              and the indicated dimension(s) removed.
         """
 
