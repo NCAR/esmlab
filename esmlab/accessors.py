@@ -4,9 +4,9 @@ from __future__ import print_function
 from __future__ import division
 import xarray as xr
 from esmlab.statistics import (
-    da_weighted_mean,
-    da_weighted_sum,
-    da_weighted_std,
+    _da_weighted_mean,
+    _da_weighted_sum,
+    _da_weighted_std,
 )
 
 
@@ -49,7 +49,7 @@ class EsmDataArrayAccessor(object):
                 and the indicated dimension(s) removed.
         """
 
-        da_output = da_weighted_sum(self._obj, weights, dim=dim)
+        da_output = _da_weighted_sum(self._obj, weights, dim=dim)
         return self.update_attrs(da_output)
 
     def weighted_mean(self, weights, dim=None, apply_nan_mask=True):
@@ -73,7 +73,7 @@ class EsmDataArrayAccessor(object):
              and the indicated dimension(s) removed.
         """
 
-        da_output = da_weighted_mean(
+        da_output = _da_weighted_mean(
             self._obj, weights, dim=dim, apply_nan_mask=apply_nan_mask
         )
         return self.update_attrs(da_output)
@@ -102,7 +102,7 @@ class EsmDataArrayAccessor(object):
              and the indicated dimension(s) removed.
         """
 
-        da_output = da_weighted_std(
+        da_output = _da_weighted_std(
             self._obj, weights, dim=dim, apply_nan_mask=apply_nan_mask, ddof=ddof
         )
         return self.update_attrs(da_output)
