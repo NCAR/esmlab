@@ -6,6 +6,7 @@ import xarray as xr
 import numpy as np
 import pytest
 import esmlab
+
 esmlab.__version__
 
 maskedarea = xr.DataArray(np.ones((10, 10)), dims=("x", "y"))

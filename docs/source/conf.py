@@ -176,8 +176,9 @@ intersphinx_mapping = {
 
 
 ipython_execlines = [
-    "import numpy as np", 
-    "import pandas as pd", 
-    "import xarray as xr", 
+    "import numpy as np",
+    "import pandas as pd",
+    "import xarray as xr",
     "import esmlab",
-    "from esmlab.accessors import EsmDataArrayAccessor"]
+    "from esmlab.accessors import EsmDataArrayAccessor",
+]
