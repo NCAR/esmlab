@@ -172,8 +172,13 @@ texinfo_documents = [
 intersphinx_mapping = {
     "python": ("https://docs.python.org/", None),
     "pandas": ("http://pandas-docs.github.io/pandas-docs-travis/", None),
-    "xnd": ("http://xnd.readthedocs.io", None),
 }
 
 
-ipython_execlines = ["import numpy as np", "import pandas as pd", "import xarray as xr"]
+ipython_execlines = [
+    "import numpy as np",
+    "import pandas as pd",
+    "import xarray as xr",
+    "import esmlab",
+    "from esmlab.accessors import EsmDataArrayAccessor",
+]
