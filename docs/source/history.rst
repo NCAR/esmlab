@@ -1,2 +1,2 @@
-HISTORY
+History
 =======
