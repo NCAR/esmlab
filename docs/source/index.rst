@@ -7,6 +7,8 @@ Welcome to esmlab's documentation!
 
    installation
    usage
+   api
+   history
 
 Indices and tables
 ==================
