@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 import xarray as xr
-from esmlab.dataarray_statistics import (
+from esmlab.statistics import (
     da_weighted_mean,
     da_weighted_sum,
     da_weighted_std,
