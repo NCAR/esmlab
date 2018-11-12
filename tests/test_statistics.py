@@ -18,6 +18,11 @@ y = xr.DataArray(
             "x", "y"), name="y_var")
 y[3, 3:10] = np.nan
 
+valid = (x.notnull() & y.notnull())
+N = valid.sum()
+x = x.where(valid)
+y = y.where(valid)
+
 test_data = [x, y]
 
 
@@ -46,16 +51,12 @@ def test_weighted_sum(data):
 
 
 def test_weighted_rmsd():
-    valid = (x.notnull() & y.notnull())
-    N = valid.sum()
     rmsd = np.sqrt(((x - y)**2).sum() / N)
     w_rmsd = weighted_rmsd(x, y, weights=maskedarea)
     np.testing.assert_allclose(rmsd, w_rmsd)
 
 
 def test_weighted_cov():
-    valid = (x.notnull() & y.notnull())
-    N = valid.sum()
     x_dev = x - x.mean()
     y_dev = y - y.mean()
     cov = (x_dev * y_dev).sum() / N
@@ -63,10 +64,7 @@ def test_weighted_cov():
     np.testing.assert_allclose(cov, w_cov)
 
 
-@pytest.mark.skip()
 def test_weighted_corr():
-    valid = (x.notnull() & y.notnull())
-    N = valid.sum()
     x_dev = x - x.mean()
     y_dev = y - y.mean()
     cov = (x_dev * y_dev).sum() / N
@@ -75,4 +73,4 @@ def test_weighted_corr():
     corr = (cov / np.sqrt(covx * covy))
 
     w_corr = weighted_corr(x, y, weights=maskedarea)
-    np.testing.assert_allclose(corr, w_corr, rtol=1e-04)
+    np.testing.assert_allclose(corr, w_corr)
