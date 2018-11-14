@@ -1,0 +1,8 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "nlat",
+        "nlon"
+    ],
+    "long_name": "array of u-grid latitudes",
+    "units": "degrees_north"
+}
