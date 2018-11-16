@@ -5,7 +5,7 @@ from __future__ import division
 import xarray as xr
 import numpy as np
 import pytest
-from esmlab.climatology import compute_mon_climatology
+from esmlab.climatology import compute_mon_climatology, compute_mon_anomaly
 
 
 def get_dataset_1():
@@ -15,4 +15,10 @@ def get_dataset_1():
 @pytest.mark.parametrize('dset', [get_dataset_1()])
 def test_compute_mon_climatology(dset):
     computed_dset = compute_mon_climatology(dset)
+    assert isinstance(computed_dset, xr.Dataset)
+
+
+@pytest.mark.parametrize('dset', [get_dataset_1()])
+def test_compute_mon_anomaly(dset):
+    computed_dset = compute_mon_anomaly(dset)
     assert isinstance(computed_dset, xr.Dataset)

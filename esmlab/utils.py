@@ -44,9 +44,8 @@ def save_metadata(dset):
     return attrs, encoding
 
 
-def set_metadata(dset, attrs, encoding):
-    attrs["time"] = {"long_name": "Month", "units": "month"}
-    del encoding["time"]
+def set_metadata(dset, attrs, encoding, additional_attrs):
+    attrs.update(additional_attrs)
 
     # put the attributes back
     for v in dset.variables:
