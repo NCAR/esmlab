@@ -1,9 +1,0 @@
-{
-    "_ARRAY_DIMENSIONS": [
-        "time"
-    ],
-    "bounds": "time_bound",
-    "calendar": "noleap",
-    "long_name": "time",
-    "units": "days since 0000-01-01 00:00:00"
-}
