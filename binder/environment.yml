@@ -19,5 +19,6 @@ dependencies:
   - lz4
   - nbserverproxy
   - click
+  - flake8
   - pip:
     - version-information 
