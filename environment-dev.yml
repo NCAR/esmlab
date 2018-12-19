@@ -1,0 +1,25 @@
+name: esmlab-dev
+channels:
+  - conda-forge
+dependencies:
+  - python=3.6
+  - numpy
+  - xarray
+  - netcdf4
+  - zarr
+  - dask
+  - distributed
+  - autopep8
+  - pytest
+  - coverage
+  - pytest-cov
+  - codecov
+  - sphinx>=1.6
+  - sphinx_rtd_theme
+  - recommonmark 
+  - numpydoc
+  - nbsphinx
+  - pandoc
+  - ipykernel
+  - pip:
+    - sphinx_copybutton
