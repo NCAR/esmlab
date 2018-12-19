@@ -40,6 +40,9 @@ extensions = [
     "numpydoc",
     "IPython.sphinxext.ipython_console_highlighting",
     "IPython.sphinxext.ipython_directive",
+    # "sphinx_copybutton",
+    # "recommonmark",
+    "nbsphinx",
 ]
 
 numpydoc_show_class_members = False
@@ -57,8 +60,8 @@ master_doc = "index"
 
 # General information about the project.
 project = u"esmlab"
-copyright = u"2018, University Corporation for Atmospheric Research"
-author = u"Anderson Banihirwe, Kevin Paul"
+copyright = u"2018 onwards, University Corporation for Atmospheric Research"
+author = u"Anderson Banihirwe, Kevin Paul, Matthew Long, Michael Levy"
 
 # The version info for the project you're documenting, acts as replacement
 # for |version| and |release|, also used in various other places throughout
@@ -138,7 +141,7 @@ latex_documents = [
         master_doc,
         "esmlab.tex",
         u"esmlab Documentation",
-        u"Anderson Banihirwe, Kevin Paul",
+        author,
         "manual",
     )
 ]
@@ -167,12 +170,6 @@ texinfo_documents = [
         "Miscellaneous",
     )
 ]
-
-# Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {
-    "python": ("https://docs.python.org/", None),
-    "pandas": ("http://pandas-docs.github.io/pandas-docs-travis/", None),
-}
 
 
 ipython_execlines = [

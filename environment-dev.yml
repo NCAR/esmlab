@@ -4,6 +4,7 @@ channels:
 dependencies:
   - numpy
   - xarray
+  - matplotlib
   - netcdf4
   - zarr
   - dask
