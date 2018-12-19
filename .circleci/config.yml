@@ -46,10 +46,4 @@ workflows:
   version: 2
   default:
     jobs:
-      - build_test:
-          filters:
-            branches:
-              only:
-                - devel
-                - master
- 
+      - build_test
