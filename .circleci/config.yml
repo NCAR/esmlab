@@ -1,7 +1,6 @@
 version: 2
 
 jobs:
-  # Define a "build_test" job to be run with Circle
   "python-2.7":
     # This is the base environment that Circle will use
     docker:

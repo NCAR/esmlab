@@ -6,7 +6,7 @@ set -eo pipefail
 export PYTHON_VERSION=$1
 echo
 echo "[install dependencies]"
-conda create -y -q -n esmlab-dev python=${PYTHON_VERSION}
+conda create -y -q -n esmlab-dev -c conda-forge python=${PYTHON_VERSION}
 conda env update -f environment-dev.yml
 source activate esmlab-dev
 
