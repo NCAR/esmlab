@@ -6,9 +6,9 @@
 from setuptools import setup, find_packages
 import versioneer
 import io
+from os.path import exists
 
-with io.open("README.md", encoding="utf-8") as readme_file:
-    readme = readme_file.read()
+readme = io.open('README.rst').read() if exists('README.rst') else ''
 
 
 requirements = ["pandas>=0.23.0", "dask", "xarray", "netcdf4"]
@@ -27,7 +27,7 @@ setup(
     ],
     description="",
     install_requires=requirements,
-    license="https://github.com/NCAR/esmlab/blob/master/LICENSE.rst",
+    license="Apache License 2.0",
     long_description=readme,
     long_description_content_type="text/markdown",
     keywords="esmlab",

@@ -1,55 +1,71 @@
 version: 2
 
 jobs:
-
-  # Define a "build_test" job to be run with Circle
-  build_test:
-  
+  "python-2.7":
     # This is the base environment that Circle will use
     docker:
       - image: frolvlad/alpine-miniconda3
-      
+
     steps:
-    
       - run: apk add --no-cache build-base ca-certificates git openssh bash curl
-      
+
       # Get our data and merge with upstream
       - checkout
-      
+
       # Restore cached files to speed things up
       - restore_cache:
           keys:
             - conda-pkgs
-            
-      - run: ./ci/install-circleci.sh
-      
+
+      - run: # install and activate conda environment
+          command: ./ci/install-circleci.sh 2.7
+
       # Cache some files for a speedup in subsequent builds
       - save_cache:
           key: conda-pkgs
           paths:
             - /opt/conda/pkgs
-            
-      # Run tests
-      - run:
-           name: Running Tests 
-           command: source activate esmlab-dev && py.test --junitxml=test-reports/junit.xml --cov=./
 
-      - run:
-           name: Coverage
-           command: source activate esmlab-dev && codecov
-           when: on_success
-           
-     
+      - store_test_results:
+          path: test-reports
+
+      - store_artifacts:
+          path: test-reports
+
+  "python-3.6":
+    # This is the base environment that Circle will use
+    docker:
+      - image: frolvlad/alpine-miniconda3
+
+    steps:
+      - run: apk add --no-cache build-base ca-certificates git openssh bash curl
+
+      # Get our data and merge with upstream
+      - checkout
+
+      # Restore cached files to speed things up
+      - restore_cache:
+          keys:
+            - conda-pkgs
+
+      - run: # install and activate conda environment
+          command: ./ci/install-circleci.sh 3.6
+
+      # Cache some files for a speedup in subsequent builds
+      - save_cache:
+          key: conda-pkgs
+          paths:
+            - /opt/conda/pkgs
+      - store_test_results:
+          path: test-reports
+
+      - store_artifacts:
+          path: test-reports
 
 # Tell CircleCI to use this workflow
 workflows:
   version: 2
   default:
     jobs:
-      - build_test:
-          filters:
-            branches:
-              only:
-                - devel
-                - master
- 
+      - "python-2.7"
+      - "python-3.6"
