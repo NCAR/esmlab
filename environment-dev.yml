@@ -10,6 +10,7 @@ dependencies:
   - dask
   - distributed
   - autopep8
+  - flake8
   - pytest
   - coverage
   - pytest-cov
