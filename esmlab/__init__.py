@@ -3,8 +3,9 @@
 from ._version import get_versions
 from esmlab.accessors import EsmDataArrayAccessor
 from esmlab import climatology
+from .core import statistics
 
-_module_imports = (EsmDataArrayAccessor, climatology,)
+_module_imports = (EsmDataArrayAccessor, climatology, statistics)
 __version__ = get_versions()["version"]
 del get_versions
 
