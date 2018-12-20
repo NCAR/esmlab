@@ -4,11 +4,28 @@ set -e
 set -eo pipefail
 
 export PYTHON_VERSION=$1
+export DEPLOY=$2
+
+
 echo
 echo "[install dependencies]"
 conda create -y -q -n esmlab-dev -c conda-forge python=${PYTHON_VERSION}
 conda env update -f environment-dev.yml
 source activate esmlab-dev
+
+if [ "${DEPLOY}" = "conda" ]; then
+   echo "[Building and Deploying conda package]"
+   conda install conda-build anaconda-client
+   ./ci/upload-anaconda.sh
+   return 0
+fi
+
+if [ "${DEPLOY}" = "pypi" ]; then
+   echo "[Building and Deploying PyPI package]"
+   python setup.py sdist
+   pip wheel . -w dist
+   return 0
+fi
 
 echo
 echo "[install esmlab]"
