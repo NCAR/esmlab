@@ -28,3 +28,4 @@ dependencies:
   - pip:
     - sphinx_copybutton
     - pre-commit
+    - pre-commit-hooks
