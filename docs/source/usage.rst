@@ -9,7 +9,7 @@ Import packages
 
     import xarray as xr
     import numpy as np
-    import esmlab
+    from esmlab import statistics as stats
 
 
 Create ``xarray`` data arrays
@@ -39,11 +39,15 @@ Now fill in some metadata
     y.attrs['units'] = 'celsius'
     y.attrs['created by'] = 'foo'
 
-Compute weighted mean for each ``xarray`` data array using ``esm`` accessor from ``esmlab``.
 
 .. ipython:: python
 
-    x.esm.weighted_mean(weights=maskedarea)
-    y.esm.weighted_mean(weights=maskedarea)
+    x1 = stats.weighted_mean(x, weights=maskedarea)
+    y1 = stats.weighted_mean(y, weights=maskedarea)
+    print(x1)
+    print(y1)
+    assert x1.attrs == x.attrs
+    assert x1.encoding == x.encoding
+
 
     

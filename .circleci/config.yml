@@ -15,14 +15,14 @@ jobs:
       # Restore cached files to speed things up
       - restore_cache:
           keys:
-            - conda-pkgs
+            - conda-pkgs-{{ checksum "environment-dev.yml" }}
 
       - run: # install and activate conda environment
           command: ./ci/install-circleci.sh 2.7
 
       # Cache some files for a speedup in subsequent builds
       - save_cache:
-          key: conda-pkgs
+          key: conda-pkgs-{{ checksum "environment-dev.yml" }}
           paths:
             - /opt/conda/pkgs
 
@@ -46,14 +46,14 @@ jobs:
       # Restore cached files to speed things up
       - restore_cache:
           keys:
-            - conda-pkgs
+            - conda-pkgs-{{ checksum "environment-dev.yml" }}
 
       - run: # install and activate conda environment
           command: ./ci/install-circleci.sh 3.6
 
       # Cache some files for a speedup in subsequent builds
       - save_cache:
-          key: conda-pkgs
+          key: conda-pkgs-{{ checksum "environment-dev.yml" }}
           paths:
             - /opt/conda/pkgs
       - store_test_results:
@@ -61,6 +61,10 @@ jobs:
 
       - store_artifacts:
           path: test-reports
+      # Tell Circle to store the documentation output in a folder that we can access later
+      - store_artifacts: 
+          path: docs/_build/html
+          destination: html
 
 # Tell CircleCI to use this workflow
 workflows:

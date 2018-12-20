@@ -4,6 +4,7 @@ channels:
 dependencies:
   - numpy
   - xarray
+  - matplotlib
   - netcdf4
   - zarr
   - dask
@@ -22,5 +23,9 @@ dependencies:
   - pandoc
   - ipykernel
   - six
+  - isort
+  - black
   - pip:
     - sphinx_copybutton
+    - pre-commit
+    - pre-commit-hooks

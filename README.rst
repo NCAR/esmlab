@@ -1,13 +1,14 @@
 Esmlab (Earth System Model Lab)
 ================================
 
-.. image:: https://circleci.com/gh/NCAR/esmlab/tree/master.svg?style=svg
+.. image:: https://img.shields.io/circleci/project/github/NCAR/esmlab/master.svg?style=for-the-badge
     :target: https://circleci.com/gh/NCAR/esmlab/tree/master
 
-.. image:: https://codecov.io/gh/NCAR/esmlab/branch/master/graph/badge.svg
+.. image:: https://img.shields.io/codecov/c/github/NCAR/esmlab.svg?style=for-the-badge
     :target: https://codecov.io/gh/NCAR/esmlab
 
-.. image:: https://readthedocs.org/projects/esmlab/badge/?version=latest
+
+.. image:: https://img.shields.io/readthedocs/esmlab/latest.svg?style=for-the-badge
     :target: https://esmlab.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 

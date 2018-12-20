@@ -8,7 +8,7 @@ import versioneer
 import io
 from os.path import exists
 
-readme = io.open('README.rst').read() if exists('README.rst') else ''
+readme = io.open("README.rst").read() if exists("README.rst") else ""
 
 
 requirements = ["pandas>=0.23.0", "dask", "xarray", "netcdf4"]

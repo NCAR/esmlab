@@ -1,8 +1,7 @@
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import division
-import xarray as xr
+from __future__ import absolute_import, division, print_function
+
 import cftime
+import xarray as xr
 
 
 def time_bound_var(ds):
@@ -79,3 +78,23 @@ def set_grid_vars(computed_dset, dset, grid_vars):
     return xr.merge(
         (computed_dset, dset.drop([v for v in dset.variables if v not in grid_vars]))
     )
+
+
+def get_original_attrs(x):
+    attrs = x.attrs.copy()
+    encoding = x.encoding
+    return attrs, encoding
+
+
+def update_attrs(x, original_attrs, original_encoding):
+    for att in ["grid_loc", "coordinates"]:
+        if att in original_attrs:
+            del original_attrs[att]
+
+    x.attrs = original_attrs
+    x.encoding = {
+        key: val
+        for key, val in original_encoding.items()
+        if key in ["_FillValue", "dtype"]
+    }
+    return x

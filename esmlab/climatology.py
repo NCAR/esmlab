@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 """Contains functions to compute climatologies."""
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import division
+from __future__ import absolute_import, division, print_function
+
 import numpy as np
 import xarray as xr
+
 from .utils import (
-    time_bound_var,
+    compute_time_var,
     get_grid_vars,
     get_variables,
     save_metadata,
-    compute_time_var,
     set_grid_vars,
     set_metadata,
+    time_bound_var,
 )
 
 
@@ -151,7 +151,7 @@ def compute_ann_climatology(dset, weights=None):
             dt = xr.ones_like(dset.time, dtype=bool)
             dt.values = weights
             weights = dt / dt.sum(dim=xr.ALL_DIMS)
-            np.testing.assert_allclose(weights.sum(dim=xr.ALL_DIMS), 1.)
+            np.testing.assert_allclose(weights.sum(dim=xr.ALL_DIMS), 1.0)
 
     elif not weights:
         if tb_name and tb_dim:
@@ -166,7 +166,7 @@ def compute_ann_climatology(dset, weights=None):
         else:
             dt = xr.ones_like(dset.time, dtype=bool)
             weights = dt / dt.sum(dim=xr.ALL_DIMS)
-            np.testing.assert_allclose(weights.sum(dim=xr.ALL_DIMS), 1.)
+            np.testing.assert_allclose(weights.sum(dim=xr.ALL_DIMS), 1.0)
 
     # groupby.sum() does not seem to handle missing values correctly: yields 0 not nan
     # the groupby.mean() does return nans, so create a mask of valid values
