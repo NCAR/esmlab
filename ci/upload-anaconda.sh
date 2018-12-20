@@ -2,7 +2,7 @@
 
 set -e
 set -eo pipefail
-if [-z "$CONDA_UPLOAD_TOKEN"]; then 
+if [ -z "$CONDA_UPLOAD_TOKEN" ]; then 
    echo "No upload key"
    return 0 
 fi 

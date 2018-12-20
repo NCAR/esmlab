@@ -17,14 +17,14 @@ if [ "${DEPLOY}" = "conda" ]; then
    echo "[Building and Deploying conda package]"
    conda install conda-build anaconda-client
    ./ci/upload-anaconda.sh
-   return 0
+   exit 0
 fi
 
 if [ "${DEPLOY}" = "pypi" ]; then
    echo "[Building and Deploying PyPI package]"
    python setup.py sdist
    pip wheel . -w dist
-   return 0
+   exit 0
 fi
 
 echo
