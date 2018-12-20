@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 import numpy as np
-from ..utils import (
+from .utils import (
     update_attrs,
     time_bound_var,
     get_grid_vars,

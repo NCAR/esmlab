@@ -2,7 +2,7 @@
 """Top-level package for esmlab."""
 from ._version import get_versions
 from . import climatology
-from .core import statistics
+from . import statistics
 
 _module_imports = (climatology, statistics)
 __version__ = get_versions()["version"]

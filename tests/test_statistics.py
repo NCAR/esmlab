@@ -6,7 +6,7 @@ import xarray as xr
 import numpy as np
 import pytest
 
-from esmlab.core import statistics
+from esmlab import statistics
 
 
 def _generate_data(raw):

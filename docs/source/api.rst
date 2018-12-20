@@ -6,7 +6,7 @@ API
 Statistics functions
 """""""""""""""""""""
 
-.. currentmodule:: esmlab.core
+.. currentmodule:: esmlab
 
 .. autosummary::
    statistics.weighted_sum
@@ -16,9 +16,9 @@ Statistics functions
    statistics.weighted_cov
    statistics.weighted_corr
 
-.. autofunction:: esmlab.core.statistics.weighted_sum
-.. autofunction:: esmlab.core.statistics.weighted_mean
-.. autofunction:: esmlab.core.statistics.weighted_std
-.. autofunction:: esmlab.core.statistics.weighted_rmsd
-.. autofunction:: esmlab.core.statistics.weighted_cov
-.. autofunction:: esmlab.core.statistics.weighted_corr
+.. autofunction:: esmlab.statistics.weighted_sum
+.. autofunction:: esmlab.statistics.weighted_mean
+.. autofunction:: esmlab.statistics.weighted_std
+.. autofunction:: esmlab.statistics.weighted_rmsd
+.. autofunction:: esmlab.statistics.weighted_cov
+.. autofunction:: esmlab.statistics.weighted_corr
