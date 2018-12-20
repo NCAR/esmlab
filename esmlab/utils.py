@@ -1,8 +1,7 @@
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import division
-import xarray as xr
+from __future__ import absolute_import, division, print_function
+
 import cftime
+import xarray as xr
 
 
 def time_bound_var(ds):

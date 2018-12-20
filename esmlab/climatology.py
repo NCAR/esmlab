@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 """Contains functions to compute climatologies."""
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import division
+from __future__ import absolute_import, division, print_function
+
 import numpy as np
 import xarray as xr
+
 from .utils import (
-    time_bound_var,
+    compute_time_var,
     get_grid_vars,
     get_variables,
     save_metadata,
-    compute_time_var,
     set_grid_vars,
     set_metadata,
+    time_bound_var,
 )
 
 
