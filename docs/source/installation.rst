@@ -6,7 +6,7 @@ Installation
 
 
 Stable release (COMING SOON!)
---------------
+--------------------------------
 
 To install esmlab, run this command in your terminal:
 

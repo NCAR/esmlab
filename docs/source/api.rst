@@ -1,34 +1,24 @@
 API
 ===
 
-.. currentmodule:: esmlab
-
-EsmDataArrayAccessor Methods
-""""""""""""""""""""""""""""
-These methods can be accessed by using `esm` accessor on any 
-`xarray DataArray` after importing `esmlab`.
-
-.. autosummary::
-   EsmDataArrayAccessor.weighted_sum
-   EsmDataArrayAccessor.weighted_mean
-   EsmDataArrayAccessor.weighted_std
 
 
 Statistics functions
 """""""""""""""""""""
+
+.. currentmodule:: esmlab.core
+
 .. autosummary::
+   statistics.weighted_sum
+   statistics.weighted_mean
+   statistics.weighted_std
    statistics.weighted_rmsd
    statistics.weighted_cov
-   statistics.weighted_corr 
+   statistics.weighted_corr
 
-
-.. autoclass:: EsmDataArrayAccessor
-   :members:
-
-
-
-.. currentmodule:: esmlab.statistics
-
-.. autofunction:: weighted_rmsd
-.. autofunction:: weighted_cov
-.. autofunction:: weighted_corr
+.. autofunction:: esmlab.core.statistics.weighted_sum
+.. autofunction:: esmlab.core.statistics.weighted_mean
+.. autofunction:: esmlab.core.statistics.weighted_std
+.. autofunction:: esmlab.core.statistics.weighted_rmsd
+.. autofunction:: esmlab.core.statistics.weighted_cov
+.. autofunction:: esmlab.core.statistics.weighted_corr

@@ -146,17 +146,22 @@ def weighted_std(x, weights, dim=None, apply_nan_mask=True, ddof=0):
 
 def weighted_rmsd(x, y, weights, dim=None):
     """ Compute weighted root-mean-square-deviation between two `xarray` DataArrays.
+
     Parameters
     ----------
+
     x, y : DataArray objects
         xarray objects for which to compute `weighted_rmsd`.
     weights : array_like
     dim : str or sequence of str, optional
            Dimension(s) over which to apply `weighted rmsd` By default weighted rmsd
            is applied over all dimensions.
+
     Returns
     -------
+
     root mean square deviation : float
+    
     """
 
     if not dim:
@@ -171,17 +176,22 @@ def weighted_rmsd(x, y, weights, dim=None):
 
 def weighted_cov(x, y, weights, dim=None):
     """ Compute weighted covariance between two `xarray` DataArrays.
+
     Parameters
     ----------
+
     x, y : DataArray objects
         xarray objects for which to compute `weighted covariance`.
     weights : array_like
     dim : str or sequence of str, optional
            Dimension(s) over which to apply `weighted covariance`
            By default weighted covariance is applied over all dimensions.
+
     Returns
     -------
+
     covariance : float
+
     """
 
     if not dim:
@@ -203,17 +213,22 @@ def weighted_cov(x, y, weights, dim=None):
 
 def weighted_corr(x, y, weights, dim=None):
     """ Compute weighted correlation between two `xarray` DataArrays.
+
     Parameters
     ----------
+
     x, y : DataArray objects
         xarray objects for which to compute `weighted correlation`.
     weights : array_like
     dim : str or sequence of str, optional
            Dimension(s) over which to apply `weighted correlation`
            By default weighted correlation is applied over all dimensions.
+
     Returns
     -------
+
     correlation : float
+
     """
 
     numerator = weighted_cov(x, y, weights, dim)
