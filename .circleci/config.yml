@@ -7,6 +7,7 @@ workflows:
       - "python-2.7"
       - "python-3.6"
       - "deploy-pypi"
+      - "deploy-conda"
 
 jobs:
   "python-2.7":
@@ -100,9 +101,44 @@ jobs:
             - /opt/conda/pkgs
 
       - run:
-          name: verify git tag vs. version
+          name: Build PyPI package 
           command: |
             python setup.py sdist
             pip wheel . -w dist
             
      
+
+  "deploy-conda":
+    # This is the base environment that Circle will use
+    docker:
+      - image: frolvlad/alpine-miniconda3
+
+    steps:
+      - run: apk add --no-cache build-base ca-certificates git openssh bash curl
+
+      # Get our data and merge with upstream
+      - checkout
+
+      # Restore cached files to speed things up
+      - restore_cache:
+          keys:
+            - conda-pkgs-{{ checksum "environment-dev.yml" }}
+
+      - run: # install and activate conda environment
+          command: ./ci/install-circleci.sh 3.6
+
+      # Cache some files for a speedup in subsequent builds
+      - save_cache:
+          key: conda-pkgs-{{ checksum "environment-dev.yml" }}
+          paths:
+            - /opt/conda/pkgs
+
+      - run:
+          name: Build conda package
+          command: |
+            source activate esmlab-dev
+            conda install -c conda-forge conda-build
+            cd conda 
+            conda build . 
+
+            
