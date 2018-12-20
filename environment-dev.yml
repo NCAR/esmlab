@@ -23,5 +23,8 @@ dependencies:
   - pandoc
   - ipykernel
   - six
+  - isort
+  - black
   - pip:
     - sphinx_copybutton
+    - pre-commit
