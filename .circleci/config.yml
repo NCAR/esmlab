@@ -13,6 +13,8 @@ workflows:
           filters:
             tags:
               only: /^v.*/
+            branches:
+              ignore: /.*/
 
       - "deploy-conda":
           requires:
@@ -21,6 +23,8 @@ workflows:
           filters:
             tags:
               only: /^v.*/
+            branches:
+              ignore: /.*/
 
 jobs:
   "python-2.7":
