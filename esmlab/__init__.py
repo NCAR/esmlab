@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 """Top-level package for esmlab."""
 from ._version import get_versions
-from esmlab.accessors import EsmDataArrayAccessor
-from esmlab import climatology
+from . import climatology
 from .core import statistics
 
-_module_imports = (EsmDataArrayAccessor, climatology, statistics)
+_module_imports = (climatology, statistics)
 __version__ = get_versions()["version"]
 del get_versions
 

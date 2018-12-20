@@ -41,18 +41,24 @@ def generate_data_2():
 def test_weighted_mean(data, maskedarea):
     w_mean = statistics.weighted_mean(data, weights=maskedarea)
     np.testing.assert_allclose(w_mean, data.mean())
+    assert data.attrs == w_mean.attrs
+    assert data.encoding == w_mean.encoding
 
 
 @pytest.mark.parametrize("data, maskedarea", generate_data_2())
 def test_weighted_std(data, maskedarea):
     w_std = statistics.weighted_std(data, weights=maskedarea)
     np.testing.assert_allclose(w_std, data.std())
+    assert data.attrs == w_std.attrs
+    assert data.encoding == w_std.encoding
 
 
 @pytest.mark.parametrize("data, maskedarea", generate_data_2())
 def test_weighted_sum(data, maskedarea):
     w_sum = statistics.weighted_sum(data, weights=maskedarea)
     np.testing.assert_allclose(w_sum, data.sum())
+    assert data.attrs == w_sum.attrs
+    assert data.encoding == w_sum.encoding
 
 
 @pytest.mark.parametrize("x, y, N, maskedarea", generate_data_1())
