@@ -3,8 +3,17 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 import numpy as np
-from ..utils import (update_attrs, time_bound_var, get_grid_vars, get_variables, 
-save_metadata, set_metadata, set_grid_vars, get_original_attrs)
+from ..utils import (
+    update_attrs,
+    time_bound_var,
+    get_grid_vars,
+    get_variables,
+    save_metadata,
+    set_metadata,
+    set_grid_vars,
+    get_original_attrs,
+)
+
 
 def _apply_nan_mask(x, weights, avg_over_dims_v):
     weights = weights.where(x.notnull())
@@ -49,9 +58,7 @@ def weighted_sum(x, weights, dim=None):
 
     sum_over_dims_v = _get_op_over_dims(x, weights, dim)
     if not sum_over_dims_v:
-        raise ValueError(
-            "Unexpected dimensions for variable {0}".format(
-                x.name))
+        raise ValueError("Unexpected dimensions for variable {0}".format(x.name))
 
     x_w_sum = (x * weights).sum(sum_over_dims_v)
     original_attrs, original_encoding = get_original_attrs(x)
@@ -91,8 +98,7 @@ def weighted_mean(x, weights, dim=None, apply_nan_mask=True):
     if apply_nan_mask:
         weights = _apply_nan_mask(x, weights, avg_over_dims_v)
 
-    x_w_mean = (x * weights).sum(avg_over_dims_v) / \
-        weights.sum(avg_over_dims_v)
+    x_w_mean = (x * weights).sum(avg_over_dims_v) / weights.sum(avg_over_dims_v)
     original_attrs, original_encoding = get_original_attrs(x)
     return update_attrs(x_w_mean, original_attrs, original_encoding)
 
@@ -132,8 +138,7 @@ def weighted_std(x, weights, dim=None, apply_nan_mask=True, ddof=0):
     if apply_nan_mask:
         weights = _apply_nan_mask(x, weights, avg_over_dims_v)
 
-    x_w_mean = weighted_mean(
-        x, weights, dim=dim, apply_nan_mask=False)
+    x_w_mean = weighted_mean(x, weights, dim=dim, apply_nan_mask=False)
 
     x_w_std = np.sqrt(
         (weights * (x - x_w_mean) ** 2).sum(avg_over_dims_v)
@@ -161,7 +166,7 @@ def weighted_rmsd(x, y, weights, dim=None):
     -------
 
     root mean square deviation : float
-    
+
     """
 
     if not dim:
@@ -171,7 +176,6 @@ def weighted_rmsd(x, y, weights, dim=None):
     dev = (x - y) ** 2
     dev_mean = weighted_mean(dev, weights=weights, dim=dim, apply_nan_mask=False)
     return np.sqrt(dev_mean)
-
 
 
 def weighted_cov(x, y, weights, dim=None):
@@ -204,10 +208,8 @@ def weighted_cov(x, y, weights, dim=None):
 
     dev_x = x - mean_x
     dev_y = y - mean_y
-    dev_xy = dev_x * dev_y 
-    cov_xy = weighted_mean(dev_xy,
-        weights=weights, dim=dim, apply_nan_mask=False
-    )
+    dev_xy = dev_x * dev_y
+    cov_xy = weighted_mean(dev_xy, weights=weights, dim=dim, apply_nan_mask=False)
     return cov_xy
 
 
