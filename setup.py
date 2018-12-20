@@ -8,12 +8,12 @@ import versioneer
 import io
 from os.path import exists
 
-readme = io.open("README.rst").read() if exists("README.rst") else ""
+readme = io.open("README.rst").read() if exists("README.rst") else " "
 
 
-requirements = ["pandas>=0.23.0", "dask", "xarray", "netcdf4"]
+requirements = ["pandas>=0.23.0", "dask", "xarray", "netcdf4", "cftime"]
 
-test_requirements = ["pytest", "flake8"]
+test_requirements = ["pytest"]
 
 setup(
     maintainer="Anderson Banihirwe",
@@ -21,16 +21,16 @@ setup(
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: BSD License",
-        "Natural Language :: English",
+        "License :: OSI Approved :: Apache-2.0",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.6",
     ],
-    description="",
+    description=readme,
     install_requires=requirements,
     license="Apache License 2.0",
     long_description=readme,
-    long_description_content_type="text/markdown",
-    keywords="esmlab",
+    keywords="esmlab xarray cmip",
     name="esmlab",
     packages=find_packages(),
     test_suite="tests",
