@@ -10,11 +10,17 @@ workflows:
           requires:
             - "python-2.7"
             - "python-3.6"
+          filters:
+            tags:
+              only: /^v.*/
 
       - "deploy-conda":
           requires:
             - "python-2.7"
             - "python-3.6"
+          filters:
+            tags:
+              only: /^v.*/
 
 jobs:
   "python-2.7":
@@ -94,8 +100,10 @@ jobs:
       - checkout
 
       - run: 
+          name: Deploy package release to PyPI 
           command: ./ci/install-circleci.sh 3.6 pypi
-                       
+            
+            
      
 
   "deploy-conda":
@@ -109,7 +117,8 @@ jobs:
       # Get our data and merge with upstream
       - checkout
 
-      - run: 
+      - run:
+          name: Deploy package release to Anaconda.org
           command: ./ci/install-circleci.sh 3.6 conda 
 
             
