@@ -102,6 +102,7 @@ jobs:
       - run:
           name: verify git tag vs. version
           command: |
-            python setup.py install
+            python setup.py sdist
+            pip wheel . -w dist
             
      
