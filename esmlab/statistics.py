@@ -38,15 +38,19 @@ def _get_op_over_dims(x, weights, dim):
 
 
 def weighted_sum(x, weights, dim=None):
-    """Reduce this DataArray's data by applying `weighted sum` along some dimension(s).
+    """Reduce DataArray by applying `weighted sum` along some dimension(s).
 
             Parameters
             ----------
+
+            x : DataArray object
+               xarray object for which to compute `weighted sum`.
+
             weights : array_like
 
             dim : str or sequence of str, optional
-            Dimension(s) over which to apply mean. By default `weighted sum`
-            is applied over all dimensions.
+                Dimension(s) over which to apply mean. By default `weighted sum`
+                is applied over all dimensions.
 
             Returns
             -------
@@ -66,10 +70,14 @@ def weighted_sum(x, weights, dim=None):
 
 
 def weighted_mean(x, weights, dim=None, apply_nan_mask=True):
-    """Reduce this DataArray's data by applying weighted mean along some dimension(s).
+    """Reduce DataArray by applying weighted mean along some dimension(s).
 
         Parameters
         ----------
+
+        x : DataArray object
+           xarray object for which to compute `weighted mean`.
+
         weights : array_like
 
         dim : str or sequence of str, optional
@@ -104,10 +112,14 @@ def weighted_mean(x, weights, dim=None, apply_nan_mask=True):
 
 
 def weighted_std(x, weights, dim=None, apply_nan_mask=True, ddof=0):
-    """Reduce this DataArray's data by applying `weighted std` along some dimension(s).
+    """Reduce DataArray by applying `weighted std` along some dimension(s).
 
         Parameters
         ----------
+
+        x : DataArray object
+           xarray object for which to compute `weighted std`.
+
         weights : array_like
 
         dim : str or sequence of str, optional
