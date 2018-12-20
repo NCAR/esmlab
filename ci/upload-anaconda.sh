@@ -4,7 +4,7 @@ set -e
 set -eo pipefail
 if [ -z "$CONDA_UPLOAD_TOKEN" ]; then 
    echo "No upload key"
-   return 0 
+   exit 0 
 fi 
 
 export UPLOADFILE=`conda build conda/ --output`

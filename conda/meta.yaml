@@ -6,8 +6,7 @@ package:
   version: {{ version }}
 
 source:
-  fn: {{ name }}-{{ version }}.tar.gz
-  url: https://github.com/NCAR/esmlab/releases/download/{{ version }}/{{ version }}.tar.gz
+  path: ../
   
 
 build: 
