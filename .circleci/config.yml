@@ -10,6 +10,13 @@ workflows:
           requires:
             - "python-2.7"
             - "python-3.6"
+          filters:
+            branches:
+              only:
+                - master 
+            tags:
+              only: /.*/ # Run for all tags
+              
       - "deploy-conda":
           requires:
             - "python-2.7"
