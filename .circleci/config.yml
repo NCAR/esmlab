@@ -1,4 +1,12 @@
 version: 2
+# Tell CircleCI to use this workflow
+workflows:
+  version: 2
+  default:
+    jobs:
+      - "python-2.7"
+      - "python-3.6"
+      - "deploy-pypi"
 
 jobs:
   "python-2.7":
@@ -66,10 +74,33 @@ jobs:
           path: docs/_build/html
           destination: html
 
-# Tell CircleCI to use this workflow
-workflows:
-  version: 2
-  default:
-    jobs:
-      - "python-2.7"
-      - "python-3.6"
+  "deploy-pypi":
+    # This is the base environment that Circle will use
+    docker:
+      - image: frolvlad/alpine-miniconda3
+
+    steps:
+      - run: apk add --no-cache build-base ca-certificates git openssh bash curl
+
+      # Get our data and merge with upstream
+      - checkout
+
+      # Restore cached files to speed things up
+      - restore_cache:
+          keys:
+            - conda-pkgs-{{ checksum "environment-dev.yml" }}
+
+      - run: # install and activate conda environment
+          command: ./ci/install-circleci.sh 3.6
+
+      # Cache some files for a speedup in subsequent builds
+      - save_cache:
+          key: conda-pkgs-{{ checksum "environment-dev.yml" }}
+          paths:
+            - /opt/conda/pkgs
+
+      - run:
+          name: verify git tag vs. version
+          command: echo "Ready for Deployment"
+            
+     
