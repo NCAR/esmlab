@@ -101,6 +101,7 @@ jobs:
 
       - run:
           name: verify git tag vs. version
-          command: echo "Ready for Deployment"
+          command: |
+            python setup.py install
             
      
