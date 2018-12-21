@@ -6,8 +6,25 @@ workflows:
     jobs:
       - "python-2.7"
       - "python-3.6"
-      - "deploy-pypi"
-      - "deploy-conda"
+      - "deploy-pypi":
+          requires:
+            - "python-2.7"
+            - "python-3.6"
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+
+      - "deploy-conda":
+          requires:
+            - "python-2.7"
+            - "python-3.6"
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
           
 
 jobs:
