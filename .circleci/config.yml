@@ -109,9 +109,8 @@ jobs:
           name: Check documentation build 
           command: |
             source activate ${ENV_NAME}
-            pushd docs
+            cd docs
             make html 
-            popd
 
      
       # Cache some files for a speedup in subsequent builds
