@@ -30,33 +30,30 @@ jobs:
   "python-2.7":
     # This is the base environment that Circle will use
     docker:
-      - image: frolvlad/alpine-miniconda3
+      - image: continuumio/miniconda:latest
+
+    environment:
+      PYTHON: "2.7"
+      ENV_NAME: "esmlab-dev"
 
     steps:
-      - run: apk add --no-cache build-base ca-certificates git openssh bash curl
-
       # Get our data and merge with upstream
       - checkout
 
       # Restore cached files to speed things up
       - restore_cache:
-          keys:
-            - conda-pkgs-{{ checksum "environment-dev.yml" }}
+          key: deps-{{ .Branch }}-2.7-{{ checksum "ci/environment-dev-2.7.yml" }}
 
       - run: # install and activate conda environment
-          command: ./ci/install-circleci.sh 2.7
+          name: configure conda 
+          command: ./ci/install-circle.sh
 
-      # Cache some files for a speedup in subsequent builds
       - save_cache:
-          key: conda-pkgs-{{ checksum "environment-dev.yml" }}
+          key: deps-{{ .Branch }}-2.7-{{ checksum "ci/environment-dev-2.7.yml" }}
           paths:
-            - /opt/conda/pkgs
+            - "/opt/conda/envs/${ENV_NAME}/"
 
-      - store_test_results:
-          path: test-reports
 
-      - store_artifacts:
-          path: test-reports
 
   "python-3.6":
     # This is the base environment that Circle will use
