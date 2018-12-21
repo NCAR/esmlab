@@ -127,22 +127,13 @@ jobs:
     docker:
       - image: continuumio/miniconda:latest
     
-    environment:
-      PYTHON: "3.6"
-      ENV_NAME: "esmlab-dev"
-
     steps:
       # Get our data and merge with upstream
       - checkout
 
-      - run: # install and activate conda environment
-          name: configure conda 
-          command: ./ci/install-circle.sh
-
       - run:
           name: Building and Deploying PyPI package
           command: |
-            source activate ${ENV_NAME}
             python setup.py sdist
             pip wheel . -w dist
       
@@ -151,22 +142,14 @@ jobs:
     docker:
       - image: continuumio/miniconda:latest
 
-    environment:
-      PYTHON: "3.6"
-      ENV_NAME: "esmlab-dev"
-
     steps:
       # Get our data and merge with upstream
       - checkout
 
-      - run: # install and activate conda environment
-          name: configure conda 
-          command: ./ci/install-circle.sh
-
       - run:
           name: Deploy package release to Anaconda.org
           command: |
-            source activate ${ENV_NAME}
+            conda install conda-build anaconda-client --yes --quiet
             ./ci/upload-anaconda.sh
 
             
