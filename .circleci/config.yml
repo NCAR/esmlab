@@ -27,8 +27,8 @@ workflows:
               ignore: /.*/
 
 jobs:
+  # Python 2.7 build
   "python-2.7":
-    # This is the base environment that Circle will use
     docker:
       - image: continuumio/miniconda:latest
 
@@ -37,7 +37,6 @@ jobs:
       ENV_NAME: "esmlab-dev"
 
     steps:
-      # Get our data and merge with upstream
       - checkout
 
       # Restore cached files to speed things up
@@ -48,12 +47,21 @@ jobs:
           name: configure conda 
           command: ./ci/install-circle.sh
 
+      - run:
+          command: |
+            source activate ${ENV_NAME}
+            pytest --junitxml=test-reports/junit.xml --cov=./
+
       - save_cache:
           key: deps-{{ .Branch }}-2.7-{{ checksum "ci/environment-dev-2.7.yml" }}
           paths:
             - "/opt/conda/envs/${ENV_NAME}/"
 
+      - store_test_results:
+          path: test-reports
 
+      - store_artifacts:
+          path: test-reports
 
   "python-3.6":
     # This is the base environment that Circle will use
