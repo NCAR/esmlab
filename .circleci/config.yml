@@ -41,7 +41,7 @@ jobs:
 
       # Restore cached files to speed things up
       - restore_cache:
-          key: deps-{{ .Branch }}-2.7-{{ checksum "ci/environment-dev-2.7.yml" }}-{{ checksum ".circle/config.yml" }}
+          key: deps-{{ .Branch }}-2.7-{{ checksum "ci/environment-dev-2.7.yml" }}-{{ checksum ".circleci/config.yml" }}
 
       - run: # install and activate conda environment
           name: configure conda 
@@ -53,7 +53,7 @@ jobs:
             pytest --junitxml=test-reports/junit.xml --cov=./
 
       - save_cache:
-          key: deps-{{ .Branch }}-2.7-{{ checksum "ci/environment-dev-2.7.yml" }}-{{ checksum ".circle/config.yml" }}
+          key: deps-{{ .Branch }}-2.7-{{ checksum "ci/environment-dev-2.7.yml" }}-{{ checksum ".circleci/config.yml" }}
           paths:
             - "/opt/conda/envs/${ENV_NAME}/"
             - "/opt/conda/pkgs"
@@ -79,7 +79,7 @@ jobs:
 
       # Restore cached files to speed things up
       - restore_cache:
-          key: deps-{{ .Branch }}-3.6-{{ checksum "ci/environment-dev-3.6.yml" }}-{{ checksum ".circle/config.yml" }}
+          key: deps-{{ .Branch }}-3.6-{{ checksum "ci/environment-dev-3.6.yml" }}-{{ checksum ".circleci/config.yml" }}
 
       - run: # install and activate conda environment
           name: configure conda 
@@ -116,7 +116,7 @@ jobs:
      
       # Cache some files for a speedup in subsequent builds
       - save_cache:
-          key: deps-{{ .Branch }}-3.6-{{ checksum "ci/environment-dev-3.6.yml" }}-{{ checksum ".circle/config.yml" }}
+          key: deps-{{ .Branch }}-3.6-{{ checksum "ci/environment-dev-3.6.yml" }}-{{ checksum ".circleci/config.yml" }}
           paths:
             - "/opt/conda/envs/${ENV_NAME}/"
             - "/opt/conda/pkgs"
