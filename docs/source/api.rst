@@ -1,6 +1,5 @@
-API
-===
-
+API reference
+=============
 
 
 Statistics functions

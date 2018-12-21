@@ -5,10 +5,10 @@
    :caption: Contents:
 
    installation
-   usage
    api
+   develop
    changelog
-   history
+
 
 Indices and tables
 ==================

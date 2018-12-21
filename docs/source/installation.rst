@@ -5,22 +5,22 @@ Installation
 ============
 
 
-Stable release (COMING SOON!)
---------------------------------
+Conda
+-------
 
 To install esmlab, run this command in your terminal:
 
 .. code-block:: console
 
-    $ pip install esmlab
+    $ conda install -c cisl-iowa esmlab
 
-This is the preferred method to install esmlab, as it will always install the most recent stable release.
+This is the preferred method to install esmlab, as it will always install
+the most recent stable release.
 
-If you don't have `pip`_ installed, this `Python installation guide`_ can guide
-you through the process.
+Pip
+----
 
-.. _pip: https://pip.pypa.io
-.. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
+Support is coming soon, please use conda for the time being.
 
 
 From sources
