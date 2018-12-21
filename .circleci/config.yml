@@ -56,6 +56,7 @@ jobs:
           key: deps-{{ .Branch }}-2.7-{{ checksum "ci/environment-dev-2.7.yml" }}
           paths:
             - "/opt/conda/envs/${ENV_NAME}/"
+            - "/opt/conda/pkgs"
 
       - store_test_results:
           path: test-reports
@@ -118,6 +119,7 @@ jobs:
           key: deps-{{ .Branch }}-3.6-{{ checksum "ci/environment-dev-3.6.yml" }}
           paths:
             - "/opt/conda/envs/${ENV_NAME}/"
+            - "/opt/conda/pkgs"
 
       - store_test_results:
           path: test-reports
