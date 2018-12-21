@@ -6,15 +6,8 @@ workflows:
     jobs:
       - "python-2.7"
       - "python-3.6"
-      - "deploy-pypi":
-          requires:
-            - "python-2.7"
-            - "python-3.6"
-
-      - "deploy-conda":
-          requires:
-            - "python-2.7"
-            - "python-3.6"
+      - "deploy-pypi"
+      - "deploy-conda"
           
 
 jobs:
