@@ -10,21 +10,12 @@ workflows:
           requires:
             - "python-2.7"
             - "python-3.6"
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
 
       - "deploy-conda":
           requires:
             - "python-2.7"
             - "python-3.6"
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
+          
 
 jobs:
   # Python 2.7 build
@@ -41,7 +32,7 @@ jobs:
 
       # Restore cached files to speed things up
       - restore_cache:
-          key: deps-{{ .Branch }}-2.7-{{ checksum "ci/environment-dev-2.7.yml" }}-{{ checksum ".circleci/config.yml" }}
+          key: deps-{{ .Branch }}-2.7-{{ checksum "ci/environment-dev-2.7.yml" }}
 
       - run: # install and activate conda environment
           name: configure conda 
@@ -53,7 +44,7 @@ jobs:
             pytest --junitxml=test-reports/junit.xml --cov=./
 
       - save_cache:
-          key: deps-{{ .Branch }}-2.7-{{ checksum "ci/environment-dev-2.7.yml" }}-{{ checksum ".circleci/config.yml" }}
+          key: deps-{{ .Branch }}-2.7-{{ checksum "ci/environment-dev-2.7.yml" }}
           paths:
             - "/opt/conda/envs/${ENV_NAME}/"
             - "/opt/conda/pkgs"
@@ -79,7 +70,7 @@ jobs:
 
       # Restore cached files to speed things up
       - restore_cache:
-          key: deps-{{ .Branch }}-3.6-{{ checksum "ci/environment-dev-3.6.yml" }}-{{ checksum ".circleci/config.yml" }}
+          key: deps-{{ .Branch }}-3.6-{{ checksum "ci/environment-dev-3.6.yml" }}
 
       - run: # install and activate conda environment
           name: configure conda 
@@ -116,7 +107,7 @@ jobs:
      
       # Cache some files for a speedup in subsequent builds
       - save_cache:
-          key: deps-{{ .Branch }}-3.6-{{ checksum "ci/environment-dev-3.6.yml" }}-{{ checksum ".circleci/config.yml" }}
+          key: deps-{{ .Branch }}-3.6-{{ checksum "ci/environment-dev-3.6.yml" }}
           paths:
             - "/opt/conda/envs/${ENV_NAME}/"
             - "/opt/conda/pkgs"
@@ -134,34 +125,48 @@ jobs:
   "deploy-pypi":
     # This is the base environment that Circle will use
     docker:
-      - image: frolvlad/alpine-miniconda3
+      - image: continuumio/miniconda:latest
+    
+    environment:
+      PYTHON: "3.6"
+      ENV_NAME: "esmlab-dev"
 
     steps:
-      - run: apk add --no-cache build-base ca-certificates git openssh bash curl
-
       # Get our data and merge with upstream
       - checkout
 
-      - run: 
-          name: Deploy package release to PyPI 
-          command: ./ci/install-circleci.sh 3.6 pypi
-            
-            
-     
+      - run: # install and activate conda environment
+          name: configure conda 
+          command: ./ci/install-circle.sh
+
+      - run:
+          name: Building and Deploying PyPI package
+          command: |
+            source activate ${ENV_NAME}
+            python setup.py sdist
+            pip wheel . -w dist
+      
 
   "deploy-conda":
-    # This is the base environment that Circle will use
     docker:
-      - image: frolvlad/alpine-miniconda3
+      - image: continuumio/miniconda:latest
+
+    environment:
+      PYTHON: "3.6"
+      ENV_NAME: "esmlab-dev"
 
     steps:
-      - run: apk add --no-cache build-base ca-certificates git openssh bash curl
-
       # Get our data and merge with upstream
       - checkout
+
+      - run: # install and activate conda environment
+          name: configure conda 
+          command: ./ci/install-circle.sh
 
       - run:
           name: Deploy package release to Anaconda.org
-          command: ./ci/install-circleci.sh 3.6 conda 
+          command: |
+            source activate ${ENV_NAME}
+            ./ci/upload-anaconda.sh
 
             
