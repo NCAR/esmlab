@@ -25,6 +25,7 @@ requirements:
     - xarray
     - cftime
     - dask
+    - netcdf4
 
 test:
   source_files:
