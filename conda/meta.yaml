@@ -8,10 +8,11 @@ package:
 source:
   fn: {{ name }}-{{ version }}.tar.gz
   url: https://github.com/NCAR/esmlab/archive/v{{ version }}.tar.gz
+  sha256: b2782c0bb90cb7f12ba378a5ea6b4928bb9819bf1102fc4f5c9af7e016871014
   
 
 build: 
-  script: python setup.py install --single-version-externally-managed --record=record.txt
+  script: "{{ PYTHON }} -m pip install . --no-deps -vv"
   noarch: python
   number: 0
 
