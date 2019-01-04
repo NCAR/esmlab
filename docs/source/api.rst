@@ -23,14 +23,20 @@ Climatogy functions
    climatology.compute_mon_anomaly
    climatology.compute_ann_climatology
 
-.. autofunction:: esmlab.statistics.weighted_sum
-.. autofunction:: esmlab.statistics.weighted_mean
-.. autofunction:: esmlab.statistics.weighted_std
-.. autofunction:: esmlab.statistics.weighted_rmsd
-.. autofunction:: esmlab.statistics.weighted_cov
-.. autofunction:: esmlab.statistics.weighted_corr
-.. autofunction:: climatology.compute_mon_climatology
-.. autofunction:: climatology.compute_mon_anomaly
-.. autofunction:: climatology.compute_ann_climatology
+
+.. currentmodule:: esmlab.statistics
+
+.. autofunction:: weighted_sum
+.. autofunction:: weighted_mean
+.. autofunction:: weighted_std
+.. autofunction:: weighted_rmsd
+.. autofunction:: weighted_cov
+.. autofunction:: weighted_corr
+
+.. currentmodule:: esmlab.climatology
+
+.. autofunction:: compute_mon_climatology
+.. autofunction:: compute_mon_anomaly
+.. autofunction:: compute_ann_climatology
 
 
