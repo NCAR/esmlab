@@ -6,25 +6,6 @@ workflows:
     jobs:
       - "python-2.7"
       - "python-3.6"
-      - "deploy-pypi":
-          requires:
-            - "python-2.7"
-            - "python-3.6"
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-
-      - "deploy-conda":
-          requires:
-            - "python-2.7"
-            - "python-3.6"
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
           
 
 jobs:
@@ -131,35 +112,3 @@ jobs:
       - store_artifacts: 
           path: docs/_build/html
           destination: html
-
-  "deploy-pypi":
-    # This is the base environment that Circle will use
-    docker:
-      - image: continuumio/miniconda:latest
-    
-    steps:
-      # Get our data and merge with upstream
-      - checkout
-
-      - run:
-          name: Building and Deploying PyPI package
-          command: |
-            python setup.py sdist
-            pip wheel . -w dist
-      
-
-  "deploy-conda":
-    docker:
-      - image: continuumio/miniconda:latest
-
-    steps:
-      # Get our data and merge with upstream
-      - checkout
-
-      - run:
-          name: Deploy package release to Anaconda.org
-          command: |
-            conda install conda-build anaconda-client --yes --quiet
-            ./ci/upload-anaconda.sh
-
-            
