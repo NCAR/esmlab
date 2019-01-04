@@ -10,20 +10,10 @@ dependencies:
   - zarr
   - dask
   - distributed
-  - autopep8
-  - flake8
   - pytest
   - coverage
   - pytest-cov
   - codecov
-  - sphinx>=1.6
-  - sphinx_rtd_theme
-  - recommonmark 
-  - numpydoc
-  - nbsphinx
-  - pandoc
-  - ipykernel
-  - six
-  - pip:
-    - sphinx_copybutton
+  
+
 
