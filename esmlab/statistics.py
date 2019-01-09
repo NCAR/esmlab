@@ -2,6 +2,8 @@
 from __future__ import absolute_import, division, print_function
 
 import numpy as np
+import xarray_extras.cumulatives
+import xarray_extras.interpolate
 
 from .utils import (
     get_grid_vars,
@@ -251,3 +253,31 @@ def weighted_corr(x, y, weights, dim=None):
     )
     corr_xy = numerator / denominator
     return corr_xy
+
+
+def cummean(x, dim, skipna=None):
+    """ Calculates cummulative mean
+
+    Parameters
+    ----------
+
+    x : xarray object
+       any xarray object
+    dim : str
+        imension along which to calculate the cumulative mean
+    skipna : bool
+        If True, skip missing values (as marked by NaN). By default, only skips
+        missing values for float dtypes; other dtypes either do not have a
+        sentinel missing value (int) or skipna=True has not been implemented
+        (object, datetime64 or timedelta64).
+
+    Returns
+    -------
+       xarray object with same dtype as x.
+
+    Notes
+    -----
+
+    This implementation relies on xarray-extras (https://github.com/crusaderky/xarray_extras)
+    """
+    return xarray_extras.cumulatives.cummean(x, dim, skipna)

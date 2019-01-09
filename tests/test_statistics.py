@@ -4,8 +4,20 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import pytest
 import xarray as xr
+from xarray.testing import assert_equal
 
 from esmlab import statistics
+
+INPUT = xr.DataArray(
+    [[2, 20, 25], [3, 30, 35], [4, 40, 45], [5, 50, 55]],
+    dims=["t", "s"],
+    coords={
+        "t": np.array(
+            ["1990-12-30", "2000-12-30", "2005-12-30", "2010-12-30"], dtype="<M8[D]"
+        ),
+        "s": ["s1", "s2", "s3"],
+    },
+)
 
 
 def _generate_data(raw):
@@ -87,3 +99,30 @@ def test_weighted_corr(x, y, N, maskedarea):
 
     w_corr = statistics.weighted_corr(x, y, weights=maskedarea)
     np.testing.assert_allclose(corr, w_corr)
+
+
+@pytest.mark.parametrize("dtype", [float, int, "complex128"])
+@pytest.mark.parametrize("skipna", [False, True, None])
+@pytest.mark.parametrize("use_dask", [False, True])
+def test_cummean(use_dask, skipna, dtype):
+    x = INPUT.copy(deep=True).astype(dtype)
+    if dtype in (float, "complex128"):
+        x[2, 1] = np.nan
+
+    expect = xr.concat(
+        [
+            x[:1].mean("t", skipna=skipna),
+            x[:2].mean("t", skipna=skipna),
+            x[:3].mean("t", skipna=skipna),
+            x[:4].mean("t", skipna=skipna),
+        ],
+        dim="t",
+    )
+    expect.coords["t"] = x.coords["t"]
+    if use_dask:
+        x = x.chunk({"s": 2, "t": 3})
+        expect = expect.chunk({"s": 2, "t": 3})
+
+    actual = statistics.cummean(x, "t", skipna=skipna)
+    assert_equal(expect, actual)
+    assert expect.dtype == actual.dtype

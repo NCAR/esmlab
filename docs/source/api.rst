@@ -14,6 +14,7 @@ Statistics functions
    statistics.weighted_rmsd
    statistics.weighted_cov
    statistics.weighted_corr
+   statistics.cummean
    
 Climatogy functions
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -32,6 +33,7 @@ Climatogy functions
 .. autofunction:: weighted_rmsd
 .. autofunction:: weighted_cov
 .. autofunction:: weighted_corr
+.. autofunction:: cummean
 
 .. currentmodule:: esmlab.climatology
 
