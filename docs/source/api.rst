@@ -15,6 +15,9 @@ Statistics functions
    statistics.weighted_cov
    statistics.weighted_corr
    statistics.cummean
+   statistics.compound_sum
+   statistics.compound_prod
+   statistics.compound_mean
    
 Climatogy functions
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -34,6 +37,9 @@ Climatogy functions
 .. autofunction:: weighted_cov
 .. autofunction:: weighted_corr
 .. autofunction:: cummean
+.. autofunction:: compound_sum
+.. autofunction:: compound_prod
+.. autofunction:: compound_mean
 
 .. currentmodule:: esmlab.climatology
 
