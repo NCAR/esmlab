@@ -22,6 +22,28 @@ INPUT = xr.DataArray(
 )
 
 
+T_COMPOUND_MATRIX = xr.DataArray(
+    np.array(
+        [
+            ["1990-12-30", "NaT", "NaT"],
+            ["1990-12-30", "2005-12-30", "NaT"],
+            ["2000-12-30", "1990-12-30", "NaT"],
+            ["2010-12-30", "1990-12-30", "2005-12-30"],
+        ],
+        dtype="<M8[D]",
+    ),
+    dims=["t2", "c"],
+    coords={"t2": [10, 20, 30, 40]},
+)
+
+
+S_COMPOUND_MATRIX = xr.DataArray(
+    [["s3", "s2"], ["s1", ""]], dims=["s2", "c"], coords={"s2": ["foo", "bar"]}
+)
+
+DTYPES = ("int64", "float32", "float64")
+
+
 def _generate_data(raw):
 
     maskedarea = xr.DataArray(np.ones((10, 10)), dims=("x", "y"))
@@ -132,3 +154,81 @@ def test_cummean(use_dask, skipna, dtype):
     actual = statistics.cummean(x, "t", skipna=skipna)
     assert_equal(expect, actual)
     assert expect.dtype == actual.dtype
+
+
+@pytest.mark.parametrize(
+    "func, meth",
+    [
+        (statistics.compound_sum, "sum"),
+        (statistics.compound_prod, "prod"),
+        (statistics.compound_mean, "mean"),
+    ],
+)
+@pytest.mark.parametrize("dtype", DTYPES)
+@pytest.mark.parametrize("use_dask", [False, True])
+def test_compound_t(func, meth, dtype, use_dask):
+    x = INPUT.astype(dtype)
+    c = T_COMPOUND_MATRIX
+    expect = xr.concat(
+        [
+            getattr(x.isel(t=[0]), meth)("t"),
+            getattr(x.isel(t=[0, 2]), meth)("t"),
+            getattr(x.isel(t=[1, 0]), meth)("t"),
+            getattr(x.isel(t=[3, 0, 2]), meth)("t"),
+        ],
+        dim="t2",
+    ).T.astype(dtype)
+    expect.coords["t2"] = c.coords["t2"]
+
+    if use_dask:
+        x = x.chunk({"s": 2})
+        expect = expect.chunk({"s": 2})
+        c = c.chunk()
+
+    actual = func(x, c, "t", "c")
+
+    if use_dask:
+        assert_equal(expect.compute(), actual.compute())
+    else:
+        assert_equal(expect, actual)
+
+    assert expect.dtype == actual.dtype
+    assert actual.chunks == expect.chunks
+
+
+@pytest.mark.parametrize(
+    "func, meth",
+    [
+        (statistics.compound_sum, "sum"),
+        (statistics.compound_prod, "prod"),
+        (statistics.compound_mean, "mean"),
+    ],
+)
+@pytest.mark.parametrize("dtype", DTYPES)
+@pytest.mark.parametrize("use_dask", [False, True])
+def test_compound_s(func, meth, dtype, use_dask):
+    x = INPUT.astype(dtype)
+    c = S_COMPOUND_MATRIX
+    expect = xr.concat(
+        [
+            getattr(x.sel(s=["s3", "s2"]), meth)("s"),
+            getattr(x.sel(s=["s1"]), meth)("s"),
+        ],
+        dim="s2",
+    ).T.astype(dtype)
+    expect.coords["s2"] = c.coords["s2"]
+
+    if use_dask:
+        x = x.chunk({"t": 2})
+        expect = expect.chunk({"t": 2})
+        c = c.chunk()
+
+    actual = func(x, c, "s", "c")
+
+    if use_dask:
+        assert_equal(expect.compute(), actual.compute())
+    else:
+        assert_equal(expect, actual)
+
+    assert expect.dtype == actual.dtype
+    assert actual.chunks == expect.chunks

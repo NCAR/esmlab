@@ -281,3 +281,54 @@ def cummean(x, dim, skipna=None):
     This implementation relies on xarray-extras (https://github.com/crusaderky/xarray_extras)
     """
     return xarray_extras.cumulatives.cummean(x, dim, skipna)
+
+
+def compound_sum(x, c, xdim, cdim):
+    """ Calculats compound sum on arbitrary points of x along dim.
+
+    Parameters
+    ----------
+    x : xarray object
+       Any xarray object containing the data to be compounded
+
+    c : xarray.DataArray
+        array where every row contains elements of x.coords[xdim] and
+        is used to build a point of the output.
+        The cells in the row are matched against x.coords[dim] and perform a
+        sum. If different rows of c require different amounts of points from x,
+        they must be padded on the right with NaN, NaT, or '' (respectively for
+        numbers, datetimes, and strings).
+
+    xdim : str
+        Dimension of x to acquire data from. The coord associated to it must be
+        monotonic ascending.
+
+    cdim : str
+        Dimension of c that represent the vector of points to be compounded for
+        every point of dim
+
+    Returns
+    --------
+       DataArray with all dims from x and c, except xdim and cdim, and the
+       same dtype as x.
+
+    Notes
+    -----
+      This implementation relies on xarray-extras (https://github.com/crusaderky/xarray_extras)
+    """
+
+    return xarray_extras.cumulatives.compound_sum(x, c, xdim, cdim)
+
+
+def compound_prod(x, c, xdim, cdim):
+    """Compound product among arbitrary points of x along dim
+    See :func:`compound_sum`.
+    """
+    return xarray_extras.cumulatives.compound_prod(x, c, xdim, cdim)
+
+
+def compound_mean(x, c, xdim, cdim):
+    """Compound mean among arbitrary points of x along dim
+    See :func:`compound_sum`.
+    """
+    return xarray_extras.cumulatives.compound_mean(x, c, xdim, cdim)
