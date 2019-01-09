@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 
+import sys
+
 import numpy as np
 import pytest
 import xarray as xr
@@ -101,6 +103,10 @@ def test_weighted_corr(x, y, N, maskedarea):
     np.testing.assert_allclose(corr, w_corr)
 
 
+@pytest.mark.skipif(
+    sys.version_info < (3, 5),
+    reason="xarray-extras does not support Python version < 3.5",
+)
 @pytest.mark.parametrize("dtype", [float, int, "complex128"])
 @pytest.mark.parametrize("skipna", [False, True, None])
 @pytest.mark.parametrize("use_dask", [False, True])

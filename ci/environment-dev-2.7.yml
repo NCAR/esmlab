@@ -13,7 +13,6 @@ dependencies:
   - pytest-cov
   - python=2.7
   - xarray
-  - xarray-extras
   - zarr
   
 
