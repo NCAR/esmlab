@@ -83,6 +83,8 @@ def set_grid_vars(computed_dset, dset, grid_vars):
 def get_original_attrs(x):
     attrs = x.attrs.copy()
     encoding = x.encoding
+    if "_FillValue" not in encoding:
+        encoding["_FillValue"] = None
     return attrs, encoding
 
 
