@@ -5,11 +5,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from esmlab.climatology import (
-    compute_ann_climatology,
-    compute_mon_anomaly,
-    compute_mon_climatology,
-)
+from esmlab.climatology import compute_ann_mean, compute_mon_anomaly, compute_mon_mean
 
 
 def get_dataset_1():
@@ -41,8 +37,8 @@ def get_dataset_2():
 
 
 @pytest.mark.parametrize("dset", [get_dataset_2()])
-def test_compute_mon_climatology(dset):
-    computed_dset = compute_mon_climatology(dset)
+def test_compute_mon_mean(dset):
+    computed_dset = compute_mon_mean(dset)
     assert isinstance(computed_dset, xr.Dataset)
 
 
@@ -53,6 +49,6 @@ def test_compute_mon_anomaly(dset):
 
 
 @pytest.mark.parametrize("dset", [get_dataset_1()])
-def test_compute_ann_climatology(dset):
-    computed_dset = compute_ann_climatology(dset)
+def test_compute_ann_mean(dset):
+    computed_dset = compute_ann_mean(dset)
     assert isinstance(computed_dset, xr.Dataset)
