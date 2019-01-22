@@ -16,7 +16,7 @@ from .utils import (
 )
 
 
-def compute_mon_climatology(dset):
+def compute_mon_mean(dset):
     """Calculates monthly climatology (monthly means)
 
     Parameters
@@ -110,7 +110,7 @@ def compute_mon_anomaly(dset):
     return computed_dset
 
 
-def compute_ann_climatology(dset, weights=None):
+def compute_ann_mean(dset, weights=None):
     """Calculates annual climatology (annual means)
 
     Parameters

@@ -19,9 +19,9 @@ Climatogy functions
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autosummary::
-   climatology.compute_mon_climatology
+   climatology.compute_mon_mean
    climatology.compute_mon_anomaly
-   climatology.compute_ann_climatology
+   climatology.compute_ann_mean
 
 
 .. currentmodule:: esmlab.statistics
@@ -35,8 +35,8 @@ Climatogy functions
 
 .. currentmodule:: esmlab.climatology
 
-.. autofunction:: compute_mon_climatology
+.. autofunction:: compute_mon_mean
 .. autofunction:: compute_mon_anomaly
-.. autofunction:: compute_ann_climatology
+.. autofunction:: compute_ann_mean
 
 
