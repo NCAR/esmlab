@@ -1,6 +1,8 @@
 from __future__ import absolute_import, division, print_function
 
 import cftime
+from datetime import datetime
+import numpy as np
 import xarray as xr
 
 
@@ -53,24 +55,39 @@ def set_metadata(dset, attrs, encoding, additional_attrs):
     # put the encoding back
     for v in dset.variables:
         if v in encoding:
+            if dset[v].dtype == 'int64': # int64 breaks some other tools
+                encoding[v]['dtype'] = 'int32'
             dset[v].encoding = encoding[v]
 
     return dset
 
 
-def compute_time_var(dset, tb_name, tb_dim):
-    # -- compute time variable
-    date = cftime.num2date(
-        dset[tb_name].mean(tb_dim),
-        units=dset.time.attrs["units"],
-        calendar=dset.time.attrs["calendar"],
-    )
-    if len(date) % 12 != 0:
-        raise ValueError("Time axis not evenly divisible by 12!")
+def compute_time_var(dset, tb_name, tb_dim, year_offset=np.nan):
 
-    else:
-        dset.time.values = date
+    if dset.time.dtype != 'O':
+        time_values = dset[tb_name].mean(tb_dim)
 
+        if not np.isnan(year_offset):
+            time_values += cftime.date2num(datetime(int(year_offset), 1, 1),
+                                           dset.time.attrs["units"],
+                                           dset.time.attrs["calendar"])
+            dset.time.attrs['esmlab_year_offset'] = year_offset
+
+        date = cftime.num2date(time_values,
+                               units=dset.time.attrs["units"],
+                               calendar=dset.time.attrs["calendar"])
+
+        dset.time.values = xr.CFTimeIndex(date)
+
+    return dset
+
+
+def uncompute_time_var(dset, tb_name, tb_dim):
+    if dset.time.dtype == 'O':
+        time_values = cftime.date2num(dset.time,
+                                      units=dset.time.attrs["units"],
+                                      calendar=dset.time.attrs["calendar"])
+        dset.time.values = time_values
     return dset
 
 
