@@ -14,12 +14,12 @@ Statistics functions
    statistics.weighted_rmsd
    statistics.weighted_cov
    statistics.weighted_corr
-   
+
 Climatogy functions
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autosummary::
-   climatology.compute_mon_mean
+   climatology.compute_mon_climatology
    climatology.compute_mon_anomaly
    climatology.compute_ann_mean
 
@@ -35,8 +35,6 @@ Climatogy functions
 
 .. currentmodule:: esmlab.climatology
 
-.. autofunction:: compute_mon_mean
+.. autofunction:: compute_mon_climatology
 .. autofunction:: compute_mon_anomaly
 .. autofunction:: compute_ann_mean
-
-
