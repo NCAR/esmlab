@@ -242,7 +242,6 @@ def compute_ann_mean(dset, weights=None):
     for v in variables:
         computed_dset[v] = computed_dset[v].where(valid[v])
 
-    print(tb_name)
     computed_dset = computed_dset.drop(tb_name)
 
     # Put the attributes, encoding back
