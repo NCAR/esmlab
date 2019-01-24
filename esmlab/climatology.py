@@ -16,7 +16,7 @@ from .utils import (
 )
 
 
-def compute_mon_mean(dset):
+def compute_mon_climatology(dset):
     """Calculates monthly climatology (monthly means)
 
     Parameters
@@ -63,13 +63,18 @@ def compute_mon_mean(dset):
     return computed_dset
 
 
-def compute_mon_anomaly(dset):
+def compute_mon_anomaly(dset, slice_mon_clim_time=None):
     """Calculates monthly anomaly
 
     Parameters
     ----------
     dset : xarray.Dataset
            The data on which to operate
+
+    slice_mon_clim_time : slice, optional
+                          a slice object passed to
+                          `dset.isel(time=slice_mon_clim_time)` for subseting
+                          the time-period overwhich the climatology is computed
 
     Returns
     -------
@@ -90,9 +95,14 @@ def compute_mon_anomaly(dset):
         dset = compute_time_var(dset, tb_name, tb_dim)
 
     # Compute anomaly
-    computed_dset = dset.drop(grid_vars).groupby("time.month") - dset.drop(
-        grid_vars
-    ).groupby("time.month").mean("time")
+    if slice_mon_clim_time is None:
+        computed_dset = dset.drop(grid_vars).groupby("time.month") - dset.drop(
+            grid_vars
+        ).groupby("time.month").mean("time")
+    else:
+        computed_dset = dset.drop(grid_vars).groupby("time.month") - dset.drop(
+            grid_vars
+        ).sel(time=slice_mon_clim_time).groupby("time.month").mean("time")
 
     # reset month to become a variable
     computed_dset = computed_dset.reset_coords("month")
@@ -118,7 +128,7 @@ def compute_ann_mean(dset, weights=None):
     dset : xarray.Dataset
            The data on which to operate
 
-    weights : array_like
+    weights : array_like, optional
               weights to use for each time period.
               If None and dataset doesn't have `time_bound` variable,
               every time period has equal weight of 1.
