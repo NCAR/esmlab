@@ -242,8 +242,6 @@ def compute_ann_mean(dset, weights=None):
     for v in variables:
         computed_dset[v] = computed_dset[v].where(valid[v])
 
-    computed_dset = computed_dset.drop(tb_name)
-
     # Put the attributes, encoding back
     computed_dset = set_metadata(computed_dset, attrs, encoding,
                                  additional_attrs={"time": {"long_name": "year"}})
