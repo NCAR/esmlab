@@ -58,31 +58,31 @@ def compute_mon_climatology(dset):
     attrs["month"] = {"long_name": "Month", "units": "month"}
     encoding["month"] = {"dtype": "int32", "_FillValue": None}
 
-    computed_dset["month_bounds"] = (computed_dset[tb_name]
-                                     - computed_dset[tb_name][0, 0])
+    computed_dset["month_bounds"] = (
+        computed_dset[tb_name] - computed_dset[tb_name][0, 0]
+    )
     computed_dset.time.values = computed_dset.month_bounds.mean(tb_dim).values
 
     encoding["month_bounds"] = {"dtype": "float", "_FillValue": None}
-    attrs["month_bounds"] = {"long_name": "month_bounds",
-                             "units": "days since 0001-01-01 00:00:00",
-                             "calendar": attrs["time"]["calendar"]}
+    attrs["month_bounds"] = {
+        "long_name": "month_bounds",
+        "units": "days since 0001-01-01 00:00:00",
+        "calendar": attrs["time"]["calendar"],
+    }
 
-    attrs["time"] = {"long_name": "time",
-                     "units": "days since 0001-01-01 00:00:00",
-                     "calendar": attrs["time"]["calendar"],
-                     "bounds": "month_bounds"}
+    attrs["time"] = {
+        "long_name": "time",
+        "units": "days since 0001-01-01 00:00:00",
+        "calendar": attrs["time"]["calendar"],
+        "bounds": "month_bounds",
+    }
 
     encoding["time"] = {"dtype": "float", "_FillValue": None}
 
     computed_dset = computed_dset.drop(tb_name)
 
     # Put the attributes, encoding back
-    computed_dset = set_metadata(
-        computed_dset,
-        attrs,
-        encoding,
-        additional_attrs={}
-    )
+    computed_dset = set_metadata(computed_dset, attrs, encoding, additional_attrs={})
     return computed_dset
 
 
@@ -243,6 +243,7 @@ def compute_ann_mean(dset, weights=None):
         computed_dset[v] = computed_dset[v].where(valid[v])
 
     # Put the attributes, encoding back
-    computed_dset = set_metadata(computed_dset, attrs, encoding,
-                                 additional_attrs={"time": {"long_name": "year"}})
+    computed_dset = set_metadata(
+        computed_dset, attrs, encoding, additional_attrs={"time": {"long_name": "year"}}
+    )
     return computed_dset
