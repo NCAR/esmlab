@@ -58,8 +58,8 @@ def compute_mon_climatology(dset):
     attrs["month"] = {"long_name": "Month", "units": "month"}
     encoding["month"] = {"dtype": "int32", "_FillValue": None}
 
-    computed_dset["month_bounds"] = (computed_dset[tb_name] -
-                                     computed_dset[tb_name][0, 0])
+    computed_dset["month_bounds"] = (computed_dset[tb_name]
+                                     - computed_dset[tb_name][0, 0])
     computed_dset.time.values = computed_dset.month_bounds.mean(tb_dim).values
 
     encoding["month_bounds"] = {"dtype": "float", "_FillValue": None}

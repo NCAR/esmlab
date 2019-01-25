@@ -55,7 +55,7 @@ def set_metadata(dset, attrs, encoding, additional_attrs):
     # put the encoding back
     for v in dset.variables:
         if v in encoding:
-            if dset[v].dtype == 'int64': # int64 breaks some other tools
+            if dset[v].dtype == 'int64':  # int64 breaks some other tools
                 encoding[v]['dtype'] = 'int32'
             dset[v].encoding = encoding[v]
 
