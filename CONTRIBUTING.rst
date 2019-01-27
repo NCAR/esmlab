@@ -5,13 +5,16 @@ Contribution getting started
 Contributions are highly welcomed and appreciated.  Every little help counts,
 so do not hesitate!
 
+The following sections cover some general guidelines
+regarding development in esmlab for maintainers and contributors.
+Nothing here is set in stone and can't be changed.
+Feel free to suggest improvements or changes in the workflow.
+
+
+
 .. contents:: Contribution links
    :depth: 2
 
-
-Some general guidelines regarding development in esmlab for maintainers
-and contributors. Nothing here is set in stone and can't be changed.
-Feel free to suggest improvements or changes in the workflow.
 
 
 .. _submitfeedback:
