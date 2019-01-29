@@ -116,23 +116,19 @@ Preparing Pull Requests
    https://pre-commit.com/ is a framework for managing and maintaining multi-language pre-commit hooks
    to ensure code-style and code formatting is consistent.
 
-#. Install tox
+#. Install dependencies into a new conda environment
 
-   Tox is used to run all the tests and will automatically setup virtualenvs
-   to run the tests in.
-   (will implicitly use http://www.virtualenv.org/en/latest/)::
-
-    $ pip install tox
-
+    $ conda env update -f ci/environment-dev-3.7.yml
+   
 #. Run all the tests
 
-   You need to have Python 3.6 and 3.7 available in your system.  Now
-   running tests is as simple as issuing this command::
+   Now running tests is as simple as issuing this command::
 
-    $ tox -e linting,py36,py37
+    $ conda activate esmlab-dev
+    $ pytest --junitxml=test-reports/junit.xml --cov=./
 
-   This command will run tests via the "tox" tool against Python 3.6 and 3.7
-   and also perform "lint" coding-style checks.
+
+   This command will run tests via the "pytest" tool against Python 3.7.
 
 #. You can now edit your local working copy and run the tests again as necessary. Please follow PEP-8 for naming.
 
@@ -145,7 +141,7 @@ Preparing Pull Requests
 
 #. Create a new changelog entry in ``changelog``. The file should be named ``<issueid>.<type>``,
    where *issueid* is the number of the issue related to the change and *type* is one of
-   ``bugfix``, ``removal``, ``feature``, ``vendor``, ``doc`` or ``trivial``.
+   ``bugfix``, ``removal``, ``feature``, ``doc`` or ``trivial``.
 
 #. Add yourself to ``AUTHORS`` file if not there yet, in alphabetical order.
 
