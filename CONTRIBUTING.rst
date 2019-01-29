@@ -77,8 +77,10 @@ without using a local copy.  This can be convenient for small fixes.
     Build the documentation locally with the following command:
 
     .. code:: bash
-
-        $ tox -e docs
+        
+        $ conda env update -f ci/environment-dev-3.7.yml
+        $ cd docs
+        $ make html
 
     The built documentation should be available in the ``docs/_build/``.
 
@@ -101,7 +103,7 @@ Preparing Pull Requests
     $ cd esmlab
     # now, to fix a bug or add feature create your own branch off "master":
 
-        $ git checkout -b your-bugfix-feature-branch-name master
+    $ git checkout -b your-bugfix-feature-branch-name master
 
    If you need some help with Git, follow this quick start
    guide: https://git.wiki.kernel.org/index.php/QuickStart
@@ -116,9 +118,10 @@ Preparing Pull Requests
    https://pre-commit.com/ is a framework for managing and maintaining multi-language pre-commit hooks
    to ensure code-style and code formatting is consistent.
 
-#. Install dependencies into a new conda environment
+#. Install dependencies into a new conda environment::
 
     $ conda env update -f ci/environment-dev-3.7.yml
+
    
 #. Run all the tests
 
