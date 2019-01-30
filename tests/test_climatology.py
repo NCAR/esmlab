@@ -40,20 +40,32 @@ def get_dataset_2():
     return ds
 
 
+@pytest.mark.parametrize("dset", [get_dataset_1()])
+def test_compute_mon_climatology1(dset):
+    computed_dset = compute_mon_climatology(dset)
+    assert isinstance(computed_dset, xr.Dataset)
+
+
 @pytest.mark.parametrize("dset", [get_dataset_2()])
-def test_compute_mon_climatology(dset):
+def test_compute_mon_climatology2(dset):
     computed_dset = compute_mon_climatology(dset)
     assert isinstance(computed_dset, xr.Dataset)
     np.testing.assert_equal(computed_dset.var_to_average.values, 0.5)
 
 
 @pytest.mark.parametrize("dset", [get_dataset_2()])
-def test_compute_mon_anomaly(dset):
+def test_compute_mon_anomaly2(dset):
     computed_dset = compute_mon_anomaly(dset)
     assert isinstance(computed_dset, xr.Dataset)
 
 
 @pytest.mark.parametrize("dset", [get_dataset_1()])
-def test_compute_ann_mean(dset):
+def test_compute_ann_mean1(dset):
+    computed_dset = compute_ann_mean(dset)
+    assert isinstance(computed_dset, xr.Dataset)
+
+
+@pytest.mark.parametrize("dset", [get_dataset_2()])
+def test_compute_ann_mean2(dset):
     computed_dset = compute_ann_mean(dset)
     assert isinstance(computed_dset, xr.Dataset)

@@ -21,6 +21,11 @@ def time_bound_var(ds):
     return tb_name, tb_dim
 
 
+def time_year_to_midyeardate(ds):
+    ds.time.values = np.array([cftime.datetime(year, 7, 2) for year in ds.time])
+    return ds
+
+
 def get_grid_vars(dset):
     return [v for v in dset.variables if "time" not in dset[v].dims]
 
