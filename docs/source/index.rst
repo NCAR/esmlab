@@ -6,7 +6,7 @@
 
    install
    api
-   develop
+   contributing
    changelog
 
 
