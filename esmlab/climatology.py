@@ -235,6 +235,9 @@ def compute_ann_mean(dset, weights=None):
     # Renormalize to appropriately account for missing values
     computed_dset = computed_dset / ones_out
 
+    if tb_name:
+        computed_dset = computed_dset.drop(tb_name)
+
     # Put grid_vars back
     computed_dset = set_grid_vars(computed_dset, dset, grid_vars)
 
