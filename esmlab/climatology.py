@@ -249,7 +249,7 @@ def compute_ann_mean(dset, weights=None):
     if tb_name:
         computed_dset = computed_dset.drop(tb_name)
 
-    if tb_dim:
+    if tb_dim in computed_dset.dims:
         computed_dset = computed_dset.drop(tb_dim)
 
     # Apply the valid-values mask
