@@ -193,10 +193,16 @@ def compute_ann_mean(dset, weights=None):
 
     elif not weights:
         if tb_name and tb_dim:
-            dt = dset[tb_name].diff(dim=tb_dim)[:, 0].drop(tb_dim)
+
+            dt = dset[tb_name].diff(dim=tb_dim)[:, 0]
+
+            if tb_dim in dt.coords:
+                dt = dt.drop(tb_dim)
+
             weights = dt.groupby("time.year") / dt.groupby("time.year").sum(
                 dim=xr.ALL_DIMS
             )
+
             np.testing.assert_allclose(
                 weights.groupby("time.year").sum(dim=xr.ALL_DIMS), 1.0
             )
@@ -241,7 +247,10 @@ def compute_ann_mean(dset, weights=None):
     computed_dset = computed_dset / ones_out
 
     if tb_name:
-        computed_dset = computed_dset.drop([tb_name, tb_dim])
+        computed_dset = computed_dset.drop(tb_name)
+
+    if tb_dim:
+        computed_dset = computed_dset.drop(tb_dim)
 
     # Apply the valid-values mask
     for v in variables:
