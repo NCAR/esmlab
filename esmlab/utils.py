@@ -21,6 +21,11 @@ def time_bound_var(ds):
     return tb_name, tb_dim
 
 
+def time_year_to_midyeardate(ds):
+    ds.time.values = np.array([cftime.datetime(year, 7, 2) for year in ds.time])
+    return ds
+
+
 def get_grid_vars(dset):
     return [v for v in dset.variables if "time" not in dset[v].dims]
 
@@ -65,7 +70,7 @@ def set_metadata(dset, attrs, encoding, additional_attrs):
 
 def compute_time_var(dset, tb_name, tb_dim, year_offset=np.nan):
 
-    if dset.time.dtype != "O":
+    if dset.time.dtype != np.dtype("O"):
         time_values = dset[tb_name].mean(tb_dim)
 
         if not np.isnan(year_offset):
@@ -87,13 +92,18 @@ def compute_time_var(dset, tb_name, tb_dim, year_offset=np.nan):
     return dset
 
 
-def uncompute_time_var(dset, tb_name, tb_dim):
-    if dset.time.dtype == "O":
-        time_values = cftime.date2num(
-            dset.time,
-            units=dset.time.attrs["units"],
-            calendar=dset.time.attrs["calendar"],
-        )
+def uncompute_time_var(dset):
+    if dset.time.dtype == np.dtype("O"):
+        calendar = "standard"
+        units = "days since 0001-01-01 00:00:00"
+        if "calendar" in dset.time.attrs:
+            calendar = dset.time.attrs["calendar"]
+
+        if "units" in dset.time.attrs:
+            units = dset.time.attrs["units"]
+
+        time_values = cftime.date2num(dset.time, units=units, calendar=calendar)
+
         dset.time.values = time_values
     return dset
 

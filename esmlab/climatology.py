@@ -13,6 +13,7 @@ from .utils import (
     set_grid_vars,
     set_metadata,
     time_bound_var,
+    time_year_to_midyeardate,
 )
 
 
@@ -58,28 +59,32 @@ def compute_mon_climatology(dset):
     attrs["month"] = {"long_name": "Month", "units": "month"}
     encoding["month"] = {"dtype": "int32", "_FillValue": None}
 
-    computed_dset["month_bounds"] = (
-        computed_dset[tb_name] - computed_dset[tb_name][0, 0]
-    )
-    computed_dset.time.values = computed_dset.month_bounds.mean(tb_dim).values
+    if tb_name:
+        computed_dset["month_bounds"] = (
+            computed_dset[tb_name] - computed_dset[tb_name][0, 0]
+        )
+        computed_dset.time.values = computed_dset.month_bounds.mean(tb_dim).values
 
-    encoding["month_bounds"] = {"dtype": "float", "_FillValue": None}
-    attrs["month_bounds"] = {
-        "long_name": "month_bounds",
-        "units": "days since 0001-01-01 00:00:00",
-        "calendar": attrs["time"]["calendar"],
-    }
+        encoding["month_bounds"] = {"dtype": "float", "_FillValue": None}
+        attrs["month_bounds"] = {
+            "long_name": "month_bounds",
+            "units": "days since 0001-01-01 00:00:00",
+        }
 
-    attrs["time"] = {
-        "long_name": "time",
-        "units": "days since 0001-01-01 00:00:00",
-        "calendar": attrs["time"]["calendar"],
-        "bounds": "month_bounds",
-    }
+        attrs["time"] = {
+            "long_name": "time",
+            "units": "days since 0001-01-01 00:00:00",
+            "bounds": "month_bounds",
+        }
+
+    if "calendar" in attrs["time"]:
+        attrs["time"]["calendar"] = attrs["time"]["calendar"]
+        attrs["month_bounds"]["calendar"] = attrs["time"]["calendar"]
 
     encoding["time"] = {"dtype": "float", "_FillValue": None}
 
-    computed_dset = computed_dset.drop(tb_name)
+    if tb_name:
+        computed_dset = computed_dset.drop(tb_name)
 
     # Put the attributes, encoding back
     computed_dset = set_metadata(computed_dset, attrs, encoding, additional_attrs={})
@@ -188,10 +193,16 @@ def compute_ann_mean(dset, weights=None):
 
     elif not weights:
         if tb_name and tb_dim:
+
             dt = dset[tb_name].diff(dim=tb_dim)[:, 0]
+
+            if tb_dim in dt.coords:
+                dt = dt.drop(tb_dim)
+
             weights = dt.groupby("time.year") / dt.groupby("time.year").sum(
                 dim=xr.ALL_DIMS
             )
+
             np.testing.assert_allclose(
                 weights.groupby("time.year").sum(dim=xr.ALL_DIMS), 1.0
             )
@@ -220,7 +231,7 @@ def compute_ann_mean(dset, weights=None):
         .fillna(0.0)
     )
 
-    # Compute annual means
+    # Compute annual mean
     computed_dset = (
         (dset.drop(grid_vars) * weights)
         .groupby("time.year")
@@ -235,15 +246,29 @@ def compute_ann_mean(dset, weights=None):
     # Renormalize to appropriately account for missing values
     computed_dset = computed_dset / ones_out
 
-    # Put grid_vars back
-    computed_dset = set_grid_vars(computed_dset, dset, grid_vars)
+    if tb_name:
+        computed_dset = computed_dset.drop(tb_name)
+
+    if tb_dim in computed_dset.dims:
+        computed_dset = computed_dset.drop(tb_dim)
 
     # Apply the valid-values mask
     for v in variables:
         computed_dset[v] = computed_dset[v].where(valid[v])
 
+    # Put grid_vars back
+    computed_dset = set_grid_vars(computed_dset, dset, grid_vars)
+
+    # make year into date
+    computed_dset = time_year_to_midyeardate(computed_dset)
+
+    attrs["time"] = {"long_name": "time", "units": "days since 0001-01-01 00:00:00"}
+
+    if "calendar" in attrs["time"]:
+        attrs["time"]["calendar"] = attrs["time"]["calendar"]
+        attrs["month_bounds"]["calendar"] = attrs["time"]["calendar"]
+
     # Put the attributes, encoding back
-    computed_dset = set_metadata(
-        computed_dset, attrs, encoding, additional_attrs={"time": {"long_name": "year"}}
-    )
+    computed_dset = set_metadata(computed_dset, attrs, encoding, additional_attrs={})
+
     return computed_dset
