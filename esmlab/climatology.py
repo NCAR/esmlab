@@ -5,15 +5,20 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import xarray as xr
 
-from .utils import (
+from .utils._time import (
     compute_time_var,
+    time_bound_var,
+    time_year_to_midyeardate,
+    uncompute_time_var,
+)
+from .utils._variables import (
     get_grid_vars,
+    get_original_attrs,
     get_variables,
     save_metadata,
     set_grid_vars,
     set_metadata,
-    time_bound_var,
-    time_year_to_midyeardate,
+    update_attrs,
 )
 
 
