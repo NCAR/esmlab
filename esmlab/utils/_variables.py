@@ -7,7 +7,7 @@ import numpy as np
 import xarray as xr
 
 
-def get_grid_vars(dset):
+def get_static_vars(dset):
     return [v for v in dset.variables if "time" not in dset[v].dims]
 
 
@@ -49,9 +49,9 @@ def set_metadata(dset, attrs, encoding, additional_attrs):
     return dset
 
 
-def set_grid_vars(computed_dset, dset, grid_vars):
+def set_static_vars(computed_dset, dset, static_vars):
     return xr.merge(
-        (computed_dset, dset.drop([v for v in dset.variables if v not in grid_vars]))
+        (computed_dset, dset.drop([v for v in dset.variables if v not in static_vars]))
     )
 
 

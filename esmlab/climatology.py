@@ -12,12 +12,12 @@ from .utils._time import (
     uncompute_time_var,
 )
 from .utils._variables import (
-    get_grid_vars,
     get_original_attrs,
+    get_static_vars,
     get_variables,
     save_metadata,
-    set_grid_vars,
     set_metadata,
+    set_static_vars,
     update_attrs,
 )
 
@@ -39,7 +39,7 @@ def compute_mon_climatology(dset):
 
     tb_name, tb_dim = time_bound_var(dset)
 
-    grid_vars = get_grid_vars(dset)
+    static_vars = get_static_vars(dset)
 
     # save metadata
     attrs, encoding = save_metadata(dset)
@@ -50,14 +50,14 @@ def compute_mon_climatology(dset):
 
     # Compute climatology
     computed_dset = (
-        dset.drop(grid_vars)
+        dset.drop(static_vars)
         .groupby("time.month")
         .mean("time")
         .rename({"month": "time"})
     )
 
-    # Put grid_vars back
-    computed_dset = set_grid_vars(computed_dset, dset, grid_vars)
+    # Put static_vars back
+    computed_dset = set_static_vars(computed_dset, dset, static_vars)
 
     # add month_bounds
     computed_dset["month"] = computed_dset.time.copy()
@@ -118,7 +118,7 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None):
 
     tb_name, tb_dim = time_bound_var(dset)
 
-    grid_vars = get_grid_vars(dset)
+    static_vars = get_static_vars(dset)
 
     # save metadata
     attrs, encoding = save_metadata(dset)
@@ -129,19 +129,19 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None):
 
     # Compute anomaly
     if slice_mon_clim_time is None:
-        computed_dset = dset.drop(grid_vars).groupby("time.month") - dset.drop(
-            grid_vars
+        computed_dset = dset.drop(static_vars).groupby("time.month") - dset.drop(
+            static_vars
         ).groupby("time.month").mean("time")
     else:
-        computed_dset = dset.drop(grid_vars).groupby("time.month") - dset.drop(
-            grid_vars
+        computed_dset = dset.drop(static_vars).groupby("time.month") - dset.drop(
+            static_vars
         ).sel(time=slice_mon_clim_time).groupby("time.month").mean("time")
 
     # reset month to become a variable
     computed_dset = computed_dset.reset_coords("month")
 
-    # Put grid_vars back
-    computed_dset = set_grid_vars(computed_dset, dset, grid_vars)
+    # Put static_vars back
+    computed_dset = set_static_vars(computed_dset, dset, static_vars)
 
     # Put the attributes, encoding back
     computed_dset = set_metadata(
@@ -175,7 +175,7 @@ def compute_ann_mean(dset, weights=None):
 
     tb_name, tb_dim = time_bound_var(dset)
 
-    grid_vars = get_grid_vars(dset)
+    static_vars = get_static_vars(dset)
     variables = get_variables(dset, tb_name)
     # save metadata
     attrs, encoding = save_metadata(dset)
@@ -227,7 +227,7 @@ def compute_ann_mean(dset, weights=None):
         for v in variables
     }
     ones = (
-        dset.drop(grid_vars)
+        dset.drop(static_vars)
         .where(dset.isnull())
         .fillna(1.0)
         .where(dset.notnull())
@@ -236,7 +236,7 @@ def compute_ann_mean(dset, weights=None):
 
     # Compute annual mean
     computed_dset = (
-        (dset.drop(grid_vars) * weights)
+        (dset.drop(static_vars) * weights)
         .groupby("time.year")
         .sum("time")
         .rename({"year": "time"})
@@ -259,8 +259,8 @@ def compute_ann_mean(dset, weights=None):
     for v in variables:
         computed_dset[v] = computed_dset[v].where(valid[v])
 
-    # Put grid_vars back
-    computed_dset = set_grid_vars(computed_dset, dset, grid_vars)
+    # Put static_vars back
+    computed_dset = set_static_vars(computed_dset, dset, static_vars)
 
     # make year into date
     computed_dset = time_year_to_midyeardate(computed_dset)

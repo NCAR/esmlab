@@ -10,12 +10,12 @@ from .utils._time import (
     uncompute_time_var,
 )
 from .utils._variables import (
-    get_grid_vars,
     get_original_attrs,
+    get_static_vars,
     get_variables,
     save_metadata,
-    set_grid_vars,
     set_metadata,
+    set_static_vars,
     update_attrs,
 )
 
