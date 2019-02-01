@@ -7,15 +7,15 @@ import numpy as np
 import xarray as xr
 
 
-def get_static_variables(dset):
-    return [v for v in dset.variables if "time" not in dset[v].dims]
+def get_static_variables(dset, time_coord_name):
+    return [v for v in dset.variables if time_coord_name not in dset[v].dims]
 
 
-def get_variables(dset, tb_name=None):
+def get_variables(dset, time_coord_name, tb_name=None):
     return [
         v
         for v in dset.variables
-        if "time" in dset[v].dims and v not in ["time", tb_name]
+        if time_coord_name in dset[v].dims and v not in [time_coord_name, tb_name]
     ]
 
 
