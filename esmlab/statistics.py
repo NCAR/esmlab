@@ -11,11 +11,11 @@ from .utils._time import (
 )
 from .utils._variables import (
     get_original_attrs,
-    get_static_vars,
+    get_static_variables,
     get_variables,
     save_metadata,
     set_metadata,
-    set_static_vars,
+    set_static_variables,
     update_attrs,
 )
 
