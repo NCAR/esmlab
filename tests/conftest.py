@@ -6,7 +6,7 @@ from pytest_lazyfixture import lazy_fixture
 
 @pytest.fixture
 def rasm():
-    return xr.tutorial.load_dataset("rasm")
+    return xr.tutorial.open_dataset("rasm").load()
 
 
 @pytest.fixture
