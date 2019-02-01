@@ -28,4 +28,5 @@ dependencies:
   - six
   - pip:
     - sphinx_copybutton
+    - pytest-lazy-fixture
 
