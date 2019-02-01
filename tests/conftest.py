@@ -1,16 +1,10 @@
 import numpy as np
 import pytest
 import xarray as xr
-from pytest_lazyfixture import lazy_fixture
 
 
 @pytest.fixture
-def rasm():
-    return xr.tutorial.open_dataset("rasm").load()
-
-
-@pytest.fixture
-def sample_dataset():
+def dset():
     start_date = np.array([0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334])
     start_date = np.append(start_date, start_date + 365)
     end_date = np.array([31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365])
@@ -31,8 +25,3 @@ def sample_dataset():
     ds.time.attrs["calendar"] = "noleap"
     ds.time.attrs["bounds"] = "time_bound"
     return ds
-
-
-@pytest.fixture(params=[lazy_fixture("rasm"), lazy_fixture("sample_dataset")])
-def dset(request):
-    return request.param

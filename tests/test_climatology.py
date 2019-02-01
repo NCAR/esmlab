@@ -12,21 +12,47 @@ from esmlab.climatology import (
 )
 
 
-def test_compute_mon_climatology1(dset):
+def test_compute_mon_climatology(dset):
     computed_dset = compute_mon_climatology(dset)
-    assert isinstance(computed_dset, xr.Dataset)
-
-
-def test_compute_mon_climatology2(sample_dataset):
-    computed_dset = compute_mon_climatology(sample_dataset)
     np.testing.assert_equal(computed_dset.var_to_average.values, 0.5)
 
 
 def test_compute_mon_anomaly(dset):
     computed_dset = compute_mon_anomaly(dset)
     assert isinstance(computed_dset, xr.Dataset)
+    expected = np.array(
+        [
+            -0.5,
+            -0.5,
+            -0.5,
+            -0.5,
+            -0.5,
+            -0.5,
+            -0.5,
+            -0.5,
+            -0.5,
+            -0.5,
+            -0.5,
+            -0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+        ]
+    )
+    np.testing.assert_equal(computed_dset.var_to_average.values.ravel(), expected)
 
 
 def test_compute_ann_mean(dset):
     computed_dset = compute_ann_mean(dset)
     assert isinstance(computed_dset, xr.Dataset)
+    expected = np.array([0.0, 1.0])
+    np.testing.assert_equal(computed_dset.var_to_average.values.ravel(), expected)
