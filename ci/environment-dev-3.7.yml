@@ -2,30 +2,30 @@ name: esmlab-dev
 channels:
   - conda-forge
 dependencies:
-  - python=3.7
-  - numpy
-  - xarray
-  - matplotlib
-  - netcdf4
-  - zarr
+  - autopep8
+  - black
+  - codecov
+  - coverage
   - dask
   - distributed
-  - autopep8
   - flake8
-  - black
-  - isort
-  - pytest
-  - coverage
-  - pytest-cov
-  - codecov
-  - sphinx>=1.6
-  - sphinx_rtd_theme
-  - recommonmark 
-  - numpydoc
-  - nbsphinx
-  - pandoc
   - ipykernel
+  - isort
+  - matplotlib
+  - nbsphinx
+  - netcdf4
+  - numpy==1.15
+  - numpydoc
+  - pandoc
+  - pytest
+  - pytest-cov
+  - python=3.7
+  - recommonmark 
   - six
+  - sphinx_rtd_theme
+  - sphinx>=1.6
+  - xarray==0.11.2
+  - zarr
   - pip:
     - sphinx_copybutton
     - pytest-lazy-fixture
