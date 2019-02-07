@@ -3,14 +3,19 @@ from __future__ import absolute_import, division, print_function
 
 import numpy as np
 
-from .utils import (
-    get_grid_vars,
+from .utils._time import (
+    compute_time_var,
+    time_bound_var,
+    time_year_to_midyeardate,
+    uncompute_time_var,
+)
+from .utils._variables import (
     get_original_attrs,
+    get_static_variables,
     get_variables,
     save_metadata,
-    set_grid_vars,
     set_metadata,
-    time_bound_var,
+    set_static_variables,
     update_attrs,
 )
 

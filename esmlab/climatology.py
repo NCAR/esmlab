@@ -5,19 +5,24 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import xarray as xr
 
-from .utils import (
+from .utils._time import (
     compute_time_var,
-    get_grid_vars,
-    get_variables,
-    save_metadata,
-    set_grid_vars,
-    set_metadata,
+    infer_time_coord_name,
     time_bound_var,
     time_year_to_midyeardate,
 )
+from .utils._variables import (
+    get_original_attrs,
+    get_static_variables,
+    get_variables,
+    save_metadata,
+    set_metadata,
+    set_static_variables,
+    update_attrs,
+)
 
 
-def compute_mon_climatology(dset):
+def compute_mon_climatology(dset, time_coord_name=None):
     """Calculates monthly climatology (monthly means)
 
     Parameters
@@ -25,37 +30,43 @@ def compute_mon_climatology(dset):
     dset : xarray.Dataset
            The data on which to operate
 
+    time_coord_name : string
+            Name for time coordinate
+
     Returns
     -------
     computed_dset : xarray.Dataset
                     The computed monthly climatology data
 
     """
+    if time_coord_name is None:
+        time_coord_name = infer_time_coord_name(dset)
 
-    tb_name, tb_dim = time_bound_var(dset)
+    tb_name, tb_dim = time_bound_var(dset, time_coord_name)
 
-    grid_vars = get_grid_vars(dset)
+    static_variables = get_static_variables(dset, time_coord_name)
 
     # save metadata
     attrs, encoding = save_metadata(dset)
 
     # Compute new time variable
     if tb_name and tb_dim:
-        dset = compute_time_var(dset, tb_name, tb_dim)
+        dset = compute_time_var(dset, tb_name, tb_dim, time_coord_name)
 
     # Compute climatology
+    time_dot_month = ".".join([time_coord_name, "month"])
     computed_dset = (
-        dset.drop(grid_vars)
-        .groupby("time.month")
-        .mean("time")
-        .rename({"month": "time"})
+        dset.drop(static_variables)
+        .groupby(time_dot_month)
+        .mean(time_coord_name)
+        .rename({"month": time_coord_name})
     )
 
-    # Put grid_vars back
-    computed_dset = set_grid_vars(computed_dset, dset, grid_vars)
+    # Put static_variables back
+    computed_dset = set_static_variables(computed_dset, dset, static_variables)
 
     # add month_bounds
-    computed_dset["month"] = computed_dset.time.copy()
+    computed_dset["month"] = computed_dset[time_coord_name].copy()
     attrs["month"] = {"long_name": "Month", "units": "month"}
     encoding["month"] = {"dtype": "int32", "_FillValue": None}
 
@@ -63,7 +74,9 @@ def compute_mon_climatology(dset):
         computed_dset["month_bounds"] = (
             computed_dset[tb_name] - computed_dset[tb_name][0, 0]
         )
-        computed_dset.time.values = computed_dset.month_bounds.mean(tb_dim).values
+        computed_dset[time_coord_name].values = computed_dset.month_bounds.mean(
+            tb_dim
+        ).values
 
         encoding["month_bounds"] = {"dtype": "float", "_FillValue": None}
         attrs["month_bounds"] = {
@@ -71,17 +84,17 @@ def compute_mon_climatology(dset):
             "units": "days since 0001-01-01 00:00:00",
         }
 
-        attrs["time"] = {
-            "long_name": "time",
+        attrs[time_coord_name] = {
+            "long_name": time_coord_name,
             "units": "days since 0001-01-01 00:00:00",
             "bounds": "month_bounds",
         }
 
-    if "calendar" in attrs["time"]:
-        attrs["time"]["calendar"] = attrs["time"]["calendar"]
-        attrs["month_bounds"]["calendar"] = attrs["time"]["calendar"]
+    if "calendar" in attrs[time_coord_name]:
+        attrs[time_coord_name]["calendar"] = attrs[time_coord_name]["calendar"]
+        attrs["month_bounds"]["calendar"] = attrs[time_coord_name]["calendar"]
 
-    encoding["time"] = {"dtype": "float", "_FillValue": None}
+    encoding[time_coord_name] = {"dtype": "float", "_FillValue": None}
 
     if tb_name:
         computed_dset = computed_dset.drop(tb_name)
@@ -91,7 +104,7 @@ def compute_mon_climatology(dset):
     return computed_dset
 
 
-def compute_mon_anomaly(dset, slice_mon_clim_time=None):
+def compute_mon_anomaly(dset, slice_mon_clim_time=None, time_coord_name=None):
     """Calculates monthly anomaly
 
     Parameters
@@ -103,6 +116,8 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None):
                           a slice object passed to
                           `dset.isel(time=slice_mon_clim_time)` for subseting
                           the time-period overwhich the climatology is computed
+    time_coord_name : string
+            Name for time coordinate
 
     Returns
     -------
@@ -111,32 +126,36 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None):
 
     """
 
-    tb_name, tb_dim = time_bound_var(dset)
+    if time_coord_name is None:
+        time_coord_name = infer_time_coord_name(dset)
 
-    grid_vars = get_grid_vars(dset)
+    tb_name, tb_dim = time_bound_var(dset, time_coord_name)
+
+    static_variables = get_static_variables(dset, time_coord_name)
 
     # save metadata
     attrs, encoding = save_metadata(dset)
 
     # Compute new time variable
     if tb_name and tb_dim:
-        dset = compute_time_var(dset, tb_name, tb_dim)
+        dset = compute_time_var(dset, tb_name, tb_dim, time_coord_name)
 
     # Compute anomaly
+    time_dot_month = ".".join([time_coord_name, "month"])
     if slice_mon_clim_time is None:
-        computed_dset = dset.drop(grid_vars).groupby("time.month") - dset.drop(
-            grid_vars
-        ).groupby("time.month").mean("time")
+        computed_dset = dset.drop(static_variables).groupby(time_dot_month) - dset.drop(
+            static_variables
+        ).groupby(time_dot_month).mean(time_coord_name)
     else:
-        computed_dset = dset.drop(grid_vars).groupby("time.month") - dset.drop(
-            grid_vars
-        ).sel(time=slice_mon_clim_time).groupby("time.month").mean("time")
+        computed_dset = dset.drop(static_variables).groupby(time_dot_month) - dset.drop(
+            static_variables
+        ).sel(time=slice_mon_clim_time).groupby(time_dot_month).mean(time_coord_name)
 
     # reset month to become a variable
     computed_dset = computed_dset.reset_coords("month")
 
-    # Put grid_vars back
-    computed_dset = set_grid_vars(computed_dset, dset, grid_vars)
+    # Put static_variables back
+    computed_dset = set_static_variables(computed_dset, dset, static_variables)
 
     # Put the attributes, encoding back
     computed_dset = set_metadata(
@@ -148,7 +167,7 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None):
     return computed_dset
 
 
-def compute_ann_mean(dset, weights=None):
+def compute_ann_mean(dset, weights=None, time_coord_name=None):
     """Calculates annual climatology (annual means)
 
     Parameters
@@ -161,6 +180,9 @@ def compute_ann_mean(dset, weights=None):
               If None and dataset doesn't have `time_bound` variable,
               every time period has equal weight of 1.
 
+    time_coord_name : string
+            Name for time coordinate
+
     Returns
     -------
     computed_dset : xarray.Dataset
@@ -168,25 +190,29 @@ def compute_ann_mean(dset, weights=None):
 
     """
 
-    tb_name, tb_dim = time_bound_var(dset)
+    if time_coord_name is None:
+        time_coord_name = infer_time_coord_name(dset)
 
-    grid_vars = get_grid_vars(dset)
-    variables = get_variables(dset, tb_name)
+    tb_name, tb_dim = time_bound_var(dset, time_coord_name)
+
+    static_variables = get_static_variables(dset, time_coord_name)
+    variables = get_variables(dset, time_coord_name, tb_name)
     # save metadata
     attrs, encoding = save_metadata(dset)
 
     # Compute new time variable
     if tb_name and tb_dim:
-        dset = compute_time_var(dset, tb_name, tb_dim)
+        dset = compute_time_var(dset, tb_name, tb_dim, time_coord_name)
 
+    time_dot_year = ".".join([time_coord_name, "year"])
     # Compute weights
     if weights:
-        if len(weights) != len(dset.time):
+        if len(weights) != len(dset[time_coord_name]):
             raise ValueError(
                 "weights and dataset time values must be of the same length"
             )
         else:
-            dt = xr.ones_like(dset.time, dtype=bool)
+            dt = xr.ones_like(dset[time_coord_name], dtype=bool)
             dt.values = weights
             weights = dt / dt.sum(xr.ALL_DIMS)
             np.testing.assert_allclose(weights.sum(xr.ALL_DIMS), 1.0)
@@ -199,14 +225,16 @@ def compute_ann_mean(dset, weights=None):
             if tb_dim in dt.coords:
                 dt = dt.drop(tb_dim)
 
-            weights = dt.groupby("time.year") / dt.groupby("time.year").sum(xr.ALL_DIMS)
+            weights = dt.groupby(time_dot_year) / dt.groupby(time_dot_year).sum(
+                xr.ALL_DIMS
+            )
 
             np.testing.assert_allclose(
-                weights.groupby("time.year").sum(xr.ALL_DIMS), 1.0
+                weights.groupby(time_dot_year).sum(xr.ALL_DIMS), 1.0
             )
 
         else:
-            dt = xr.ones_like(dset.time, dtype=bool)
+            dt = xr.ones_like(dset[time_coord_name], dtype=bool)
             weights = dt / dt.sum(xr.ALL_DIMS)
             np.testing.assert_allclose(weights.sum(xr.ALL_DIMS), 1.0)
 
@@ -215,14 +243,14 @@ def compute_ann_mean(dset, weights=None):
     # for each variable
     valid = {
         v: dset[v]
-        .groupby("time.year")
-        .mean(dim="time")
+        .groupby(time_dot_year)
+        .mean(dim=time_coord_name)
         .notnull()
-        .rename({"year": "time"})
+        .rename({"year": time_coord_name})
         for v in variables
     }
     ones = (
-        dset.drop(grid_vars)
+        dset.drop(static_variables)
         .where(dset.isnull())
         .fillna(1.0)
         .where(dset.notnull())
@@ -231,13 +259,16 @@ def compute_ann_mean(dset, weights=None):
 
     # Compute annual mean
     computed_dset = (
-        (dset.drop(grid_vars) * weights)
-        .groupby("time.year")
-        .sum("time")
-        .rename({"year": "time"})
+        (dset.drop(static_variables) * weights)
+        .groupby(time_dot_year)
+        .sum(time_coord_name)
+        .rename({"year": time_coord_name})
     )
     ones_out = (
-        (ones * weights).groupby("time.year").sum("time").rename({"year": "time"})
+        (ones * weights)
+        .groupby(time_dot_year)
+        .sum(time_coord_name)
+        .rename({"year": time_coord_name})
     )
     ones_out = ones_out.where(ones_out > 0.0)
 
@@ -254,17 +285,20 @@ def compute_ann_mean(dset, weights=None):
     for v in variables:
         computed_dset[v] = computed_dset[v].where(valid[v])
 
-    # Put grid_vars back
-    computed_dset = set_grid_vars(computed_dset, dset, grid_vars)
+    # Put static_variables back
+    computed_dset = set_static_variables(computed_dset, dset, static_variables)
 
     # make year into date
-    computed_dset = time_year_to_midyeardate(computed_dset)
+    computed_dset = time_year_to_midyeardate(computed_dset, time_coord_name)
 
-    attrs["time"] = {"long_name": "time", "units": "days since 0001-01-01 00:00:00"}
+    attrs[time_coord_name] = {
+        "long_name": time_coord_name,
+        "units": "days since 0001-01-01 00:00:00",
+    }
 
-    if "calendar" in attrs["time"]:
-        attrs["time"]["calendar"] = attrs["time"]["calendar"]
-        attrs["month_bounds"]["calendar"] = attrs["time"]["calendar"]
+    if "calendar" in attrs[time_coord_name]:
+        attrs[time_coord_name]["calendar"] = attrs[time_coord_name]["calendar"]
+        attrs["month_bounds"]["calendar"] = attrs[time_coord_name]["calendar"]
 
     # Put the attributes, encoding back
     computed_dset = set_metadata(computed_dset, attrs, encoding, additional_attrs={})
