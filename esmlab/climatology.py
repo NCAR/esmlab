@@ -5,7 +5,12 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import xarray as xr
 
-from .utils._time import compute_time_var, time_bound_var, time_year_to_midyeardate
+from .utils._time import (
+    compute_time_var,
+    infer_time_coord_name,
+    time_bound_var,
+    time_year_to_midyeardate,
+)
 from .utils._variables import (
     get_original_attrs,
     get_static_variables,
@@ -17,7 +22,7 @@ from .utils._variables import (
 )
 
 
-def compute_mon_climatology(dset, time_coord_name="time"):
+def compute_mon_climatology(dset, time_coord_name=None):
     """Calculates monthly climatology (monthly means)
 
     Parameters
@@ -26,7 +31,7 @@ def compute_mon_climatology(dset, time_coord_name="time"):
            The data on which to operate
 
     time_coord_name : string
-            The time coordinate name
+            Name for time coordinate
 
     Returns
     -------
@@ -34,6 +39,8 @@ def compute_mon_climatology(dset, time_coord_name="time"):
                     The computed monthly climatology data
 
     """
+    if time_coord_name is None:
+        time_coord_name = infer_time_coord_name(dset)
 
     tb_name, tb_dim = time_bound_var(dset, time_coord_name)
 
@@ -97,7 +104,7 @@ def compute_mon_climatology(dset, time_coord_name="time"):
     return computed_dset
 
 
-def compute_mon_anomaly(dset, slice_mon_clim_time=None, time_coord_name="time"):
+def compute_mon_anomaly(dset, slice_mon_clim_time=None, time_coord_name=None):
     """Calculates monthly anomaly
 
     Parameters
@@ -110,7 +117,7 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None, time_coord_name="time"):
                           `dset.isel(time=slice_mon_clim_time)` for subseting
                           the time-period overwhich the climatology is computed
     time_coord_name : string
-            The time coordinate name
+            Name for time coordinate
 
     Returns
     -------
@@ -118,6 +125,9 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None, time_coord_name="time"):
                     The computed monthly anomaly data
 
     """
+
+    if time_coord_name is None:
+        time_coord_name = infer_time_coord_name(dset)
 
     tb_name, tb_dim = time_bound_var(dset, time_coord_name)
 
@@ -157,7 +167,7 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None, time_coord_name="time"):
     return computed_dset
 
 
-def compute_ann_mean(dset, weights=None, time_coord_name="time"):
+def compute_ann_mean(dset, weights=None, time_coord_name=None):
     """Calculates annual climatology (annual means)
 
     Parameters
@@ -171,7 +181,7 @@ def compute_ann_mean(dset, weights=None, time_coord_name="time"):
               every time period has equal weight of 1.
 
     time_coord_name : string
-            The time coordinate name
+            Name for time coordinate
 
     Returns
     -------
@@ -179,6 +189,9 @@ def compute_ann_mean(dset, weights=None, time_coord_name="time"):
                     The computed annual climatology data
 
     """
+
+    if time_coord_name is None:
+        time_coord_name = infer_time_coord_name(dset)
 
     tb_name, tb_dim = time_bound_var(dset, time_coord_name)
 

@@ -68,3 +68,18 @@ def uncompute_time_var(dset, time_coord_name):
 
         dset[time_coord_name].values = time_values
     return dset
+
+
+def infer_time_coord_name(ds):
+    """ Infer name for time coordinate in a dataset"""
+    if "time" in ds.variables:
+        return "time"
+
+    unlimited_dims = ds.encoding.get("unlimited_dims", None)
+    if len(unlimited_dims) == 1:
+        return list(unlimited_dims)[0]
+
+    raise ValueError(
+        "Cannot infer `time_coord_name` from multiple unlimited dimensions: %s \n\t\t ***** Please specify time_coord_name to use. *****"
+        % unlimited_dims
+    )
