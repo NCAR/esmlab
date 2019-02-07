@@ -16,12 +16,12 @@
 # relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
 #
+import esmlab
 import os
 import sys
 
 sys.path.insert(0, os.path.abspath("../.."))
 
-import esmlab
 
 # -- General configuration ---------------------------------------------
 
@@ -45,6 +45,10 @@ extensions = [
     "nbsphinx",
 ]
 
+extlinks = {
+    "issue": ("https://github.com/NCAR/esmlab/issues/%s", "GH#"),
+    "pr": ("https://github.com/NCAR/esmlab/pull/%s", "GH#"),
+}
 numpydoc_show_class_members = False
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -61,7 +65,7 @@ master_doc = "index"
 # General information about the project.
 project = u"esmlab"
 copyright = u"2018 onwards, University Corporation for Atmospheric Research"
-author = u"Anderson Banihirwe, Kevin Paul, Matthew Long, Michael Levy"
+author = u"Anderson Banihirwe, Kevin Paul, Matthew Long, Michael Levy, Julia Kent"
 
 # The version info for the project you're documenting, acts as replacement
 # for |version| and |release|, also used in various other places throughout
