@@ -275,22 +275,11 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
     # Renormalize to appropriately account for missing values
     computed_dset = computed_dset / ones_out
 
-    if tb_name:
-        computed_dset = computed_dset.drop(tb_name)
-
-    if tb_dim in computed_dset.dims:
-        computed_dset = computed_dset.drop(tb_dim)
-
     # Apply the valid-values mask
     for v in variables:
         computed_dset[v] = computed_dset[v].where(valid[v])
 
-    # Put static_variables back
-    computed_dset = set_static_variables(computed_dset, dset, static_variables)
-
-    # make year into date
-    computed_dset = time_year_to_midyeardate(computed_dset, time_coord_name)
-
+    # address time
     attrs[time_coord_name] = {
         "long_name": time_coord_name,
         "units": "days since 0001-01-01 00:00:00",
@@ -298,7 +287,30 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
 
     if "calendar" in attrs[time_coord_name]:
         attrs[time_coord_name]["calendar"] = attrs[time_coord_name]["calendar"]
-        attrs["month_bounds"]["calendar"] = attrs[time_coord_name]["calendar"]
+
+    # compute the time_bound variable
+    if tb_name and tb_dim:
+        tb_out_lo = (
+            dset[tb_name][:, 0]
+            .groupby(time_dot_year)
+            .min(dim=time_coord_name)
+            .rename({"year": time_coord_name})
+        )
+        tb_out_hi = (
+            dset[tb_name][:, 1]
+            .groupby(time_dot_year)
+            .max(dim=time_coord_name)
+            .rename({"year": time_coord_name})
+        )
+
+        computed_dset[tb_name] = xr.concat((tb_out_lo, tb_out_hi), dim=tb_dim)
+        attrs[time_coord_name]["bounds"] = tb_name
+
+    # Put static_variables back
+    computed_dset = set_static_variables(computed_dset, dset, static_variables)
+
+    # make year into date
+    computed_dset = time_year_to_midyeardate(computed_dset, time_coord_name)
 
     # Put the attributes, encoding back
     computed_dset = set_metadata(computed_dset, attrs, encoding, additional_attrs={})
