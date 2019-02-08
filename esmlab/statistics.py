@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function
 
 import numpy as np
+import xarray as xr
 
 from .utils._time import (
     compute_time_var,
@@ -69,7 +70,9 @@ def weighted_sum(x, weights, dim=None):
     if not sum_over_dims_v:
         raise ValueError("Unexpected dimensions for variable {0}".format(x.name))
 
-    x_w_sum = (x * weights).sum(sum_over_dims_v)
+    with xr.set_options(arithmetic_join="exact"):
+        x_w_sum = (x * weights).sum(sum_over_dims_v)
+
     original_attrs, original_encoding = get_original_attrs(x)
     return update_attrs(x_w_sum, original_attrs, original_encoding)
 
@@ -111,7 +114,8 @@ def weighted_mean(x, weights, dim=None, apply_nan_mask=True):
     if apply_nan_mask:
         weights = _apply_nan_mask(x, weights, avg_over_dims_v)
 
-    x_w_mean = (x * weights).sum(avg_over_dims_v) / weights.sum(avg_over_dims_v)
+    with xr.set_options(arithmetic_join="exact"):
+        x_w_mean = (x * weights).sum(avg_over_dims_v) / weights.sum(avg_over_dims_v)
     original_attrs, original_encoding = get_original_attrs(x)
     return update_attrs(x_w_mean, original_attrs, original_encoding)
 
@@ -157,10 +161,11 @@ def weighted_std(x, weights, dim=None, apply_nan_mask=True, ddof=0):
 
     x_w_mean = weighted_mean(x, weights, dim=dim, apply_nan_mask=False)
 
-    x_w_std = np.sqrt(
-        (weights * (x - x_w_mean) ** 2).sum(avg_over_dims_v)
-        / (weights.sum(avg_over_dims_v) - ddof)
-    )
+    with xr.set_options(arithmetic_join="exact"):
+        x_w_std = np.sqrt(
+            (weights * (x - x_w_mean) ** 2).sum(avg_over_dims_v)
+            / (weights.sum(avg_over_dims_v) - ddof)
+        )
     original_attrs, original_encoding = get_original_attrs(x)
 
     return update_attrs(x_w_std, original_attrs, original_encoding)
@@ -190,8 +195,10 @@ def weighted_rmsd(x, y, weights, dim=None):
         dim = weights.dims
 
     weights = _apply_nan_mask_for_two_arrays(x, y, weights)
-    dev = (x - y) ** 2
-    dev_mean = weighted_mean(dev, weights=weights, dim=dim, apply_nan_mask=False)
+
+    with xr.set_options(arithmetic_join="exact"):
+        dev = (x - y) ** 2
+        dev_mean = weighted_mean(dev, weights=weights, dim=dim, apply_nan_mask=False)
     return np.sqrt(dev_mean)
 
 
@@ -223,10 +230,11 @@ def weighted_cov(x, y, weights, dim=None):
     mean_x = weighted_mean(x, weights=weights, dim=dim, apply_nan_mask=False)
     mean_y = weighted_mean(y, weights=weights, dim=dim, apply_nan_mask=False)
 
-    dev_x = x - mean_x
-    dev_y = y - mean_y
-    dev_xy = dev_x * dev_y
-    cov_xy = weighted_mean(dev_xy, weights=weights, dim=dim, apply_nan_mask=False)
+    with xr.set_options(arithmetic_join="exact"):
+        dev_x = x - mean_x
+        dev_y = y - mean_y
+        dev_xy = dev_x * dev_y
+        cov_xy = weighted_mean(dev_xy, weights=weights, dim=dim, apply_nan_mask=False)
     return cov_xy
 
 
@@ -251,8 +259,9 @@ def weighted_corr(x, y, weights, dim=None):
     """
 
     numerator = weighted_cov(x, y, weights, dim)
-    denominator = np.sqrt(
-        weighted_cov(x, x, weights, dim) * weighted_cov(y, y, weights, dim)
-    )
-    corr_xy = numerator / denominator
+    with xr.set_options(arithmetic_join="exact"):
+        denominator = np.sqrt(
+            weighted_cov(x, x, weights, dim) * weighted_cov(y, y, weights, dim)
+        )
+        corr_xy = numerator / denominator
     return corr_xy
