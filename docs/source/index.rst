@@ -5,6 +5,7 @@
    :caption: Contents:
 
    install
+   regridding.ipynb
    api
    contributing
    changelog
