@@ -74,7 +74,7 @@ class regridder(object):
                 - 'patch'
                 - 'nearest_s2d'
                 - 'nearest_d2s'
-        overwrite_existing : logical, optional [Default=False]
+        overwrite_existing : bool, optional [Default=False]
                            Overwrite previously generated weight files.
 
         """
@@ -132,7 +132,7 @@ class regridder(object):
         ----------
         da_in : xr.DataArray
               The data to regrid
-        renormalize : logical, optional [default=True]
+        renormalize : bool, optional [default=True]
                    Logical flag to trigger renormalization of the remapping
                    weights. This is useful if the remapping weight-file was
                    computed with a different missing value mask than `da_in`.
@@ -146,7 +146,7 @@ class regridder(object):
                    New coordinate can be a scalar, array-like or DataArray.
                    If DataArrays are passed as new coordates, their dimensions
                    are used for the broadcasting.
-        apply_mask : logical, optional [default=False]
+        apply_mask : bool, optional [default=False]
                   Apply a missing-values mask after regridding operations.
         post_method : callable, optional
                  If provided, call this function on DataArray after regridding.
