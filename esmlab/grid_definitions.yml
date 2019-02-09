@@ -1,7 +1,3 @@
-config:
-  dir_grid_files: /glade/work/mclong/regrid2/grid_files
-  dir_weight_files: /glade/work/mclong/regrid2/weight_files
-
 grids:
 
   POP_gx3v7:
@@ -104,7 +100,7 @@ grids:
         region_mask_fname: /glade/p/cesmdata/cseg/inputdata/ocn/pop/tx0.1v2/grid/region_mask_20080702.ieeei4
         type: tripole
         lateral_dims: [2400, 3600]
-        
+
   POP_tx0.1v3:
     lateral_dims: [2400, 3600]
     vertical_dims: 62
