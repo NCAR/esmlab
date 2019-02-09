@@ -63,13 +63,13 @@ class regridder(object):
         Parameters
         ----------
         name_grid_src : string
-                      Name of source grid
+                      Name of source grid.
         name_grid_dst : string
-                      Name of destination grid
+                      Name of destination grid.
         method : string, optional
                 Regridding method. Options are:
                 - 'bilinear'
-                - 'conservative', **need grid corner information**
+                - 'conservative'
                 - 'patch'
                 - 'nearest_s2d'
                 - 'nearest_d2s'
@@ -121,10 +121,42 @@ class regridder(object):
         da_in,
         renormalize=True,
         apply_mask=None,
-        interp_coord={},
+        interp_coord=None,
         post_method=None,
-        post_method_kwargs={},
+        post_method_kwargs=None,
     ):
+        """Perform regridding on an `xarray.DataArray`.
+
+        Parameters
+        ----------
+        da_in : xr.DataArray
+              The data to regrid
+        renormalize : logical, optional [default=True]
+                   Logical flag to trigger renormalization of the remapping
+                   weights. This is useful if the remapping weight-file was
+                   computed with a different missing value mask than `da_in`.
+                   For instance, in regridding 3D ocean data, it is possible
+                   to use a mapping file computed at the surface at each
+                   successive depth level: setting `renormalize=True` will
+                   ensure correct handling of missing values.
+        interp_coord : dict, optional
+                   Dictionary specifying dimension names an new coordinates;
+                   passed to `xarray.DataArray.interp`.
+                   New coordinate can be a scalar, array-like or DataArray.
+                   If DataArrays are passed as new coordates, their dimensions
+                   are used for the broadcasting.
+        apply_mask : logical, optional [default=False]
+                  Apply a missing-values mask after regridding operations.
+        post_method : callable, optional
+                 If provided, call this function on DataArray after regridding.
+        post_method_kwargs : dict, optional
+                  Keyword arguments to pass to `post_method`.
+
+        Returns
+        -------
+        da_out : `xarray.DataArray`
+            The dataset regridded to the destination grid.
+        """
 
         return self.regrid_dataarray(
             da_in,
@@ -139,31 +171,30 @@ class regridder(object):
         self,
         da_in,
         renormalize=True,
+        interp_coord=None,
         apply_mask=None,
-        interp_coord={},
         post_method=None,
-        post_method_kwargs={},
+        post_method_kwargs=None,
     ):
-        """Regrid an `xarray.DataArray`."""
 
-        # -- pull data, dims and coords from incoming DataArray
+        # pull data, dims and coords from incoming DataArray
         data_src = da_in.values
         non_lateral_dims = da_in.dims[:-2]
         copy_coords = {
             d: da_in.coords[d] for d in non_lateral_dims if d in da_in.coords
         }
 
-        # -- if renormalize == True, remap a field of ones
+        # if renormalize == True, remap a field of ones
         if renormalize:
             ones_src = np.where(np.isnan(data_src), 0.0, 1.0)
             data_src = np.where(np.isnan(data_src), 0.0, data_src)
 
-        # -- remap the field
+        # remap the field
         data_dst = xe.smm.apply_weights(
             self.A, data_src, self.grid_ref_dst.shape[1], self.grid_ref_dst.shape[0]
         )
 
-        # -- renormalize to include only non-missing data_src
+        # renormalize to include only non-missing data_src
         if renormalize:
             ones_dst = xe.smm.apply_weights(
                 self.A, ones_src, self.grid_ref_dst.shape[1], self.grid_ref_dst.shape[0]
@@ -172,7 +203,7 @@ class regridder(object):
             data_dst = data_dst / ones_dst
             data_dst = np.where(ones_dst > 0.0, data_dst, np.nan)
 
-        # -- reform into xarray.DataArray
+        # reform into xarray.DataArray
         da_out = xr.DataArray(
             data_dst,
             name=da_in.name,
@@ -182,20 +213,21 @@ class regridder(object):
         )
         da_out.attrs["regrid_method"] = self.method
 
-        # -- interpolate coordinates (i.e., vertical)
-        #   setup to copy lowest/highest values where extrapolation is needed
-        for dim, new_coord in interp_coord.items():
-            if dim in da_out.dims:
-                extrap_values = (da_out.isel(**{dim: 0}), da_out.isel(**{dim: -1}))
+        # interpolate coordinates (i.e., vertical)
+        # setup to copy lowest/highest values where extrapolation is needed
+        if interp_coord:
+            for dim, new_coord in interp_coord.items():
+                if dim in da_out.dims:
+                    extrap_values = (da_out.isel(**{dim: 0}), da_out.isel(**{dim: -1}))
 
-                da_out = da_out.interp(
-                    coords={dim: new_coord},
-                    method="linear",
-                    assume_sorted=True,
-                    kwargs={"fill_value": extrap_values},
-                )
+                    da_out = da_out.interp(
+                        coords={dim: new_coord},
+                        method="linear",
+                        assume_sorted=True,
+                        kwargs={"fill_value": extrap_values},
+                    )
 
-        # -- apply a missing-values mask
+        # apply a missing-values mask
         if apply_mask is not None:
             if apply_mask.dims != da_in.dims:
                 logger.warning(
@@ -203,7 +235,7 @@ class regridder(object):
                 )
             da_out = da_out.where(apply_mask)
 
-        # -- apply a post_method
+        # apply a post_method
         if post_method is not None:
             da_out = post_method(da_out, **post_method_kwargs)
 
