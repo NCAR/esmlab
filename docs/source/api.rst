@@ -27,7 +27,7 @@ Regridding
 ~~~~~~~~~~
 
 .. autosummary::
-   regridding.regridder
+   regrid.regridder
 
 .. currentmodule:: esmlab.statistics
 
@@ -47,4 +47,7 @@ Regridding
 .. currentmodule:: esmlab.regrid
 
 .. autoclass:: regridder
-   :members: __init__, regrid_dataarray
+   :members:
+
+   .. automethod:: __init__
+   .. automethod:: __call__
