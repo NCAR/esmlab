@@ -1,8 +1,9 @@
 #!/usr/bin/env python
+"""Top-level package for esmlab."""
+
 import sys
 from .config import set_options, get_options
 
-"""Top-level package for esmlab."""
 from ._version import get_versions
 from . import climatology
 from . import statistics
