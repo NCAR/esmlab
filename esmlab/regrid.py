@@ -68,6 +68,7 @@ class regridder(object):
                       Name of destination grid.
         method : string, optional
                 Regridding method. Options are:
+
                 - 'bilinear'
                 - 'conservative'
                 - 'patch'
