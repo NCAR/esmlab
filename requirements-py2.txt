@@ -1,5 +1,3 @@
 xarray>=0.11.2
 netcdf4
 cftime
-esmpy
-xesmf
