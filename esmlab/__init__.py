@@ -1,11 +1,14 @@
 #!/usr/bin/env python
+import sys
 from .config import set_options, get_options
 
 """Top-level package for esmlab."""
 from ._version import get_versions
 from . import climatology
 from . import statistics
-from .regrid import regridder
+
+if sys.version_info > (3, 0):
+    from .regrid import regridder
 
 __version__ = get_versions()["version"]
 del get_versions

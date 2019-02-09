@@ -23,14 +23,15 @@ SETTINGS = {
 }
 
 for key in [GRIDFILE_DIRECTORY]:
-    os.makedirs(SETTINGS[key], exist_ok=True)
+    if not os.path.exists(SETTINGS[key]):
+        os.makedirs(SETTINGS[key])
 
 
 def _check_path_write_access(value):
     value = os.path.abspath(os.path.expanduser(value))
     if os.path.exists(value):
         if not os.access(value, os.W_OK):
-            print(f"no write access to: {value}")
+            print("no write access to: {0}".format(value))
             return False
         return True
 
@@ -38,7 +39,7 @@ def _check_path_write_access(value):
         os.makedirs(value)
         return True
     except (OSError, PermissionError) as err:
-        print(f"could not make directory: {value}")
+        print("could not make directory: {0}".format(value))
         raise err
 
 
@@ -66,10 +67,14 @@ class set_options(object):
         for key, val in kwargs.items():
             if key not in SETTINGS:
                 raise ValueError(
-                    f"{key} is not in the set of valid settings:\n {set(SETTINGS)}"
+                    "{key} is not in the set of valid settings:\n {set}".format(
+                        key=key, set=set(SETTINGS)
+                    )
                 )
             if key in _VALIDATORS and not _VALIDATORS[key](val):
-                raise ValueError(f"{val} is not a valid value for {key}")
+                raise ValueError(
+                    "{val} is not a valid value for {key}".format(key=key, val=val)
+                )
             self.old[key] = SETTINGS[key]
         self._apply_update(kwargs)
 
