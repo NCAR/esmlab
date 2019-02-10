@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import pytest
 import xarray as xr
@@ -25,3 +27,7 @@ def dset():
     ds.time.attrs["calendar"] = "noleap"
     ds.time.attrs["bounds"] = "time_bound"
     return ds
+
+
+if sys.version_info[0] < 3:
+    collect_ignore = ["test_regrid.py"]

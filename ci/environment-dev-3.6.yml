@@ -6,6 +6,8 @@ dependencies:
   - coverage
   - dask
   - distributed
+  - esmpy
+  - ipykernel
   - matplotlib
   - netcdf4
   - numpy==1.15
@@ -16,3 +18,4 @@ dependencies:
   - zarr
   - pip:
     - pytest-lazy-fixture
+    - xesmf
