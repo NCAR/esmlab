@@ -21,8 +21,6 @@ from .utils._variables import (
     update_attrs,
 )
 
-xr.set_options(arithmetic_join="exact")
-
 
 def compute_mon_climatology(dset, time_coord_name=None):
     """Calculates monthly climatology (monthly means)
@@ -116,7 +114,7 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None, time_coord_name=None):
 
     slice_mon_clim_time : slice, optional
                           a slice object passed to
-                          `dset.isel(time_coord_name=slice_mon_clim_time)` for subseting
+                          `dset.isel(time=slice_mon_clim_time)` for subseting
                           the time-period overwhich the climatology is computed
     time_coord_name : string
             Name for time coordinate
@@ -151,9 +149,7 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None, time_coord_name=None):
     else:
         computed_dset = dset.drop(static_variables).groupby(time_dot_month) - dset.drop(
             static_variables
-        ).sel(time_coord_name=slice_mon_clim_time).groupby(time_dot_month).mean(
-            time_coord_name
-        )
+        ).sel(time=slice_mon_clim_time).groupby(time_dot_month).mean(time_coord_name)
 
     # reset month to become a variable
     computed_dset = computed_dset.reset_coords("month")
@@ -268,11 +264,12 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
         .sum(time_coord_name)
         .rename({"year": time_coord_name})
     )
-    ones_out = (
-        (ones * weights)
-        .groupby(time_dot_year)
-        .sum(time_coord_name)
-        .rename({"year": time_coord_name})
+    ones = (
+        dset.drop(static_variables)
+        .where(dset.drop(static_variables).isnull())
+        .fillna(1.0)
+        .where(dset.drop(static_variables).notnull())
+        .fillna(0.0)
     )
     ones_out = ones_out.where(ones_out > 0.0)
 
