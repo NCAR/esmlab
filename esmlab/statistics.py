@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function
 
 import numpy as np
+import xarray as xr
 
 from .utils._time import (
     compute_time_var,
@@ -18,6 +19,8 @@ from .utils._variables import (
     set_static_variables,
     update_attrs,
 )
+
+xr.set_options(arithmetic_join="exact")
 
 
 def _apply_nan_mask(x, weights, avg_over_dims_v):
@@ -70,6 +73,7 @@ def weighted_sum(x, weights, dim=None):
         raise ValueError("Unexpected dimensions for variable {0}".format(x.name))
 
     x_w_sum = (x * weights).sum(sum_over_dims_v)
+
     original_attrs, original_encoding = get_original_attrs(x)
     return update_attrs(x_w_sum, original_attrs, original_encoding)
 
@@ -190,6 +194,7 @@ def weighted_rmsd(x, y, weights, dim=None):
         dim = weights.dims
 
     weights = _apply_nan_mask_for_two_arrays(x, y, weights)
+
     dev = (x - y) ** 2
     dev_mean = weighted_mean(dev, weights=weights, dim=dim, apply_nan_mask=False)
     return np.sqrt(dev_mean)
