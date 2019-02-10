@@ -15,7 +15,7 @@ Statistics functions
    statistics.weighted_cov
    statistics.weighted_corr
 
-Climatogy functions
+Climatology functions
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autosummary::
@@ -23,6 +23,11 @@ Climatogy functions
    climatology.compute_mon_anomaly
    climatology.compute_ann_mean
 
+Regridding
+~~~~~~~~~~
+
+.. autosummary::
+   regrid.regridder
 
 .. currentmodule:: esmlab.statistics
 
@@ -38,3 +43,11 @@ Climatogy functions
 .. autofunction:: compute_mon_climatology
 .. autofunction:: compute_mon_anomaly
 .. autofunction:: compute_ann_mean
+
+.. currentmodule:: esmlab.regrid
+
+.. autoclass:: regridder
+   :members:
+
+   .. automethod:: __init__
+   .. automethod:: __call__
