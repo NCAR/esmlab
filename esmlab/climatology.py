@@ -251,9 +251,9 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
     }
     ones = (
         dset.drop(static_variables)
-        .where(dset.isnull())
+        .where(dset.drop(static_variables).isnull())
         .fillna(1.0)
-        .where(dset.notnull())
+        .where(dset.drop(static_variables).notnull())
         .fillna(0.0)
     )
 
@@ -264,12 +264,11 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
         .sum(time_coord_name)
         .rename({"year": time_coord_name})
     )
-    ones = (
-        dset.drop(static_variables)
-        .where(dset.drop(static_variables).isnull())
-        .fillna(1.0)
-        .where(dset.drop(static_variables).notnull())
-        .fillna(0.0)
+    ones_out = (
+        (ones * weights)
+        .groupby(time_dot_year)
+        .sum(time_coord_name)
+        .rename({"year": time_coord_name})
     )
     ones_out = ones_out.where(ones_out > 0.0)
 
