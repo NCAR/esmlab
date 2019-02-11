@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 
+import os
+
 import numpy as np
 import pytest
 import xarray as xr
@@ -11,9 +13,18 @@ from esmlab.climatology import (
     compute_mon_climatology,
 )
 
+_here = os.path.abspath(os.path.dirname(__file__))
+
 
 def test_compute_mon_climatology(dset):
     computed_dset = compute_mon_climatology(dset)
+    np.testing.assert_equal(computed_dset.var_to_average.values, 0.5)
+
+
+def test_compute_mon_climatology_times_decoded():
+    ds = xr.open_dataset(_here + "/data/test_data_monthly.nc", decode_times=True)
+
+    computed_dset = compute_mon_climatology(ds)
     np.testing.assert_equal(computed_dset.var_to_average.values, 0.5)
 
 
