@@ -14,8 +14,8 @@ dependencies:
   - pytest
   - pytest-cov
   - python=3.6
-  - xarray==0.11.2
+  - xarray==0.11.3
+  - xesmf
   - zarr
   - pip:
     - pytest-lazy-fixture
-    - xesmf

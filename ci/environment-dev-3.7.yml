@@ -26,8 +26,8 @@ dependencies:
   - sphinx_rtd_theme
   - sphinx>=1.6
   - xarray==0.11.2
+  - xesmf
   - zarr
   - pip:
-    - sphinx_copybutton
     - pytest-lazy-fixture
-    - xesmf
+    - sphinx_copybutton
