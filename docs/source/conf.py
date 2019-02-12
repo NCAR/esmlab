@@ -63,9 +63,9 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"esmlab"
+project = u"ESMLab"
 copyright = u"2018 onwards, University Corporation for Atmospheric Research"
-author = u"Anderson Banihirwe, Kevin Paul, Matthew Long, Michael Levy, Julia Kent"
+author = u"Earth System Informatics Team"
 
 # The version info for the project you're documenting, acts as replacement
 # for |version| and |release|, also used in various other places throughout
@@ -160,10 +160,10 @@ man_pages = [(master_doc, "esmlab", u"esmlab Documentation", [author], 1)]
 texinfo_documents = [
     (
         master_doc,
-        "esmlab",
+        "ESMLab",
         u"esmlab Documentation",
         author,
-        "esmlab",
+        "ESMLab",
         "One line description of project.",
         "Miscellaneous",
     )
@@ -175,5 +175,4 @@ ipython_execlines = [
     "import pandas as pd",
     "import xarray as xr",
     "import esmlab",
-    "from esmlab.accessors import EsmDataArrayAccessor",
 ]
