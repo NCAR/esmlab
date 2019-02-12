@@ -16,7 +16,6 @@ dependencies:
   - zarr
   - pip:
     - pytest-lazy-fixture
-    - contextlib2
   
 
 
