@@ -1,19 +1,19 @@
-from __future__ import absolute_import, division, print_function
-
-import os
-from urllib.request import urlretrieve
-
-import xarray as xr
-from future.standard_library import install_aliases
-
-"""
-Useful for:
+""" Useful for:
 * Testing
 * building tutorials in the documentation.
 """
 
+from __future__ import absolute_import, division, print_function
 
-install_aliases()
+import os
+
+import xarray as xr
+
+try:
+    from urllib.request import urlretrieve
+
+except ImportError:
+    from urllib import urlretrieve
 
 
 _default_cache_dir = os.sep.join(("~", ".esmlab_data"))
