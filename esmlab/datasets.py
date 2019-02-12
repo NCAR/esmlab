@@ -56,7 +56,8 @@ def open_dataset(
     if not os.path.exists(localfile):
 
         # This will always leave this directory on disk.
-        os.makedirs(longdir, exist_ok=True)
+        if not os.path.isdir(longdir):
+            os.mkdir(longdir)
 
         url = "/".join((github_url, "raw", branch, fullname))
         urlretrieve(url, localfile)
