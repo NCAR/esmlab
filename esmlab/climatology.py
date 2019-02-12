@@ -5,13 +5,13 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import xarray as xr
 
-from .utils._time import (
+from .utils.time import (
     compute_time_var,
     infer_time_coord_name,
     time_bound_var,
     time_year_to_midyeardate,
 )
-from .utils._variables import (
+from .utils.variables import (
     get_original_attrs,
     get_static_variables,
     get_variables,
