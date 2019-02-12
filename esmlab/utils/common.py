@@ -1,8 +1,11 @@
 from __future__ import absolute_import, division, print_function
 
-from contextlib import ContextDecorator
-
 import xarray as xr
+
+try:
+    from contextlib import ContextDecorator
+except ImportError:
+    from contextlib2 import ContextDecorator
 
 
 class esmlab_xr_set_options(ContextDecorator):
