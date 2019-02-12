@@ -1,16 +1,21 @@
 #!/usr/bin/env python
 
 import os
+import sys
 
 import numpy as np
 import pytest
 import xarray as xr
 
-from esmlab.regrid import regridder
+from esmlab.datasets import open_dataset
 
-_here = os.path.abspath(os.path.dirname(__file__))
+if sys.version_info[0] > 2:
+    from esmlab.regrid import regridder
+else:
+    pass
 
 
+@pytest.mark.skipif(sys.version_info[0] < 3, reason="requires python3")
 def test_regrid_init():
 
     R = regridder(
@@ -23,6 +28,7 @@ def test_regrid_init():
     assert isinstance(R, regridder)
 
 
+@pytest.mark.skipif(sys.version_info[0] < 3, reason="requires python3")
 def test_regrid_regrid():
 
     R = regridder(
@@ -31,8 +37,7 @@ def test_regrid_regrid():
         method="bilinear",
         overwrite_existing=False,
     )
-
-    ds = xr.open_dataset(_here + "/data/ncep.t_10.T62.2009.time0.nc")
+    ds = open_dataset(name="ncep_t_10_T62_2009_time0")
     dao = R(ds.t_10)
     print(dao)
     assert isinstance(dao, xr.DataArray)

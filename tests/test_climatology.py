@@ -12,8 +12,7 @@ from esmlab.climatology import (
     compute_mon_anomaly,
     compute_mon_climatology,
 )
-
-_here = os.path.abspath(os.path.dirname(__file__))
+from esmlab.datasets import open_dataset
 
 
 def test_compute_mon_climatology(dset):
@@ -22,7 +21,7 @@ def test_compute_mon_climatology(dset):
 
 
 def test_compute_mon_climatology_times_decoded():
-    ds = xr.open_dataset(_here + "/data/test_data_monthly.nc", decode_times=True)
+    ds = open_dataset(name="test_data_monthly", decode_times=True)
 
     computed_dset = compute_mon_climatology(ds)
     np.testing.assert_equal(computed_dset.var_to_average.values, 0.5)
