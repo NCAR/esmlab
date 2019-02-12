@@ -1,15 +1,20 @@
-"""
-Useful for:
-* Testing
-* building tutorials in the documentation.
-"""
-
 from __future__ import absolute_import, division, print_function
 
 import os
 from urllib.request import urlretrieve
 
 import xarray as xr
+from future.standard_library import install_aliases
+
+"""
+Useful for:
+* Testing
+* building tutorials in the documentation.
+"""
+
+
+install_aliases()
+
 
 _default_cache_dir = os.sep.join(("~", ".esmlab_data"))
 
