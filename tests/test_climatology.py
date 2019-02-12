@@ -14,8 +14,6 @@ from esmlab.climatology import (
 )
 from esmlab.datasets import open_dataset
 
-_here = os.path.abspath(os.path.dirname(__file__))
-
 
 def test_compute_mon_climatology(dset):
     computed_dset = compute_mon_climatology(dset)
