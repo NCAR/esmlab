@@ -5,14 +5,13 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import xarray as xr
 
-from .utils.common import esmlab_xr_set_options
-from .utils.time import (
+from .utils._time import (
     compute_time_var,
     infer_time_coord_name,
     time_bound_var,
     time_year_to_midyeardate,
 )
-from .utils.variables import (
+from .utils._variables import (
     get_original_attrs,
     get_static_variables,
     get_variables,
@@ -23,7 +22,6 @@ from .utils.variables import (
 )
 
 
-@esmlab_xr_set_options(arithmetic_join="exact")
 def compute_mon_climatology(dset, time_coord_name=None):
     """Calculates monthly climatology (monthly means)
 
@@ -106,7 +104,6 @@ def compute_mon_climatology(dset, time_coord_name=None):
     return computed_dset
 
 
-@esmlab_xr_set_options(arithmetic_join="exact")
 def compute_mon_anomaly(dset, slice_mon_clim_time=None, time_coord_name=None):
     """Calculates monthly anomaly
 
@@ -170,7 +167,6 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None, time_coord_name=None):
     return computed_dset
 
 
-@esmlab_xr_set_options(arithmetic_join="exact")
 def compute_ann_mean(dset, weights=None, time_coord_name=None):
     """Calculates annual climatology (annual means)
 
