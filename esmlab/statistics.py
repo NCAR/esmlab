@@ -4,13 +4,14 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import xarray as xr
 
-from .utils._time import (
+from .utils.common import esmlab_xr_set_options
+from .utils.time import (
     compute_time_var,
     time_bound_var,
     time_year_to_midyeardate,
     uncompute_time_var,
 )
-from .utils._variables import (
+from .utils.variables import (
     get_original_attrs,
     get_static_variables,
     get_variables,
@@ -19,8 +20,6 @@ from .utils._variables import (
     set_static_variables,
     update_attrs,
 )
-
-xr.set_options(arithmetic_join="exact")
 
 
 def _apply_nan_mask(x, weights, avg_over_dims_v):
@@ -45,6 +44,7 @@ def _get_op_over_dims(x, weights, dim):
     return op_over_dims_v
 
 
+@esmlab_xr_set_options(arithmetic_join="exact")
 def weighted_sum(x, weights, dim=None):
     """Reduce DataArray by applying `weighted sum` along some dimension(s).
 
@@ -78,6 +78,7 @@ def weighted_sum(x, weights, dim=None):
     return update_attrs(x_w_sum, original_attrs, original_encoding)
 
 
+@esmlab_xr_set_options(arithmetic_join="exact")
 def weighted_mean(x, weights, dim=None, apply_nan_mask=True):
     """Reduce DataArray by applying weighted mean along some dimension(s).
 
@@ -120,6 +121,7 @@ def weighted_mean(x, weights, dim=None, apply_nan_mask=True):
     return update_attrs(x_w_mean, original_attrs, original_encoding)
 
 
+@esmlab_xr_set_options(arithmetic_join="exact")
 def weighted_std(x, weights, dim=None, apply_nan_mask=True, ddof=0):
     """Reduce DataArray by applying `weighted std` along some dimension(s).
 
@@ -170,6 +172,7 @@ def weighted_std(x, weights, dim=None, apply_nan_mask=True, ddof=0):
     return update_attrs(x_w_std, original_attrs, original_encoding)
 
 
+@esmlab_xr_set_options(arithmetic_join="exact")
 def weighted_rmsd(x, y, weights, dim=None):
     """ Compute weighted root-mean-square-deviation between two `xarray` DataArrays.
 
@@ -200,6 +203,7 @@ def weighted_rmsd(x, y, weights, dim=None):
     return np.sqrt(dev_mean)
 
 
+@esmlab_xr_set_options(arithmetic_join="exact")
 def weighted_cov(x, y, weights, dim=None):
     """ Compute weighted covariance between two `xarray` DataArrays.
 
@@ -235,6 +239,7 @@ def weighted_cov(x, y, weights, dim=None):
     return cov_xy
 
 
+@esmlab_xr_set_options(arithmetic_join="exact")
 def weighted_corr(x, y, weights, dim=None):
     """ Compute weighted correlation between two `xarray` DataArrays.
 
