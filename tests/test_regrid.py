@@ -9,7 +9,7 @@ import xarray as xr
 
 from esmlab.datasets import open_dataset
 
-if sys.version_info > (2, 7):
+if sys.version_info[0] > 2:
     from esmlab.regrid import regridder
 else:
     pass
