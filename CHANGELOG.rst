@@ -2,6 +2,15 @@
 Changelog history
 =================
 
+Esmlab v2019.2.1 (2019-02-12)
+==============================
+
+- Add time_boud to output of compute_ann_mean (:pr:`51`) `Matthew Long`_
+- Add xarray alignment option to prevent using mismatching coordinates (:pr:`54`) `Anderson Banihirwe`_
+- Add regridding functionality (:pr:`56`) `Matthew Long`_
+- Handle time_bound on data read with decode_times=True (:pr:`59`) `Matthew Long`_
+- Add interface to esmlab-data (:pr:`61`) `Anderson Banihirwe`_
+
 
 Esmlab v2019.2.0 (2019-02-02)
 ==============================
