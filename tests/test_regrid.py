@@ -8,7 +8,11 @@ import pytest
 import xarray as xr
 
 from esmlab.datasets import open_dataset
-from esmlab.regrid import regridder
+
+if sys.version_info > (2, 7):
+    from esmlab.regrid import regridder
+else:
+    pass
 
 
 @pytest.mark.skipif(sys.version_info[0] < 3, reason="requires python3")
