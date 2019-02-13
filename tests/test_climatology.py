@@ -15,19 +15,32 @@ from esmlab.climatology import (
 from esmlab.datasets import open_dataset
 
 
-def test_compute_mon_climatology(dset):
+@pytest.mark.parametrize("ds", ["tiny", "ccsm_pop_sample"])
+def test_compute_climatology_multi(ds):
+    dset = open_dataset(ds, decode_times=False)
+    computed_dset = compute_mon_climatology(dset)
+    assert isinstance(computed_dset, xr.Dataset)
+    computed_dset = compute_ann_mean(dset)
+    assert isinstance(computed_dset, xr.Dataset)
+    computed_dset = compute_mon_anomaly(dset)
+    assert isinstance(computed_dset, xr.Dataset)
+
+
+def test_compute_mon_climatology():
+    dset = open_dataset("tiny", decode_times=False)
     computed_dset = compute_mon_climatology(dset)
     np.testing.assert_equal(computed_dset.var_to_average.values, 0.5)
 
 
 def test_compute_mon_climatology_times_decoded():
-    ds = open_dataset(name="test_data_monthly", decode_times=True)
+    dset = open_dataset(name="tiny", decode_times=True)
 
-    computed_dset = compute_mon_climatology(ds)
+    computed_dset = compute_mon_climatology(dset)
     np.testing.assert_equal(computed_dset.var_to_average.values, 0.5)
 
 
-def test_compute_mon_anomaly(dset):
+def test_compute_mon_anomaly():
+    dset = open_dataset("tiny", decode_times=False)
     computed_dset = compute_mon_anomaly(dset)
     assert isinstance(computed_dset, xr.Dataset)
     expected = np.array(
@@ -61,7 +74,8 @@ def test_compute_mon_anomaly(dset):
     np.testing.assert_equal(computed_dset.var_to_average.values.ravel(), expected)
 
 
-def test_compute_ann_mean(dset):
+def test_compute_ann_mean():
+    dset = open_dataset("tiny", decode_times=False)
     computed_dset = compute_ann_mean(dset)
     assert isinstance(computed_dset, xr.Dataset)
     expected = np.array([0.0, 1.0])

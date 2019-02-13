@@ -37,7 +37,7 @@ def test_regrid_regrid():
         method="bilinear",
         overwrite_existing=False,
     )
-    ds = open_dataset(name="ncep_t_10_T62_2009_time0")
+    ds = open_dataset(name="ncep_forecast_tseries")
     dao = R(ds.t_10)
     print(dao)
     assert isinstance(dao, xr.DataArray)
