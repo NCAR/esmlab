@@ -16,12 +16,12 @@
 # relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
 #
+import esmlab
 import os
 import sys
 
 sys.path.insert(0, os.path.abspath("../.."))
 
-import esmlab
 
 # -- General configuration ---------------------------------------------
 
@@ -45,6 +45,10 @@ extensions = [
     "nbsphinx",
 ]
 
+extlinks = {
+    "issue": ("https://github.com/NCAR/esmlab/issues/%s", "GH#"),
+    "pr": ("https://github.com/NCAR/esmlab/pull/%s", "GH#"),
+}
 numpydoc_show_class_members = False
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -59,9 +63,9 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"esmlab"
+project = u"ESMLab"
 copyright = u"2018 onwards, University Corporation for Atmospheric Research"
-author = u"Anderson Banihirwe, Kevin Paul, Matthew Long, Michael Levy"
+author = u"Earth System Informatics Team"
 
 # The version info for the project you're documenting, acts as replacement
 # for |version| and |release|, also used in various other places throughout
@@ -156,10 +160,10 @@ man_pages = [(master_doc, "esmlab", u"esmlab Documentation", [author], 1)]
 texinfo_documents = [
     (
         master_doc,
-        "esmlab",
+        "ESMLab",
         u"esmlab Documentation",
         author,
-        "esmlab",
+        "ESMLab",
         "One line description of project.",
         "Miscellaneous",
     )
@@ -171,5 +175,4 @@ ipython_execlines = [
     "import pandas as pd",
     "import xarray as xr",
     "import esmlab",
-    "from esmlab.accessors import EsmDataArrayAccessor",
 ]

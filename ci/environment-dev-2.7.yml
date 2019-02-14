@@ -2,18 +2,21 @@ name: esmlab-dev
 channels:
   - conda-forge
 dependencies:
-  - python=2.7
-  - numpy==1.15
-  - xarray
-  - matplotlib
-  - netcdf4
-  - zarr
+  - codecov
+  - coverage
   - dask
   - distributed
+  - matplotlib
+  - netcdf4
+  - numpy==1.15
   - pytest
-  - coverage
   - pytest-cov
-  - codecov
+  - python=2.7
+  - xarray==0.11.2
+  - zarr
+  - pip:
+    - pytest-lazy-fixture
+    - contextlib2
   
 
 

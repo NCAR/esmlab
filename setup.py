@@ -3,6 +3,7 @@
 
 """The setup script."""
 
+import sys
 from setuptools import setup, find_packages
 import versioneer
 from os.path import exists
@@ -13,8 +14,12 @@ if exists("README.rst"):
 else:
     long_description = ""
 
-with open("requirements.txt") as f:
-    install_requires = f.read().strip().split("\n")
+if sys.version_info > (3, 0):
+    with open("requirements.txt") as f:
+        install_requires = f.read().strip().split("\n")
+else:
+    with open("requirements-py2.txt") as f:
+        install_requires = f.read().strip().split("\n")
 
 test_requirements = ["pytest"]
 
