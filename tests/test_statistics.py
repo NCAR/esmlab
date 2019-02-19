@@ -44,12 +44,22 @@ def test_weighted_mean(data, maskedarea):
     assert data.encoding == w_mean.encoding
 
 
+def test_weighted_mean_warn(dset):
+    with pytest.warns(UserWarning):
+        statistics.weighted_mean(dset)
+
+
 @pytest.mark.parametrize("data, maskedarea", generate_data_2())
 def test_weighted_std(data, maskedarea):
     w_std = statistics.weighted_std(data, weights=maskedarea)
     np.testing.assert_allclose(w_std, data.std())
     assert data.attrs == w_std.attrs
     assert data.encoding == w_std.encoding
+
+
+def test_weighted_std_warn(dset):
+    with pytest.warns(UserWarning):
+        statistics.weighted_std(dset)
 
 
 @pytest.mark.parametrize("data, maskedarea", generate_data_2())
@@ -60,11 +70,21 @@ def test_weighted_sum(data, maskedarea):
     assert data.encoding == w_sum.encoding
 
 
+def test_weighted_sum_warn(dset):
+    with pytest.warns(UserWarning):
+        statistics.weighted_sum(dset)
+
+
 @pytest.mark.parametrize("x, y, N, maskedarea", generate_data_1())
 def test_weighted_rmsd(x, y, N, maskedarea):
     rmsd = np.sqrt(((x - y) ** 2).sum() / N)
     w_rmsd = statistics.weighted_rmsd(x, y, weights=maskedarea)
     np.testing.assert_allclose(rmsd, w_rmsd)
+
+
+def test_weighted_rmsd_warn(dset):
+    with pytest.warns(UserWarning):
+        statistics.weighted_rmsd(dset, dset)
 
 
 @pytest.mark.parametrize("x, y, N, maskedarea", generate_data_1())
@@ -74,6 +94,11 @@ def test_weighted_cov(x, y, N, maskedarea):
     cov = (x_dev * y_dev).sum() / N
     w_cov = statistics.weighted_cov(x, y, weights=maskedarea)
     np.testing.assert_allclose(cov, w_cov)
+
+
+def test_weighted_cov_warn(dset):
+    with pytest.warns(UserWarning):
+        statistics.weighted_cov(dset, dset)
 
 
 @pytest.mark.parametrize("x, y, N, maskedarea", generate_data_1())
@@ -87,3 +112,8 @@ def test_weighted_corr(x, y, N, maskedarea):
 
     w_corr = statistics.weighted_corr(x, y, weights=maskedarea)
     np.testing.assert_allclose(corr, w_corr)
+
+
+def test_weighted_corr_warn(dset):
+    with pytest.warns(UserWarning):
+        statistics.weighted_corr(dset, dset)
