@@ -70,7 +70,7 @@ def compute_time_var(dset, tb_name, tb_dim, time_coord_name, year_offset=np.nan)
 
     if dset[tb_name].dtype == np.dtype("O"):
         tb_value = cftime.date2num(
-            dset.time_bound, units=time_attrs["units"], calendar=time_attrs["calendar"]
+            dset[tb_name], units=time_attrs["units"], calendar=time_attrs["calendar"]
         )
         dset[tb_name].values = tb_value
 

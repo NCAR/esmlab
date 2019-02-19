@@ -4,6 +4,11 @@ API reference
 
 .. currentmodule:: esmlab
 
+.. autosummary::
+   config.set_options
+   config.get_options
+   datasets.open_dataset
+
 Statistics functions
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -28,6 +33,17 @@ Regridding
 
 .. autosummary::
    regrid.regridder
+
+
+.. currentmodule:: esmlab.config
+.. autoclass:: set_options
+.. autofunction:: get_options
+
+.. currentmodule:: esmlab.datasets
+.. autofunction:: open_dataset
+
+
+
 
 .. currentmodule:: esmlab.statistics
 
