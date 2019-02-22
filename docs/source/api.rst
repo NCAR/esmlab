@@ -34,6 +34,14 @@ Regridding
 .. autosummary::
    regrid.regridder
 
+Utilities
+~~~~~~~~~~~
+
+.. autosummary::
+   utils.time.compute_time_var
+   utils.time.uncompute_time_var
+
+
 
 .. currentmodule:: esmlab.config
 .. autoclass:: set_options
@@ -67,3 +75,8 @@ Regridding
 
    .. automethod:: __init__
    .. automethod:: __call__
+
+.. currentmodule:: esmlab.utils.time
+
+.. autofunction:: compute_time_var
+.. autofunction:: uncompute_time_var
