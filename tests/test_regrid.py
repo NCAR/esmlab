@@ -19,10 +19,7 @@ else:
 def test_regrid_init():
 
     R = regridder(
-        name_grid_src="T62",
-        name_grid_dst="CAM_f09",
-        method="bilinear",
-        overwrite_existing=True,
+        name_grid_src="T62", name_grid_dst="CAM_f09", method="bilinear", overwrite_existing=True
     )
 
     assert isinstance(R, regridder)
@@ -32,10 +29,7 @@ def test_regrid_init():
 def test_regrid_regrid():
 
     R = regridder(
-        name_grid_src="T62",
-        name_grid_dst="CAM_f09",
-        method="bilinear",
-        overwrite_existing=False,
+        name_grid_src="T62", name_grid_dst="CAM_f09", method="bilinear", overwrite_existing=False
     )
     ds = open_dataset(name="ncep_forecast_tseries")
     dao = R(ds.t_10)

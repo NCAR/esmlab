@@ -52,9 +52,7 @@ def _get_weights_and_dims(x, y=None, weights=None, dim=None):
     weights = weights.where(valid)
 
     # Make sure weights add up to 1.0
-    np.testing.assert_allclose(
-        (weights / weights.sum(op_over_dims)).sum(op_over_dims), 1.0
-    )
+    np.testing.assert_allclose((weights / weights.sum(op_over_dims)).sum(op_over_dims), 1.0)
     return weights, op_over_dims
 
 
@@ -124,9 +122,7 @@ def weighted_mean(x, weights=None, dim=None):
 
     weights, op_over_dims = _get_weights_and_dims(x, weights=weights, dim=dim)
 
-    x_w_mean = weighted_sum(x, weights=weights, dim=op_over_dims) / weights.sum(
-        op_over_dims
-    )
+    x_w_mean = weighted_sum(x, weights=weights, dim=op_over_dims) / weights.sum(op_over_dims)
     original_attrs, original_encoding = get_original_attrs(x)
     return update_attrs(x_w_mean, original_attrs, original_encoding)
 
@@ -169,8 +165,7 @@ def weighted_std(x, weights=None, dim=None, ddof=0):
     x_w_mean = weighted_mean(x, weights=weights, dim=op_over_dims)
 
     x_w_std = np.sqrt(
-        (weights * (x - x_w_mean) ** 2).sum(op_over_dims)
-        / (weights.sum(op_over_dims) - ddof)
+        (weights * (x - x_w_mean) ** 2).sum(op_over_dims) / (weights.sum(op_over_dims) - ddof)
     )
     original_attrs, original_encoding = get_original_attrs(x)
 
@@ -203,9 +198,7 @@ def weighted_rmsd(x, y, weights=None, dim=None):
     """
 
     if weights is None:
-        warn(
-            "Computing root-mean-square-deviation using equal weights for all data points"
-        )
+        warn("Computing root-mean-square-deviation using equal weights for all data points")
 
     weights, op_over_dims = _get_weights_and_dims(x=x, y=y, weights=weights, dim=dim)
     dev = (x - y) ** 2

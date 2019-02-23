@@ -25,17 +25,13 @@ def dset():
     )
     ds["variable_1"] = xr.DataArray(
         np.append(
-            np.zeros([12, 2, 2], dtype="float32"),
-            np.ones([12, 2, 2], dtype="float32"),
-            axis=0,
+            np.zeros([12, 2, 2], dtype="float32"), np.ones([12, 2, 2], dtype="float32"), axis=0
         ),
         dims=["time", "lat", "lon"],
     )
     ds["variable_2"] = xr.DataArray(
         np.append(
-            np.ones([12, 2, 2], dtype="float32"),
-            np.zeros([12, 2, 2], dtype="float32"),
-            axis=0,
+            np.ones([12, 2, 2], dtype="float32"), np.zeros([12, 2, 2], dtype="float32"), axis=0
         ),
         dims=["time", "lat", "lon"],
     )

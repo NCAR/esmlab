@@ -110,9 +110,7 @@ class time_manager(object):
         # un-decode time
         time = xr.DataArray(self.time)
         time.values = cftime.date2num(
-            self.time,
-            units=self.time_attrs["units"],
-            calendar=self.time_attrs["calendar"],
+            self.time, units=self.time_attrs["units"], calendar=self.time_attrs["calendar"]
         )
         if self.orig_time_coord_decoded is None:
             self.orig_time_coord_decoded = True
@@ -153,9 +151,7 @@ class time_manager(object):
         time_out = xr.DataArray(self.time)
         time_out.values = xr.CFTimeIndex(
             cftime.num2date(
-                time_values,
-                units=self.time_attrs["units"],
-                calendar=self.time_attrs["calendar"],
+                time_values, units=self.time_attrs["units"], calendar=self.time_attrs["calendar"]
             )
         )
         return time_out
