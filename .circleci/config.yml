@@ -173,7 +173,7 @@ jobs:
             black --check --line-length=100 -S --exclude='esmlab/_version.py|versioneer.py' . 
 
             echo "[isort]"
-            isort --recursive line_length=100 --check-only .
+            isort --recursive -w 100 --check-only .
       - run:
           name: Check documentation build 
           command: |
