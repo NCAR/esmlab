@@ -6,12 +6,7 @@ import numpy as np
 import xarray as xr
 
 from .utils.common import esmlab_xr_set_options
-from .utils.time import (
-    compute_time_var,
-    infer_time_coord_name,
-    time_bound_var,
-    time_year_to_midyeardate,
-)
+from .utils.time import time_manager, time_year_to_midyeardate
 from .utils.variables import (
     get_original_attrs,
     get_static_variables,
@@ -41,19 +36,14 @@ def compute_mon_climatology(dset, time_coord_name=None):
                     The computed monthly climatology data
 
     """
-    if time_coord_name is None:
-        time_coord_name = infer_time_coord_name(dset)
 
-    tb_name, tb_dim = time_bound_var(dset, time_coord_name)
+    tm = time_manager(dset, time_coord_name)
+    time_coord_name = tm.time_coord_name
 
     static_variables = get_static_variables(dset, time_coord_name)
 
     # save metadata
     attrs, encoding = save_metadata(dset)
-
-    # Compute new time variable
-    if tb_name and tb_dim:
-        dset = compute_time_var(dset, tb_name, tb_dim, time_coord_name)
 
     # Compute climatology
     time_dot_month = ".".join([time_coord_name, "month"])
@@ -71,38 +61,37 @@ def compute_mon_climatology(dset, time_coord_name=None):
     computed_dset["month"] = computed_dset[time_coord_name].copy()
     attrs["month"] = {"long_name": "Month", "units": "month"}
     encoding["month"] = {"dtype": "int32", "_FillValue": None}
+    encoding[time_coord_name] = {"dtype": "float", "_FillValue": None}
 
-    if tb_name:
-        computed_dset["month_bounds"] = (
-            computed_dset[tb_name] - computed_dset[tb_name][0, 0]
+    if "calendar" in attrs[time_coord_name]:
+        attrs[time_coord_name]["calendar"] = attrs[time_coord_name]["calendar"]
+
+    if tm.time_bound is not None:
+        computed_dset[tm.tb_name] = tm.time_bound - tm.time_bound[0, 0]
+        computed_dset[time_coord_name].values = (
+            computed_dset[tm.tb_name].mean(tm.tb_dim).values
         )
-        computed_dset[time_coord_name].values = computed_dset.month_bounds.mean(
-            tb_dim
-        ).values
 
-        encoding["month_bounds"] = {"dtype": "float", "_FillValue": None}
-        attrs["month_bounds"] = {
-            "long_name": "month_bounds",
+        encoding[tm.tb_name] = {"dtype": "float", "_FillValue": None}
+        attrs[tm.tb_name] = {
+            "long_name": tm.tb_name,
             "units": "days since 0001-01-01 00:00:00",
         }
 
         attrs[time_coord_name] = {
             "long_name": time_coord_name,
             "units": "days since 0001-01-01 00:00:00",
-            "bounds": "month_bounds",
+            "bounds": tm.tb_name,
         }
 
-    if "calendar" in attrs[time_coord_name]:
-        attrs[time_coord_name]["calendar"] = attrs[time_coord_name]["calendar"]
-        attrs["month_bounds"]["calendar"] = attrs[time_coord_name]["calendar"]
-
-    encoding[time_coord_name] = {"dtype": "float", "_FillValue": None}
-
-    if tb_name:
-        computed_dset = computed_dset.drop(tb_name)
+        if "calendar" in attrs[time_coord_name]:
+            attrs[tm.tb_name]["calendar"] = attrs[time_coord_name]["calendar"]
 
     # Put the attributes, encoding back
     computed_dset = set_metadata(computed_dset, attrs, encoding, additional_attrs={})
+
+    computed_dset = tm.restore_dataset(computed_dset)
+
     return computed_dset
 
 
@@ -129,19 +118,13 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None, time_coord_name=None):
 
     """
 
-    if time_coord_name is None:
-        time_coord_name = infer_time_coord_name(dset)
-
-    tb_name, tb_dim = time_bound_var(dset, time_coord_name)
+    tm = time_manager(dset, time_coord_name)
+    time_coord_name = tm.time_coord_name
 
     static_variables = get_static_variables(dset, time_coord_name)
 
     # save metadata
     attrs, encoding = save_metadata(dset)
-
-    # Compute new time variable
-    if tb_name and tb_dim:
-        dset = compute_time_var(dset, tb_name, tb_dim, time_coord_name)
 
     # Compute anomaly
     time_dot_month = ".".join([time_coord_name, "month"])
@@ -167,6 +150,9 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None, time_coord_name=None):
         encoding,
         additional_attrs={"month": {"long_name": "Month"}},
     )
+
+    computed_dset = tm.restore_dataset(computed_dset)
+
     return computed_dset
 
 
@@ -194,19 +180,13 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
 
     """
 
-    if time_coord_name is None:
-        time_coord_name = infer_time_coord_name(dset)
-
-    tb_name, tb_dim = time_bound_var(dset, time_coord_name)
+    tm = time_manager(dset, time_coord_name)
+    time_coord_name = tm.time_coord_name
 
     static_variables = get_static_variables(dset, time_coord_name)
-    variables = get_variables(dset, time_coord_name, tb_name)
+    variables = get_variables(dset, time_coord_name, tm.tb_name)
     # save metadata
     attrs, encoding = save_metadata(dset)
-
-    # Compute new time variable
-    if tb_name and tb_dim:
-        dset = compute_time_var(dset, tb_name, tb_dim, time_coord_name)
 
     time_dot_year = ".".join([time_coord_name, "year"])
     # Compute weights
@@ -222,25 +202,11 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
             np.testing.assert_allclose(weights.sum(xr.ALL_DIMS), 1.0)
 
     elif not weights:
-        if tb_name and tb_dim:
+        dt = tm.time_bound_diff
 
-            dt = dset[tb_name].diff(dim=tb_dim)[:, 0]
+        weights = dt.groupby(time_dot_year) / dt.groupby(time_dot_year).sum(xr.ALL_DIMS)
 
-            if tb_dim in dt.coords:
-                dt = dt.drop(tb_dim)
-
-            weights = dt.groupby(time_dot_year) / dt.groupby(time_dot_year).sum(
-                xr.ALL_DIMS
-            )
-
-            np.testing.assert_allclose(
-                weights.groupby(time_dot_year).sum(xr.ALL_DIMS), 1.0
-            )
-
-        else:
-            dt = xr.ones_like(dset[time_coord_name], dtype=bool)
-            weights = dt / dt.sum(xr.ALL_DIMS)
-            np.testing.assert_allclose(weights.sum(xr.ALL_DIMS), 1.0)
+        np.testing.assert_allclose(weights.groupby(time_dot_year).sum(xr.ALL_DIMS), 1.0)
 
     # groupby.sum() does not seem to handle missing values correctly: yields 0 not nan
     # the groupby.mean() does return nans, so create a mask of valid values
@@ -293,22 +259,22 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
         attrs[time_coord_name]["calendar"] = attrs[time_coord_name]["calendar"]
 
     # compute the time_bound variable
-    if tb_name and tb_dim:
+    if tm.time_bound is not None:
         tb_out_lo = (
-            dset[tb_name][:, 0]
+            tm.time_bound[:, 0]
             .groupby(time_dot_year)
             .min(dim=time_coord_name)
             .rename({"year": time_coord_name})
         )
         tb_out_hi = (
-            dset[tb_name][:, 1]
+            tm.time_bound[:, 1]
             .groupby(time_dot_year)
             .max(dim=time_coord_name)
             .rename({"year": time_coord_name})
         )
 
-        computed_dset[tb_name] = xr.concat((tb_out_lo, tb_out_hi), dim=tb_dim)
-        attrs[time_coord_name]["bounds"] = tb_name
+        computed_dset[tm.tb_name] = xr.concat((tb_out_lo, tb_out_hi), dim=tm.tb_dim)
+        attrs[time_coord_name]["bounds"] = tm.tb_name
 
     # Put static_variables back
     computed_dset = set_static_variables(computed_dset, dset, static_variables)
@@ -318,5 +284,7 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
 
     # Put the attributes, encoding back
     computed_dset = set_metadata(computed_dset, attrs, encoding, additional_attrs={})
+
+    computed_dset = tm.restore_dataset(computed_dset)
 
     return computed_dset

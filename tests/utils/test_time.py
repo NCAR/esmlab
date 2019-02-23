@@ -8,7 +8,8 @@ from esmlab import utils
 
 
 def test_time_bound_var(dset, time_coord_name="time"):
-    results = utils.time.time_bound_var(dset, time_coord_name)
+    tm = utils.time.time_manager(dset, time_coord_name)
+    results = (tm.tb_name, tm.tb_dim)
     expected = ("time_bound", "d2")
     assert results == expected
 
@@ -20,24 +21,25 @@ def test_time_year_to_midyeardate(dset, time_coord_name="time"):
 
 
 def test_get_time_attrs(dset, time_coord_name="time"):
-    expected = {"units": "days since 0001-01-01 00:00:00", "calendar": "noleap"}
-    results = utils.time.get_time_attrs(dset, time_coord_name)
+    expected = {
+        "units": "days since 0001-01-01 00:00:00",
+        "calendar": "noleap",
+        "bounds": "time_bound",
+    }
+    results = utils.time.time_manager(dset, time_coord_name).time_attrs
     assert results == expected
 
 
 def test_compute_time_var(dset, time_coord_name="time"):
     idx = dset.indexes[time_coord_name]
     assert isinstance(idx, pd.core.indexes.numeric.Index)
-    tb_name, tb_dim = utils.time.time_bound_var(dset, time_coord_name)
-    results = utils.time.compute_time_var(
-        dset, tb_name, tb_dim, time_coord_name
-    ).indexes[time_coord_name]
-    assert isinstance(results, xr.coding.cftimeindex.CFTimeIndex)
+    tm = utils.time.time_manager(dset)
+    results = tm.get_time_decoded()
+    assert isinstance(results, xr.DataArray)
 
 
 def test_uncompute_time_var(dset, time_coord_name="time"):
-    tb_name, tb_dim = utils.time.time_bound_var(dset, time_coord_name)
-    dset = utils.time.compute_time_var(dset, tb_name, tb_dim, time_coord_name)
+    dset = utils.time.compute_time_var(dset)
     assert dset[time_coord_name].dtype == np.dtype("O")
-    dset_with_uncomputed_time = utils.time.uncompute_time_var(dset, time_coord_name)
+    dset_with_uncomputed_time = utils.time.uncompute_time_var(dset)
     assert np.issubdtype(dset_with_uncomputed_time[time_coord_name].dtype, np.number)

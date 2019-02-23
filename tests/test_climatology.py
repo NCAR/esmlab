@@ -18,11 +18,18 @@ from esmlab.datasets import open_dataset
 @pytest.mark.parametrize("ds", ["tiny", "ccsm_pop_sample"])
 def test_compute_climatology_multi(ds):
     dset = open_dataset(ds, decode_times=False)
+    print(dset)
     computed_dset = compute_mon_climatology(dset)
+    print(computed_dset)
+    print()
     assert isinstance(computed_dset, xr.Dataset)
     computed_dset = compute_ann_mean(dset)
+    print(computed_dset)
+    print()
     assert isinstance(computed_dset, xr.Dataset)
     computed_dset = compute_mon_anomaly(dset)
+    print(computed_dset)
+    print()
     assert isinstance(computed_dset, xr.Dataset)
 
 
