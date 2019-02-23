@@ -3,6 +3,7 @@ repos:
     rev: 18.9b0
     hooks:
     - id: black
+      args: ["--line-length", "100"]
 
 -   repo: https://github.com/pre-commit/mirrors-autopep8
     rev: v1.4.3
