@@ -61,7 +61,7 @@ def _get_weights_and_dims(x, y=None, weights=None, dim=None, apply_nan_mask=True
 
 
 @esmlab_xr_set_options(arithmetic_join="exact")
-def weighted_sum(x, weights=None, dim=None):
+def weighted_sum(x, weights=None, dim=None, apply_nan_mask=True):
     """Reduce `xarray.DataArray` by applying `weighted sum` along some dimension(s).
 
             Parameters
@@ -77,6 +77,8 @@ def weighted_sum(x, weights=None, dim=None):
                 Dimension(s) over which to apply mean. By default `weighted sum`
                 is applied over all dimensions.
 
+            apply_nan_mask : bool, default: True
+
             Returns
             -------
 
@@ -88,7 +90,9 @@ def weighted_sum(x, weights=None, dim=None):
     if weights is None:
         warn("Computing sum using equal weights for all data points")
 
-    weights, op_over_dims = _get_weights_and_dims(x, weights=weights, dim=dim)
+    weights, op_over_dims = _get_weights_and_dims(
+        x, weights=weights, dim=dim, apply_nan_mask=apply_nan_mask
+    )
     x_w_sum = (x * weights).sum(op_over_dims)
 
     original_attrs, original_encoding = get_original_attrs(x)
@@ -130,7 +134,15 @@ def weighted_mean(x, weights=None, dim=None, apply_nan_mask=True):
         x, weights=weights, dim=dim, apply_nan_mask=apply_nan_mask
     )
 
-    x_w_mean = weighted_sum(x, weights=weights, dim=op_over_dims) / weights.sum(op_over_dims)
+    # If the mask is applied in previous operation,
+    # disable it for subseqent operations
+    if apply_nan_mask:
+        apply_nan_mask_flag = False
+    else:
+        apply_nan_mask_flag = True
+    x_w_mean = weighted_sum(
+        x, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask_flag
+    ) / weights.sum(op_over_dims)
     original_attrs, original_encoding = get_original_attrs(x)
     return update_attrs(x_w_mean, original_attrs, original_encoding)
 
@@ -172,7 +184,17 @@ def weighted_std(x, weights=None, dim=None, ddof=0, apply_nan_mask=True):
     weights, op_over_dims = _get_weights_and_dims(
         x, weights=weights, dim=dim, apply_nan_mask=apply_nan_mask
     )
-    x_w_mean = weighted_mean(x, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask)
+
+    # If the mask is applied in previous operation,
+    # disable it for subseqent operations
+    if apply_nan_mask:
+        apply_nan_mask_flag = False
+    else:
+        apply_nan_mask_flag = True
+
+    x_w_mean = weighted_mean(
+        x, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask_flag
+    )
 
     x_w_std = np.sqrt(
         (weights * (x - x_w_mean) ** 2).sum(op_over_dims) / (weights.sum(op_over_dims) - ddof)
@@ -215,8 +237,18 @@ def weighted_rmsd(x, y, weights=None, dim=None, apply_nan_mask=True):
     weights, op_over_dims = _get_weights_and_dims(
         x, weights=weights, dim=dim, apply_nan_mask=apply_nan_mask
     )
+
+    # If the mask is applied in previous operation,
+    # disable it for subseqent operations to speed up computation
+    if apply_nan_mask:
+        apply_nan_mask_flag = False
+    else:
+        apply_nan_mask_flag = True
+
     dev = (x - y) ** 2
-    dev_mean = weighted_mean(dev, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask)
+    dev_mean = weighted_mean(
+        dev, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask_flag
+    )
     return np.sqrt(dev_mean)
 
 
@@ -253,13 +285,23 @@ def weighted_cov(x, y, weights=None, dim=None, apply_nan_mask=True):
     weights, op_over_dims = _get_weights_and_dims(
         x, weights=weights, dim=dim, apply_nan_mask=apply_nan_mask
     )
-    mean_x = weighted_mean(x, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask)
-    mean_y = weighted_mean(y, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask)
+
+    # If the mask is applied in previous operation,
+    # disable it for subseqent operations to speed up computation
+    if apply_nan_mask:
+        apply_nan_mask_flag = False
+    else:
+        apply_nan_mask_flag = True
+
+    mean_x = weighted_mean(x, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask_flag)
+    mean_y = weighted_mean(y, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask_flag)
 
     dev_x = x - mean_x
     dev_y = y - mean_y
     dev_xy = dev_x * dev_y
-    cov_xy = weighted_mean(dev_xy, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask)
+    cov_xy = weighted_mean(
+        dev_xy, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask_flag
+    )
     return cov_xy
 
 
@@ -296,12 +338,20 @@ def weighted_corr(x, y, weights=None, dim=None, apply_nan_mask=True):
     weights, op_over_dims = _get_weights_and_dims(
         x, weights=weights, dim=dim, apply_nan_mask=apply_nan_mask
     )
+
+    # If the mask is applied in previous operation,
+    # disable it for subseqent operations to speed up computation
+    if apply_nan_mask:
+        apply_nan_mask_flag = False
+    else:
+        apply_nan_mask_flag = True
+
     numerator = weighted_cov(
-        x=x, y=y, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask
+        x=x, y=y, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask_flag
     )
     denominator = np.sqrt(
-        weighted_cov(x, x, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask)
-        * weighted_cov(y, y, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask)
+        weighted_cov(x, x, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask_flag)
+        * weighted_cov(y, y, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask_flag)
     )
     corr_xy = numerator / denominator
     return corr_xy
