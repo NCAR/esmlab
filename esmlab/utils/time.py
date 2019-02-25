@@ -17,7 +17,7 @@ class time_manager(object):
     """Class to support managing the time coordinate of datasets.
     """
 
-    def __init__(self, ds, time_coord_name=None):
+    def __init__(self, ds, time_coord_name=None, year_offset=None):
         """
         Parameters
         ----------
@@ -27,16 +27,19 @@ class time_manager(object):
            Name of the time coordinate of `ds`; if not provided, the
            code will attempt to infer it.
         """
-        self._ds = ds
+        self._ds = xr.Dataset(ds)
         self.orig_time_coord_name = None
         self.orig_time_coord_decoded = None
+        self._time_computed = False
+
         if time_coord_name is None:
             self.time_coord_name = self._infer_time_coord_name()
         else:
             self.time_coord_name = time_coord_name
 
+        self.year_offset = year_offset
+
         self._infer_time_bound_var()
-        self._compute_time()
 
     @property
     def time(self):
@@ -118,7 +121,7 @@ class time_manager(object):
             self.orig_time_coord_decoded = True
         return time
 
-    def get_time_decoded(self, midpoint=True, year_offset=np.nan):
+    def get_time_decoded(self, midpoint=True):
         """Return time decoded.
         """
         # to compute a time midpoint, we need a time_bound variable
@@ -132,7 +135,7 @@ class time_manager(object):
             # if time has already been decoded and there's no year_offset,
             # just return the time as is
             if self.time.dtype == np.dtype("O"):
-                if np.isnan(year_offset):
+                if self.year_offset is None:
                     return time_values
 
                 # if we need to un-decode time to apply the year_offset,
@@ -143,9 +146,9 @@ class time_manager(object):
             else:
                 time_values = self.time
 
-        if not np.isnan(year_offset):
+        if self.year_offset is not None:
             time_values += cftime.date2num(
-                datetime(int(year_offset), 1, 1),
+                datetime(int(self.year_offset), 1, 1),
                 units=self.time_attrs["units"],
                 calendar=self.time_attrs["calendar"],
             )
@@ -160,9 +163,13 @@ class time_manager(object):
         )
         return time_out
 
-    def _compute_time(self):
+    def compute_time(self):
         """Compute the mid-point of the time bounds.
         """
+
+        if self._time_computed:
+            return self._ds
+
         self.orig_time_coord_name = "t" + uuid.uuid4().hex
 
         self._ds[self.orig_time_coord_name] = self.get_time_undecoded()
@@ -175,9 +182,15 @@ class time_manager(object):
 
         self._ds[self.time_coord_name].values = groupby_coord.values
 
+        self._time_computed = True
+
+        return self._ds
+
     def restore_dataset(self, ds):
         """Return the original time variable.
         """
+        if not self._time_computed:
+            raise ValueError("time was not computed; cannot restore dataset")
         time_values = ds[self.orig_time_coord_name].values
         if self.orig_time_coord_decoded:
             time_values = xr.CFTimeIndex(
@@ -234,7 +247,7 @@ def time_year_to_midyeardate(ds, time_coord_name):
     return ds
 
 
-def compute_time_var(ds, midpoint=True, year_offset=np.nan):
+def compute_time_var(ds, midpoint=True, year_offset=None):
     """Compute the time coordinate of a dataset.
 
     Parameters
@@ -251,8 +264,10 @@ def compute_time_var(ds, midpoint=True, year_offset=np.nan):
     ds : `xarray.Dataset`
        The dataset with time coordinate modified.
     """
-    tm = time_manager(ds)
-    ds[tm.time_coord_name] = tm.get_time_decoded(midpoint, year_offset)
+    tm = time_manager(ds, year_offset=year_offset)
+    ds = tm.compute_time()
+    ds[tm.time_coord_name] = tm.get_time_decoded(midpoint)
+    ds = ds.drop(tm.orig_time_coord_name)
     return ds
 
 
@@ -270,5 +285,31 @@ def uncompute_time_var(ds):
        The dataset with time coordinate modified.
     """
     tm = time_manager(ds)
+    ds = tm.compute_time()
     ds[tm.time_coord_name] = tm.get_time_undecoded()
+    ds = ds.drop(tm.orig_time_coord_name)
     return ds
+
+
+def sel_time(ds, indexer_val, year_offset=None):
+    """Return dataset truncated to specified time range.
+
+    Parameters
+    ----------
+    ds : `xarray.Dataset`
+       The dataset on which to operate
+    indexer_val : scalar, slice, or array_like
+       value passed to ds.isel(**{time_coord_name: indexer_val})
+    year_offset : numeric, optional
+       Integer year by which to offset the time axis.
+
+    Returns
+    -------
+    ds : `xarray.Dataset`
+       The dataset with time coordinate truncated.
+    """
+
+    tm = time_manager(ds, year_offset=year_offset)
+    ds = tm.compute_time()
+    ds = ds.sel(**{tm.time_coord_name: indexer_val})
+    return tm.restore_dataset(ds)

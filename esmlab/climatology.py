@@ -38,6 +38,7 @@ def compute_mon_climatology(dset, time_coord_name=None):
     """
 
     tm = time_manager(dset, time_coord_name)
+    dset = tm.compute_time()
     time_coord_name = tm.time_coord_name
 
     static_variables = get_static_variables(dset, time_coord_name)
@@ -119,6 +120,7 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None, time_coord_name=None):
     """
 
     tm = time_manager(dset, time_coord_name)
+    dset = tm.compute_time()
     time_coord_name = tm.time_coord_name
 
     static_variables = get_static_variables(dset, time_coord_name)
@@ -181,6 +183,7 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
     """
 
     tm = time_manager(dset, time_coord_name)
+    dset = tm.compute_time()
     time_coord_name = tm.time_coord_name
 
     static_variables = get_static_variables(dset, time_coord_name)
