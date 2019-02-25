@@ -49,12 +49,13 @@ def _get_weights_and_dims(x, y=None, weights=None, dim=None, apply_nan_mask=True
     dims_shape = tuple(l for i, l in enumerate(x.shape) if x.dims[i] in op_over_dims)
     if weights is None:
         weights = xr.DataArray(np.ones(dims_shape), dims=op_over_dims)
+        weights = _apply_nan_mask(weights, x, y)
 
     else:
         assert weights.shape == dims_shape
+        if apply_nan_mask:
+            weights = _apply_nan_mask(weights, x, y)
 
-    if apply_nan_mask:
-        weights = _apply_nan_mask(weights, x, y)
     # Make sure weights add up to 1.0
     np.testing.assert_allclose((weights / weights.sum(op_over_dims)).sum(op_over_dims), 1.0)
     return weights, op_over_dims
