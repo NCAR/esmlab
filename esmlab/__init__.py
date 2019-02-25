@@ -2,14 +2,11 @@
 """Top-level module for esmlab."""
 
 
-from .config import set_options, get_options
-
-from ._version import get_versions
-from . import climatology
-from . import statistics
-from . import datasets
-
 import sys
+
+from . import climatology, datasets, statistics
+from ._version import get_versions
+from .config import get_options, set_options
 
 if sys.version_info > (3, 0):
     from .regrid import regridder
