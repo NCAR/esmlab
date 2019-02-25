@@ -51,10 +51,7 @@ def _check_exists(value):
     return os.path.exists(value)
 
 
-_VALIDATORS = {
-    GRIDFILE_DIRECTORY: _check_path_write_access,
-    GRID_DEFITIONS_FILE: _check_exists,
-}
+_VALIDATORS = {GRIDFILE_DIRECTORY: _check_path_write_access, GRID_DEFITIONS_FILE: _check_exists}
 
 _SETTERS = {GRIDFILE_DIRECTORY: _full_path}
 
@@ -72,9 +69,7 @@ class set_options(object):
                     )
                 )
             if key in _VALIDATORS and not _VALIDATORS[key](val):
-                raise ValueError(
-                    "{val} is not a valid value for {key}".format(key=key, val=val)
-                )
+                raise ValueError("{val} is not a valid value for {key}".format(key=key, val=val))
             self.old[key] = SETTINGS[key]
         self._apply_update(kwargs)
 

@@ -140,9 +140,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass
 # [howto, manual, or own class]).
-latex_documents = [
-    (master_doc, "esmlab.tex", u"esmlab Documentation", author, "manual")
-]
+latex_documents = [(master_doc, "esmlab.tex", u"esmlab Documentation", author, "manual")]
 
 
 # -- Options for manual page output ------------------------------------

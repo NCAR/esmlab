@@ -7,11 +7,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from esmlab.climatology import (
-    compute_ann_mean,
-    compute_mon_anomaly,
-    compute_mon_climatology,
-)
+from esmlab.climatology import compute_ann_mean, compute_mon_anomaly, compute_mon_climatology
 from esmlab.datasets import open_dataset
 
 
