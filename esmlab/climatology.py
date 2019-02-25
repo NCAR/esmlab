@@ -68,15 +68,10 @@ def compute_mon_climatology(dset, time_coord_name=None):
 
     if tm.time_bound is not None:
         computed_dset[tm.tb_name] = tm.time_bound - tm.time_bound[0, 0]
-        computed_dset[time_coord_name].values = (
-            computed_dset[tm.tb_name].mean(tm.tb_dim).values
-        )
+        computed_dset[time_coord_name].values = computed_dset[tm.tb_name].mean(tm.tb_dim).values
 
         encoding[tm.tb_name] = {"dtype": "float", "_FillValue": None}
-        attrs[tm.tb_name] = {
-            "long_name": tm.tb_name,
-            "units": "days since 0001-01-01 00:00:00",
-        }
+        attrs[tm.tb_name] = {"long_name": tm.tb_name, "units": "days since 0001-01-01 00:00:00"}
 
         attrs[time_coord_name] = {
             "long_name": time_coord_name,
@@ -145,10 +140,7 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None, time_coord_name=None):
 
     # Put the attributes, encoding back
     computed_dset = set_metadata(
-        computed_dset,
-        attrs,
-        encoding,
-        additional_attrs={"month": {"long_name": "Month"}},
+        computed_dset, attrs, encoding, additional_attrs={"month": {"long_name": "Month"}}
     )
 
     computed_dset = tm.restore_dataset(computed_dset)
@@ -192,9 +184,7 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
     # Compute weights
     if weights:
         if len(weights) != len(dset[time_coord_name]):
-            raise ValueError(
-                "weights and dataset time values must be of the same length"
-            )
+            raise ValueError("weights and dataset time values must be of the same length")
         else:
             dt = xr.ones_like(dset[time_coord_name], dtype=bool)
             dt.values = weights

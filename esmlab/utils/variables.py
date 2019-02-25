@@ -51,10 +51,7 @@ def set_metadata(dset, attrs, encoding, additional_attrs):
 
 def set_static_variables(computed_dset, dset, static_variables):
     return xr.merge(
-        (
-            computed_dset,
-            dset.drop([v for v in dset.variables if v not in static_variables]),
-        )
+        (computed_dset, dset.drop([v for v in dset.variables if v not in static_variables]))
     )
 
 
@@ -73,8 +70,6 @@ def update_attrs(x, original_attrs, original_encoding):
 
     x.attrs = original_attrs
     x.encoding = {
-        key: val
-        for key, val in original_encoding.items()
-        if key in ["_FillValue", "dtype"]
+        key: val for key, val in original_encoding.items() if key in ["_FillValue", "dtype"]
     }
     return x

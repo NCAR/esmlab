@@ -56,9 +56,7 @@ class regridder(object):
     """Class to enable regridding between named grids.
     """
 
-    def __init__(
-        self, name_grid_src, name_grid_dst, method="bilinear", overwrite_existing=False
-    ):
+    def __init__(self, name_grid_src, name_grid_dst, method="bilinear", overwrite_existing=False):
         """
         Parameters
         ----------
@@ -181,9 +179,7 @@ class regridder(object):
         # pull data, dims and coords from incoming DataArray
         data_src = da_in.values
         non_lateral_dims = da_in.dims[:-2]
-        copy_coords = {
-            d: da_in.coords[d] for d in non_lateral_dims if d in da_in.coords
-        }
+        copy_coords = {d: da_in.coords[d] for d in non_lateral_dims if d in da_in.coords}
 
         # if renormalize == True, remap a field of ones
         if renormalize:
@@ -206,11 +202,7 @@ class regridder(object):
 
         # reform into xarray.DataArray
         da_out = xr.DataArray(
-            data_dst,
-            name=da_in.name,
-            dims=da_in.dims,
-            attrs=da_in.attrs,
-            coords=copy_coords,
+            data_dst, name=da_in.name, dims=da_in.dims, attrs=da_in.attrs, coords=copy_coords
         )
         da_out.attrs["regrid_method"] = self.method
 
@@ -231,9 +223,7 @@ class regridder(object):
         # apply a missing-values mask
         if apply_mask is not None:
             if apply_mask.dims != da_in.dims:
-                logger.warning(
-                    f"masking {apply_mask.dims}; " f"data have dims: {da_in.dims}"
-                )
+                logger.warning(f"masking {apply_mask.dims}; " f"data have dims: {da_in.dims}")
             da_out = da_out.where(apply_mask)
 
         # apply a post_method
