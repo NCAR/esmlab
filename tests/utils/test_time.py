@@ -43,3 +43,10 @@ def test_uncompute_time_var(dset, time_coord_name="time"):
     assert dset[time_coord_name].dtype == np.dtype("O")
     dset_with_uncomputed_time = utils.time.uncompute_time_var(dset)
     assert np.issubdtype(dset_with_uncomputed_time[time_coord_name].dtype, np.number)
+
+
+def test_sel_time(dset):
+    dset = utils.time.sel_time(
+        dset, indexer_val=slice("1850-01-01", "1850-12-31"), year_offset=1850
+    )
+    assert len(dset.time) == 12
