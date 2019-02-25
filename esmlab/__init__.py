@@ -1,13 +1,15 @@
 #!/usr/bin/env python
-"""Top-level package for esmlab."""
+"""Top-level module for esmlab."""
 
-import sys
+
 from .config import set_options, get_options
 
 from ._version import get_versions
 from . import climatology
 from . import statistics
 from . import datasets
+
+import sys
 
 if sys.version_info > (3, 0):
     from .regrid import regridder
