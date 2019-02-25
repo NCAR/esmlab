@@ -40,6 +40,7 @@ Utilities
 .. autosummary::
    utils.time.compute_time_var
    utils.time.uncompute_time_var
+   utils.time.sel_time
 
 
 
@@ -80,3 +81,4 @@ Utilities
 
 .. autofunction:: compute_time_var
 .. autofunction:: uncompute_time_var
+.. autofunction:: sel_time
