@@ -15,17 +15,15 @@ dependencies:
   - matplotlib
   - nbsphinx
   - netcdf4
-  - numpy==1.15
+  - numpy
   - numpydoc
-  - pandoc
   - pytest
   - pytest-cov
   - python=3.7
   - recommonmark
-  - six
   - sphinx_rtd_theme
   - sphinx>=1.6
-  - xarray==0.11.2
+  - xarray>=0.11.2
   - xesmf
   - zarr
   - pip:

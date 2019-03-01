@@ -8,6 +8,7 @@
    regridding.ipynb
    api
    contributing
+   release_procedure
    changelog
 
 
