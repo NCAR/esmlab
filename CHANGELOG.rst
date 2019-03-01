@@ -2,6 +2,39 @@
 Changelog history
 =================
 
+
+
+Esmlab v2019.2.28 (2019-02-28)
+==============================
+
+Features
+---------
+
+
+- Add function to flexibily compute weights and dimensions to use in statistical operations (:pr:`74`) `Anderson Banihirwe`_
+
+- Add ``time_manager`` class to support managing the time coordinate of datasets (:pr:`75`) and (:pr:`76`) `Matthew Long`_
+
+
+Bug Fixes
+----------
+
+- Remove hard-coded ``tb_name=time_bound`` in ``compute_time_var`` (:pr:`72`) `Anderson Banihirwe`_
+
+Documentation
+---------------
+
+- Add release procedure to documentation (:pr:`78`) `Anderson Banihirwe`_
+
+
+Trivial/Internal Changes
+-------------------------
+
+- Use `esmlab-data <https://github.com/NCAR/esmlab-data>`_ in tests (:pr:`67`) `Anderson Banihirwe`_
+- Update continuous integration workflow (:pr:`68`) `Anderson Banihirwe`_
+
+
+
 Esmlab v2019.2.1 (2019-02-12)
 ==============================
 
