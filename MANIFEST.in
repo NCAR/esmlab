@@ -4,8 +4,12 @@ include LICENSE
 include README.rst
 include requirements.txt
 include requirements-py2.txt
-recursive-include tests
+include CONTRIBUTING.rst
+include HOWTORELEASE.rst
 
+recursive-include tests *.py
+recursive-include tests/data/*.nc
+recursive-include tests/utils/*.py
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 include versioneer.py
