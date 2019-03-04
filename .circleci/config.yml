@@ -9,7 +9,10 @@ workflows:
       - "python-3.7"
       - "docs-build"
       - "linting"
-      - "upstream-dev"
+      - "upstream-dev":
+          filters:
+            branches:
+              only: devel
 
 jobs:
   # Python 2.7 build
