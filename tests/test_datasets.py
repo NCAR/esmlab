@@ -7,5 +7,5 @@ from esmlab.datasets import open_dataset
 
 
 def test_open_dataset():
-    ds = open_dataset("ccsm_pop_sample")
+    ds = open_dataset('cesm_cice_daily')
     assert isinstance(ds, xr.Dataset)
