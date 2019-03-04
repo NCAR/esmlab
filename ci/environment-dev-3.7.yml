@@ -12,6 +12,7 @@ dependencies:
   - flake8
   - ipykernel
   - isort
+  - make
   - matplotlib
   - nbsphinx
   - netcdf4
