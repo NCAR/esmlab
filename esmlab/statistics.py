@@ -57,7 +57,8 @@ def _get_weights_and_dims(x, y=None, weights=None, dim=None, apply_nan_mask=True
             weights = _apply_nan_mask(weights, x, y)
 
     # Make sure weights add up to 1.0
-    np.testing.assert_allclose((weights / weights.sum(op_over_dims)).sum(op_over_dims), 1.0)
+    rtol = 1e-6 if weights.dtype == np.float32 else 1e-7
+    np.testing.assert_allclose((weights / weights.sum(op_over_dims)).sum(op_over_dims), 1.0, rtol=rtol)
     return weights, op_over_dims
 
 
