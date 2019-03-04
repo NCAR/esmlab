@@ -6,8 +6,8 @@ Below are a few things we ask you kindly to self-check before getting a review. 
 Checklist
 
 - [ ] Enable and install [pre-commit](https://pre-commit.com/) to ensure style-guides and code checks are followed.
-- [ ] Target master for bugfixes and doc changes.
-- [ ] Target features for new features or functionality changes.
+- [ ] Target **master** for bugfixes and doc changes.
+- [ ] Target **devel** for new features or functionality changes.
 - [ ] Include documentation when adding new features.
 - [ ] Include new tests or update existing tests when applicable.
 
