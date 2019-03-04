@@ -229,7 +229,7 @@ jobs:
             - "/opt/conda/envs/${ENV_NAME}/"
             - "/opt/conda/pkgs"
 
-"upstream-dev":
+  "upstream-dev":
     docker:
       - image: conda/miniconda3:latest
 
