@@ -10,6 +10,7 @@ dependencies:
   - distributed
   - esmpy
   - flake8
+  - git
   - ipykernel
   - isort
   - matplotlib
