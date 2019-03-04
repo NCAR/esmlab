@@ -6,8 +6,8 @@ workflows:
     jobs:
       - "python-2.7":
           filters:
-                branches:
-                  only: master
+            branches:
+              ignore: devel
       - "python-3.6"
       - "python-3.7"
       - "docs-build"
