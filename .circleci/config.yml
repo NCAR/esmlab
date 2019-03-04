@@ -26,7 +26,7 @@ default-job: &default-job
         key: deps-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Environment.CIRCLE_JOB }}
     - run:
         name: Install conda environment
-        command: .ci/install.sh
+        command: .circleci/install.sh
     - run:
         name: Running checks
         command: .ci/${TEST_SCRIPT}
