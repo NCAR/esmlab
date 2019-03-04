@@ -9,6 +9,7 @@ workflows:
       - "python-3.7"
       - "docs-build"
       - "linting"
+      - "upstream-dev"
 
 jobs:
   # Python 2.7 build
@@ -227,3 +228,49 @@ jobs:
           paths:
             - "/opt/conda/envs/${ENV_NAME}/"
             - "/opt/conda/pkgs"
+
+"upstream-dev":
+    docker:
+      - image: conda/miniconda3:latest
+
+    environment:
+      PYTHON: "3.7-dev"
+      ENV_NAME: "esmlab-dev"
+
+    steps:
+
+      # Get our data and merge with upstream
+      - checkout
+
+      # Restore cached files to speed things up
+      - restore_cache:
+          key: deps-{{ .Branch }}-3.7-dev-{{ checksum "ci/environment-dev-3.7-dev.yml" }}
+
+      - run: # install and activate conda environment
+          name: Install conda environment
+          command: ./ci/install-circle.sh
+      - run:
+          command: |
+            source activate ${ENV_NAME}
+            pytest --junitxml=test-reports/junit.xml --cov=./ --verbose
+
+      - run:
+          name: Code Coverage
+          command: |
+            source activate ${ENV_NAME}
+            echo "[Upload coverage]"
+            codecov
+
+
+      # Cache some files for a speedup in subsequent builds
+      - save_cache:
+          key: deps-{{ .Branch }}-3.7-dev-{{ checksum "ci/environment-dev-3.7-dev.yml" }}
+          paths:
+            - "/opt/conda/envs/${ENV_NAME}/"
+            - "/opt/conda/pkgs"
+
+      - store_test_results:
+          path: test-reports
+
+      - store_artifacts:
+          path: test-reports
