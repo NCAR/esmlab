@@ -44,7 +44,7 @@ def _get_weights_and_dims(x, y=None, weights=None, dim=None, apply_nan_mask=True
 
     op_over_dims = [k for k in dims if k in x.dims]
     if not op_over_dims:
-        raise ValueError("Unexpected dimensions for variable {0}".format(x.name))
+        raise ValueError('Unexpected dimensions for variable {0}'.format(x.name))
 
     dims_shape = tuple(l for i, l in enumerate(x.shape) if x.dims[i] in op_over_dims)
     if weights is None:
@@ -57,11 +57,14 @@ def _get_weights_and_dims(x, y=None, weights=None, dim=None, apply_nan_mask=True
             weights = _apply_nan_mask(weights, x, y)
 
     # Make sure weights add up to 1.0
-    np.testing.assert_allclose((weights / weights.sum(op_over_dims)).sum(op_over_dims), 1.0)
+    rtol = 1e-6 if weights.dtype == np.float32 else 1e-7
+    np.testing.assert_allclose(
+        (weights / weights.sum(op_over_dims)).sum(op_over_dims), 1.0, rtol=rtol
+    )
     return weights, op_over_dims
 
 
-@esmlab_xr_set_options(arithmetic_join="exact")
+@esmlab_xr_set_options(arithmetic_join='exact')
 def weighted_sum(x, weights=None, dim=None, apply_nan_mask=True):
     """Reduce `xarray.DataArray` by applying `weighted sum` along some dimension(s).
 
@@ -89,7 +92,7 @@ def weighted_sum(x, weights=None, dim=None, apply_nan_mask=True):
                 returns regular sum using equal weights for all data points.
     """
     if weights is None:
-        warn("Computing sum using equal weights for all data points")
+        warn('Computing sum using equal weights for all data points')
 
     weights, op_over_dims = _get_weights_and_dims(
         x, weights=weights, dim=dim, apply_nan_mask=apply_nan_mask
@@ -100,7 +103,7 @@ def weighted_sum(x, weights=None, dim=None, apply_nan_mask=True):
     return update_attrs(x_w_sum, original_attrs, original_encoding)
 
 
-@esmlab_xr_set_options(arithmetic_join="exact")
+@esmlab_xr_set_options(arithmetic_join='exact')
 def weighted_mean(x, weights=None, dim=None, apply_nan_mask=True):
     """Reduce `xarray.DataArray` by applying weighted mean along some dimension(s).
 
@@ -129,7 +132,7 @@ def weighted_mean(x, weights=None, dim=None, apply_nan_mask=True):
                 returns regular mean using equal weights for all data points.
     """
     if weights is None:
-        warn("Computing mean using equal weights for all data points")
+        warn('Computing mean using equal weights for all data points')
 
     weights, op_over_dims = _get_weights_and_dims(
         x, weights=weights, dim=dim, apply_nan_mask=apply_nan_mask
@@ -148,7 +151,7 @@ def weighted_mean(x, weights=None, dim=None, apply_nan_mask=True):
     return update_attrs(x_w_mean, original_attrs, original_encoding)
 
 
-@esmlab_xr_set_options(arithmetic_join="exact")
+@esmlab_xr_set_options(arithmetic_join='exact')
 def weighted_std(x, weights=None, dim=None, ddof=0, apply_nan_mask=True):
     """Reduce `xarray.DataArray` by applying `weighted std` along some dimension(s).
 
@@ -180,7 +183,7 @@ def weighted_std(x, weights=None, dim=None, ddof=0, apply_nan_mask=True):
                 returns regular standard deviation using equal weights for all data points.
     """
     if weights is None:
-        warn("Computing standard deviation using equal weights for all data points")
+        warn('Computing standard deviation using equal weights for all data points')
 
     weights, op_over_dims = _get_weights_and_dims(
         x, weights=weights, dim=dim, apply_nan_mask=apply_nan_mask
@@ -205,7 +208,7 @@ def weighted_std(x, weights=None, dim=None, ddof=0, apply_nan_mask=True):
     return update_attrs(x_w_std, original_attrs, original_encoding)
 
 
-@esmlab_xr_set_options(arithmetic_join="exact")
+@esmlab_xr_set_options(arithmetic_join='exact')
 def weighted_rmsd(x, y, weights=None, dim=None, apply_nan_mask=True):
     """ Compute weighted root-mean-square-deviation between two `xarray.DataArray` objects.
 
@@ -233,7 +236,7 @@ def weighted_rmsd(x, y, weights=None, dim=None, apply_nan_mask=True):
     """
 
     if weights is None:
-        warn("Computing root-mean-square-deviation using equal weights for all data points")
+        warn('Computing root-mean-square-deviation using equal weights for all data points')
 
     weights, op_over_dims = _get_weights_and_dims(
         x, weights=weights, dim=dim, apply_nan_mask=apply_nan_mask
@@ -253,7 +256,7 @@ def weighted_rmsd(x, y, weights=None, dim=None, apply_nan_mask=True):
     return np.sqrt(dev_mean)
 
 
-@esmlab_xr_set_options(arithmetic_join="exact")
+@esmlab_xr_set_options(arithmetic_join='exact')
 def weighted_cov(x, y, weights=None, dim=None, apply_nan_mask=True):
     """ Compute weighted covariance between two `xarray.DataArray` objects.
 
@@ -281,7 +284,7 @@ def weighted_cov(x, y, weights=None, dim=None, apply_nan_mask=True):
 
     """
     if weights is None:
-        warn("Computing weighted covariance using equal weights for all data points")
+        warn('Computing weighted covariance using equal weights for all data points')
 
     weights, op_over_dims = _get_weights_and_dims(
         x, weights=weights, dim=dim, apply_nan_mask=apply_nan_mask
@@ -306,7 +309,7 @@ def weighted_cov(x, y, weights=None, dim=None, apply_nan_mask=True):
     return cov_xy
 
 
-@esmlab_xr_set_options(arithmetic_join="exact")
+@esmlab_xr_set_options(arithmetic_join='exact')
 def weighted_corr(x, y, weights=None, dim=None, apply_nan_mask=True):
     """ Compute weighted correlation between two `xarray.DataArray` objects.
 
@@ -334,7 +337,7 @@ def weighted_corr(x, y, weights=None, dim=None, apply_nan_mask=True):
 
     """
     if weights is None:
-        warn("Computing weighted correlation using equal weights for all data points")
+        warn('Computing weighted correlation using equal weights for all data points')
 
     weights, op_over_dims = _get_weights_and_dims(
         x, weights=weights, dim=dim, apply_nan_mask=apply_nan_mask
