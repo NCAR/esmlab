@@ -7,19 +7,14 @@ workflows:
       - "python-2.7":
           filters:
             branches:
-              ignore:
-                - /^devel.*/
-                - /^feature.*/
+              only:
+                - master
       - "python-3.6"
       - "python-3.7"
       - "docs-build"
       - "linting"
-      - "upstream-dev":
-          filters:
-            branches:
-              only:
-                - /^devel.*/
-                - /^feature.*/
+      - "upstream-dev"
+
 
 default-job: &default-job
   docker:
