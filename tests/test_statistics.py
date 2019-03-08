@@ -7,8 +7,8 @@ import xarray as xr
 
 from esmlab import statistics
 
-x = xr.DataArray(np.random.uniform(0, 10, (10, 10)), dims=("x", "y"), name="x_var")
-y = xr.DataArray(np.random.uniform(0, 10, (10, 10)), dims=("x", "y"), name="y_var")
+x = xr.DataArray(np.random.uniform(0, 10, (10, 10)), dims=('x', 'y'), name='x_var')
+y = xr.DataArray(np.random.uniform(0, 10, (10, 10)), dims=('x', 'y'), name='y_var')
 y[3, 3:10] = np.nan
 valid = x.notnull() & y.notnull()
 N = valid.sum()
@@ -67,3 +67,16 @@ def test_weighted_corr():
     with pytest.warns(UserWarning):
         w_corr = statistics.weighted_corr(x, y)
         np.testing.assert_allclose(corr, w_corr)
+
+
+def test_weighted_sum_float32():
+    from esmlab.datasets import open_dataset
+
+    with open_dataset('cesm_pop_monthly') as ds:
+        weights = ds['TAREA'].astype(np.float32)
+        tmp_data = ds['TLAT']
+        tmp_data.values = np.where(np.greater_equal(ds['KMT'].values, 1), ds['TLAT'], np.nan)
+        tmp_data = tmp_data.astype(np.float32)
+    w_sum = statistics.weighted_sum(tmp_data, weights)
+    assert tmp_data.attrs == w_sum.attrs
+    assert tmp_data.encoding == w_sum.encoding

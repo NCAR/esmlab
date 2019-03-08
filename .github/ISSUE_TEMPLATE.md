@@ -1,4 +1,8 @@
+<!--
+
 Thanks for submitting an issue!
+
+-->
 
 Here's a quick checklist in what to include:
 

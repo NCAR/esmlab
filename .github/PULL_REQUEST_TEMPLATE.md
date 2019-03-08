@@ -1,6 +1,21 @@
+<!--
 Thanks for submitting a PR, your contribution is really appreciated!
+Below are a few things we ask you kindly to self-check before getting a review. Remove checks that are not relevant.
+-->
 
-Here's a quick checklist that should be present in PRs (you can delete this text from the final description, this is just a guideline):
+Checklist
 
+- [ ] Enable and install [pre-commit](https://pre-commit.com/) to ensure style-guides and code checks are followed.
+- [ ] Target **master** for bugfixes and doc changes.
+- [ ] Target **devel** for new features or functionality changes.
 - [ ] Include documentation when adding new features.
 - [ ] Include new tests or update existing tests when applicable.
+
+
+<!--
+Please note any issues this fixes using [closing keywords]( https://help.github.com/articles/closing-issues-using-keywords/ ):
+-->
+
+<!--
+Please add any other relevant info below:
+-->
