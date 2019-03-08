@@ -7,7 +7,12 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from esmlab.climatology import compute_ann_mean, compute_mon_anomaly, compute_mon_climatology
+from esmlab.climatology import (
+    compute_ann_mean,
+    compute_mon_anomaly,
+    compute_mon_climatology,
+    compute_mon_mean_from_daily,
+)
 from esmlab.datasets import open_dataset
 
 
@@ -54,3 +59,10 @@ def test_compute_ann_mean(dset):
     assert isinstance(computed_dset, xr.Dataset)
     expected = np.array([0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0])
     np.testing.assert_equal(computed_dset.variable_1.values.ravel(), expected)
+
+
+def test_compute_mon_mean_from_daily():
+    dset = open_dataset('cesm_cice_daily', decode_times=False)
+    dset['aicen_d'] = xr.ones_like(dset['aicen_d'])
+    computed_dset = compute_mon_mean_from_daily(dset)
+    assert computed_dset['aicen_d'].shape[0] == 12

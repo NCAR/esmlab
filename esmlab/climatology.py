@@ -18,7 +18,7 @@ from .utils.variables import (
 )
 
 
-@esmlab_xr_set_options(arithmetic_join="exact")
+@esmlab_xr_set_options(arithmetic_join='exact')
 def compute_mon_climatology(dset, time_coord_name=None):
     """Calculates monthly climatology (monthly means)
 
@@ -47,41 +47,41 @@ def compute_mon_climatology(dset, time_coord_name=None):
     attrs, encoding = save_metadata(dset)
 
     # Compute climatology
-    time_dot_month = ".".join([time_coord_name, "month"])
+    time_dot_month = '.'.join([time_coord_name, 'month'])
     computed_dset = (
         dset.drop(static_variables)
         .groupby(time_dot_month)
         .mean(time_coord_name)
-        .rename({"month": time_coord_name})
+        .rename({'month': time_coord_name})
     )
 
     # Put static_variables back
     computed_dset = set_static_variables(computed_dset, dset, static_variables)
 
     # add month_bounds
-    computed_dset["month"] = computed_dset[time_coord_name].copy()
-    attrs["month"] = {"long_name": "Month", "units": "month"}
-    encoding["month"] = {"dtype": "int32", "_FillValue": None}
-    encoding[time_coord_name] = {"dtype": "float", "_FillValue": None}
+    computed_dset['month'] = computed_dset[time_coord_name].copy()
+    attrs['month'] = {'long_name': 'Month', 'units': 'month'}
+    encoding['month'] = {'dtype': 'int32', '_FillValue': None}
+    encoding[time_coord_name] = {'dtype': 'float', '_FillValue': None}
 
-    if "calendar" in attrs[time_coord_name]:
-        attrs[time_coord_name]["calendar"] = attrs[time_coord_name]["calendar"]
+    if 'calendar' in attrs[time_coord_name]:
+        attrs[time_coord_name]['calendar'] = attrs[time_coord_name]['calendar']
 
     if tm.time_bound is not None:
         computed_dset[tm.tb_name] = tm.time_bound - tm.time_bound[0, 0]
         computed_dset[time_coord_name].values = computed_dset[tm.tb_name].mean(tm.tb_dim).values
 
-        encoding[tm.tb_name] = {"dtype": "float", "_FillValue": None}
-        attrs[tm.tb_name] = {"long_name": tm.tb_name, "units": "days since 0001-01-01 00:00:00"}
+        encoding[tm.tb_name] = {'dtype': 'float', '_FillValue': None}
+        attrs[tm.tb_name] = {'long_name': tm.tb_name, 'units': 'days since 0001-01-01 00:00:00'}
 
         attrs[time_coord_name] = {
-            "long_name": time_coord_name,
-            "units": "days since 0001-01-01 00:00:00",
-            "bounds": tm.tb_name,
+            'long_name': time_coord_name,
+            'units': 'days since 0001-01-01 00:00:00',
+            'bounds': tm.tb_name,
         }
 
-        if "calendar" in attrs[time_coord_name]:
-            attrs[tm.tb_name]["calendar"] = attrs[time_coord_name]["calendar"]
+        if 'calendar' in attrs[time_coord_name]:
+            attrs[tm.tb_name]['calendar'] = attrs[time_coord_name]['calendar']
 
     # Put the attributes, encoding back
     computed_dset = set_metadata(computed_dset, attrs, encoding, additional_attrs={})
@@ -91,7 +91,7 @@ def compute_mon_climatology(dset, time_coord_name=None):
     return computed_dset
 
 
-@esmlab_xr_set_options(arithmetic_join="exact")
+@esmlab_xr_set_options(arithmetic_join='exact')
 def compute_mon_anomaly(dset, slice_mon_clim_time=None, time_coord_name=None):
     """Calculates monthly anomaly
 
@@ -124,7 +124,7 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None, time_coord_name=None):
     attrs, encoding = save_metadata(dset)
 
     # Compute anomaly
-    time_dot_month = ".".join([time_coord_name, "month"])
+    time_dot_month = '.'.join([time_coord_name, 'month'])
     if slice_mon_clim_time is None:
         computed_dset = dset.drop(static_variables).groupby(time_dot_month) - dset.drop(
             static_variables
@@ -135,14 +135,14 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None, time_coord_name=None):
         ).sel(time=slice_mon_clim_time).groupby(time_dot_month).mean(time_coord_name)
 
     # reset month to become a variable
-    computed_dset = computed_dset.reset_coords("month")
+    computed_dset = computed_dset.reset_coords('month')
 
     # Put static_variables back
     computed_dset = set_static_variables(computed_dset, dset, static_variables)
 
     # Put the attributes, encoding back
     computed_dset = set_metadata(
-        computed_dset, attrs, encoding, additional_attrs={"month": {"long_name": "Month"}}
+        computed_dset, attrs, encoding, additional_attrs={'month': {'long_name': 'Month'}}
     )
 
     computed_dset = tm.restore_dataset(computed_dset)
@@ -150,7 +150,7 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None, time_coord_name=None):
     return computed_dset
 
 
-@esmlab_xr_set_options(arithmetic_join="exact")
+@esmlab_xr_set_options(arithmetic_join='exact')
 def compute_ann_mean(dset, weights=None, time_coord_name=None):
     """Calculates annual climatology (annual means)
 
@@ -183,11 +183,11 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
     # save metadata
     attrs, encoding = save_metadata(dset)
 
-    time_dot_year = ".".join([time_coord_name, "year"])
+    time_dot_year = '.'.join([time_coord_name, 'year'])
     # Compute weights
     if weights:
         if len(weights) != len(dset[time_coord_name]):
-            raise ValueError("weights and dataset time values must be of the same length")
+            raise ValueError('weights and dataset time values must be of the same length')
         else:
             dt = xr.ones_like(dset[time_coord_name], dtype=bool)
             dt.values = weights
@@ -209,7 +209,7 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
         .groupby(time_dot_year)
         .mean(dim=time_coord_name)
         .notnull()
-        .rename({"year": time_coord_name})
+        .rename({'year': time_coord_name})
         for v in variables
     }
     ones = (
@@ -225,13 +225,13 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
         (dset.drop(static_variables) * weights)
         .groupby(time_dot_year)
         .sum(time_coord_name)
-        .rename({"year": time_coord_name})
+        .rename({'year': time_coord_name})
     )
     ones_out = (
         (ones * weights)
         .groupby(time_dot_year)
         .sum(time_coord_name)
-        .rename({"year": time_coord_name})
+        .rename({'year': time_coord_name})
     )
     ones_out = ones_out.where(ones_out > 0.0)
 
@@ -244,12 +244,12 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
 
     # address time
     attrs[time_coord_name] = {
-        "long_name": time_coord_name,
-        "units": "days since 0001-01-01 00:00:00",
+        'long_name': time_coord_name,
+        'units': 'days since 0001-01-01 00:00:00',
     }
 
-    if "calendar" in attrs[time_coord_name]:
-        attrs[time_coord_name]["calendar"] = attrs[time_coord_name]["calendar"]
+    if 'calendar' in attrs[time_coord_name]:
+        attrs[time_coord_name]['calendar'] = attrs[time_coord_name]['calendar']
 
     # compute the time_bound variable
     if tm.time_bound is not None:
@@ -257,17 +257,17 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
             tm.time_bound[:, 0]
             .groupby(time_dot_year)
             .min(dim=time_coord_name)
-            .rename({"year": time_coord_name})
+            .rename({'year': time_coord_name})
         )
         tb_out_hi = (
             tm.time_bound[:, 1]
             .groupby(time_dot_year)
             .max(dim=time_coord_name)
-            .rename({"year": time_coord_name})
+            .rename({'year': time_coord_name})
         )
 
         computed_dset[tm.tb_name] = xr.concat((tb_out_lo, tb_out_hi), dim=tm.tb_dim)
-        attrs[time_coord_name]["bounds"] = tm.tb_name
+        attrs[time_coord_name]['bounds'] = tm.tb_name
 
     # Put static_variables back
     computed_dset = set_static_variables(computed_dset, dset, static_variables)
@@ -281,3 +281,29 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
     computed_dset = tm.restore_dataset(computed_dset)
 
     return computed_dset
+
+
+@esmlab_xr_set_options(arithmetic_join='exact')
+def compute_mon_mean_from_daily(dset, time_coord_name=None):
+    """ Calculate monthly mean from daily data
+
+    Parameters
+    ----------
+    dset : xarray.Dataset
+           The data on which to operate
+
+    time_coord_name : string
+            Name for time coordinate
+    Returns
+    -------
+    computed_dset : xarray.Dataset
+                    The computed monthly mean data
+
+    """
+    tm = time_manager(dset, time_coord_name)
+    computed_dset = tm.compute_time()
+    time_coord_name = tm.time_coord_name
+
+    computed_dset = computed_dset.resample({time_coord_name: '1M'}).mean()
+    restored_dset = tm.restore_dataset(computed_dset)
+    return restored_dset
