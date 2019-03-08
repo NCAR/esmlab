@@ -9,7 +9,7 @@ workflows:
             branches:
               ignore:
                 - devel
-                - /feature*/
+                - /^feature*/
       - "python-3.6"
       - "python-3.7"
       - "docs-build"
@@ -19,7 +19,7 @@ workflows:
             branches:
               only:
                 - devel
-                - /feature*/
+                - /^feature*/
 
 default-job: &default-job
   docker:
