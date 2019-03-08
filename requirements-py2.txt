@@ -1,4 +1,5 @@
-xarray>=0.11.2
+xarray>=0.11
 netcdf4
 cftime
 contextlib2
+pyyaml
