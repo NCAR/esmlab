@@ -11,7 +11,7 @@ from esmlab.climatology import compute_ann_mean, compute_mon_anomaly, compute_mo
 from esmlab.datasets import open_dataset
 
 
-@pytest.mark.parametrize("ds", ["tiny", "ccsm_pop_sample"])
+@pytest.mark.parametrize('ds', ['tiny', 'cesm_cice_daily'])
 def test_compute_climatology_multi(ds):
     dset = open_dataset(ds, decode_times=False)
     print(dset)
