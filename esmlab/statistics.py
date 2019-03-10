@@ -5,6 +5,7 @@ from warnings import warn
 
 import numpy as np
 import xarray as xr
+import scipy.stats
 
 from .utils.common import esmlab_xr_set_options
 from .utils.variables import (
@@ -302,7 +303,8 @@ def weighted_cov(x, y, weights=None, dim=None, apply_nan_mask=True):
 
 
 @esmlab_xr_set_options(arithmetic_join='exact')
-def weighted_corr(x, y, weights=None, dim=None, apply_nan_mask=True):
+def weighted_corr(x, y, weights=None, dim=None, apply_nan_mask=True,
+                  return_p=True):
     """ Compute weighted correlation between two `xarray.DataArray` objects.
 
     Parameters
@@ -319,6 +321,10 @@ def weighted_corr(x, y, weights=None, dim=None, apply_nan_mask=True):
            By default weighted correlation is applied over all dimensions.
 
     apply_nan_mask : bool, default: True
+
+    return_p : bool, default: True
+        If True, compute and return the p-value(s) associated with the
+        correlation.
 
     Returns
     -------
@@ -350,4 +356,19 @@ def weighted_corr(x, y, weights=None, dim=None, apply_nan_mask=True):
         * weighted_cov(y, y, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask_flag)
     )
     corr_xy = numerator / denominator
-    return corr_xy
+
+    if return_p:
+        p = compute_corr_significance(corr_xy, len(x))
+        return corr_xy, p
+    else:
+        return corr_xy
+
+
+@esmlab_xr_set_options(arithmetic_join='exact')
+def compute_corr_significance(r, N, two_sided=True):
+    t = r * np.sqrt((N - 2) / (1 - r**2))
+    if two_sided:
+        p = scipy.stats.t.sf(np.abs(t), N - 1) * 2
+    else:
+        p = scipy.stats.t.sf(np.abs(t), N - 1)
+    return p
