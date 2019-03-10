@@ -344,6 +344,8 @@ def weighted_corr(x, y, dim=None, weights=None, return_p=True):
         New Dataset/DataArray with correlation applied to x, y and the indicated
         dimension(s) removed.
 
+    pval : float
+              If `return_p` is True, returns the p value from a two-tailed t-test.
     """
 
     valid_values = x.notnull() & y.notnull()
@@ -361,9 +363,32 @@ def weighted_corr(x, y, dim=None, weights=None, return_p=True):
 
 
 @esmlab_xr_set_options(arithmetic_join='exact')
-def compute_corr_significance(r, N, two_sided=True):
+def compute_corr_significance(r, N, two_tailed=True):
+    """ Compute statistical significance for a pearson correlation between
+        two `xarray.DataArray` objects.
+
+    Parameters
+    ----------
+
+    r : `xarray.DataArray` object
+        correlation coefficient between two time series.
+
+    N : int
+        length of time series being correlated.
+
+    two_tailed : bool, optional
+        if True, return p value for two-tailed t-test.
+
+    Returns
+    -------
+
+    pval : float
+        p value for pearson correlation.
+
+    """
+
     t = r * np.sqrt((N - 2) / (1 - r**2))
-    if two_sided:
+    if two_tailed:
         p = scipy.stats.t.sf(np.abs(t), N - 1) * 2
     else:
         p = scipy.stats.t.sf(np.abs(t), N - 1)
