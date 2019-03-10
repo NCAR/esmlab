@@ -5,6 +5,7 @@ from warnings import warn
 
 import numpy as np
 import xarray as xr
+import scipy.stats
 
 from .utils.common import esmlab_xr_set_options
 
@@ -319,7 +320,7 @@ def weighted_cov(x, y, dim=None, weights=None):
 
 
 @esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
-def weighted_corr(x, y, dim=None, weights=None):
+def weighted_corr(x, y, dim=None, weights=None, return_p=True):
     """ Compute weighted correlation between two xarray objects.
 
     Parameters
@@ -332,6 +333,10 @@ def weighted_corr(x, y, dim=None, weights=None):
         Dimension(s) over which to apply correlation.
     weights : DataArray
         weights to apply. Shape must be broadcastable to shape of data.
+
+    return_p : bool, default: True
+        If True, compute and return the p-value(s) associated with the
+        correlation.
 
     Returns
     -------
@@ -347,4 +352,19 @@ def weighted_corr(x, y, dim=None, weights=None):
     numerator = weighted_cov(x, y, dim, weights)
     denominator = np.sqrt(weighted_cov(x, x, dim, weights) * weighted_cov(y, y, dim, weights))
     corr_xy = numerator / denominator
-    return corr_xy
+
+    if return_p:
+        p = compute_corr_significance(corr_xy, len(x))
+        return corr_xy, p
+    else:
+        return corr_xy
+
+
+@esmlab_xr_set_options(arithmetic_join='exact')
+def compute_corr_significance(r, N, two_sided=True):
+    t = r * np.sqrt((N - 2) / (1 - r**2))
+    if two_sided:
+        p = scipy.stats.t.sf(np.abs(t), N - 1) * 2
+    else:
+        p = scipy.stats.t.sf(np.abs(t), N - 1)
+    return p
