@@ -394,7 +394,7 @@ def compute_corr_significance(r, N, two_tailed=True):
 
     t = r * np.sqrt((N - 2) / (1 - r**2))
     if two_tailed:
-        p = scipy.stats.t.sf(np.abs(t), N - 1) * 2
+        pval = scipy.stats.t.sf(np.abs(t), N - 1) * 2
     else:
-        p = scipy.stats.t.sf(np.abs(t), N - 1)
-    return p
+        pval = scipy.stats.t.sf(np.abs(t), N - 1)
+    return xr.DataArray(pval)
