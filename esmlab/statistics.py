@@ -5,7 +5,7 @@ from warnings import warn
 
 import numpy as np
 import xarray as xr
-import scipy.stats
+from scipy import special
 
 from .utils.common import esmlab_xr_set_options
 
@@ -319,9 +319,10 @@ def weighted_cov(x, y, dim=None, weights=None):
     return cov_xy
 
 
-@esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
-def weighted_corr(x, y, dim=None, weights=None, return_p=True):
-    """ Compute weighted correlation between two xarray objects.
+@esmlab_xr_set_options(arithmetic_join='exact')
+def weighted_corr(x, y, weights=None, dim=None, apply_nan_mask=True,
+                  return_p=True):
+    """ Compute weighted correlation between two `xarray.DataArray` objects.
 
     Parameters
     ----------
@@ -333,6 +334,10 @@ def weighted_corr(x, y, dim=None, weights=None, return_p=True):
         Dimension(s) over which to apply correlation.
     weights : DataArray
         weights to apply. Shape must be broadcastable to shape of data.
+
+    return_p : bool, default: True
+        If True, compute and return the p-value(s) associated with the
+        correlation.
 
     return_p : bool, default: True
         If True, compute and return the p-value(s) associated with the
@@ -362,8 +367,8 @@ def weighted_corr(x, y, dim=None, weights=None, return_p=True):
         return corr_xy
 
 
-@esmlab_xr_set_options(arithmetic_join='exact')
-def compute_corr_significance(r, N, two_tailed=True):
+@esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
+def compute_corr_significance(r, N):
     """ Compute statistical significance for a pearson correlation between
         two `xarray.DataArray` objects.
 
@@ -376,20 +381,17 @@ def compute_corr_significance(r, N, two_tailed=True):
     N : int
         length of time series being correlated.
 
-    two_tailed : bool, optional
-        if True, return p value for two-tailed t-test.
-
     Returns
     -------
-
     pval : float
         p value for pearson correlation.
 
     """
-
-    t = r * np.sqrt((N - 2) / (1 - r**2))
-    if two_tailed:
-        p = scipy.stats.t.sf(np.abs(t), N - 1) * 2
-    else:
-        p = scipy.stats.t.sf(np.abs(t), N - 1)
-    return p
+    df = N - 2
+    t_squared = r**2 * (df / ((1.0 - r) * (1.0 + r)))
+    # method used in scipy, where `np.fmin` constrains values to be
+    # below 1 due to errors in floating point arithmetic.
+    pval = special.betainc(0.5 * df, 0.5,
+                           np.fmin(df / (df + t_squared)), 1.0)
+    return xr.DataArray(pval, coords=t_squared.coords,
+                        dims=t_squared.dims)
