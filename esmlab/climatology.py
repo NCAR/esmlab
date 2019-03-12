@@ -56,13 +56,39 @@ def compute_mon_climatology(dset, time_coord_name=None):
                                      dset[tb_name].attrs['units'],
                                      dset[time_coord_name].attrs['calendar'])]
 
+    # computes weighted averages of a given dataset group (ds)
+    def weighted_monthly_mean(ds):
+
+        # length of this group:
+        l_grp = len(ds[tb_name].data)
+        print(l_grp)
+
+        # weights
+
+        #weights = [1.0]*l_grp
+        weights = xr.DataArray( [1.0]*l_grp,
+                                coords={"stacked_time_d2":ds.stacked_time_d2},
+                                dims=("stacked_time_d2",) )
+
+        # instantiate the mean dataset. (TODO: make this more efficient)
+        ds_mean = ds.sum(dim="stacked_time_d2")
+
+        # now compute the correct means for variables with time dimension
+        for da in ds_mean.variables:
+            if "stacked_time_d2" in ds[da].dims:
+                ds_mean[da] = xr.dot(ds[da],weights)
+
+        # construct time:
+        ds_mean["time"] = ds_mean["time_bound"]
+
+        return ds_mean
+
     # Group by time_bound months
     computed_dset = (
         dset.drop(static_variables)
         .groupby(tb_month)
-        .groups
+        .apply(weighted_monthly_mean)
     )
-    print(computed_dset)
 
 
     # Compute climatology
