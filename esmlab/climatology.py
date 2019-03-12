@@ -22,16 +22,20 @@ from .utils.variables import (
 @esmlab_xr_set_options(arithmetic_join="exact")
 def compute_mon_climatology(dset, time_coord_name=None):
     """Calculates monthly climatology (monthly means)
+ 
     Parameters
     ----------
     dset : xarray.Dataset
            The data on which to operate
+
     time_coord_name : string
             Name for time coordinate
+
     Returns
     -------
     computed_dset : xarray.Dataset
                     The computed monthly climatology data
+
     """
 
     tm = time_manager(dset, time_coord_name)
