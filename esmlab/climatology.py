@@ -20,7 +20,7 @@ from .utils.variables import (
 
 
 @esmlab_xr_set_options(arithmetic_join="exact")
-def compute_mon_climatology(dset, time_coord_name=None):
+def compute_mon_climatology(dset, time_coord_name=None, weighted=False):
     """Calculates monthly climatology (monthly means)
 
     Parameters
@@ -46,6 +46,12 @@ def compute_mon_climatology(dset, time_coord_name=None):
 
     # save metadata
     attrs, encoding = save_metadata(dset)
+
+
+    if weighted and tm.time_bound is None:
+        raise RuntimeError("Dataset must have time_bound variable to be able to"
+                           "generate weighted monthly climatology.")
+
 
     # create a data array of time_bound months
     # this data array is to be used when grouping dset
@@ -83,22 +89,22 @@ def compute_mon_climatology(dset, time_coord_name=None):
 
         return ds_mean
 
-    # Group by time_bound months
-    computed_dset = (
-        dset.drop(static_variables)
-        .groupby(tb_month)
-        .apply(weighted_monthly_mean)
-    )
-
-
     # Compute climatology
-    time_dot_month = ".".join([time_coord_name, "month"])
-    computed_dset = (
-        dset.drop(static_variables)
-        .groupby(time_dot_month)
-        .mean(time_coord_name)
-        .rename({"month": time_coord_name})
-    )
+    if weighted:
+        # Group by time_bound months
+        computed_dset = (
+            dset.drop(static_variables)
+            .groupby(tb_month)
+            .apply(weighted_monthly_mean)
+        )
+    else:
+        time_dot_month = ".".join([time_coord_name, "month"])
+        computed_dset = (
+            dset.drop(static_variables)
+            .groupby(time_dot_month)
+            .mean(time_coord_name)
+            .rename({"month": time_coord_name})
+        )
 
     # Put static_variables back
     computed_dset = set_static_variables(computed_dset, dset, static_variables)
@@ -112,26 +118,32 @@ def compute_mon_climatology(dset, time_coord_name=None):
     if "calendar" in attrs[time_coord_name]:
         attrs[time_coord_name]["calendar"] = attrs[time_coord_name]["calendar"]
 
-    if tm.time_bound is not None:
-        computed_dset[tm.tb_name] = tm.time_bound - tm.time_bound[0, 0]
-        computed_dset[time_coord_name].values = computed_dset[tm.tb_name].mean(tm.tb_dim).values
+    if weighted:
+        pass # TODO
+    else:
+        if tm.time_bound is not None:
+            computed_dset[tm.tb_name] = tm.time_bound - tm.time_bound[0, 0]
+            computed_dset[time_coord_name].values = computed_dset[tm.tb_name].mean(tm.tb_dim).values
 
-        encoding[tm.tb_name] = {"dtype": "float", "_FillValue": None}
-        attrs[tm.tb_name] = {"long_name": tm.tb_name, "units": "days since 0001-01-01 00:00:00"}
+            encoding[tm.tb_name] = {"dtype": "float", "_FillValue": None}
+            attrs[tm.tb_name] = {"long_name": tm.tb_name, "units": "days since 0001-01-01 00:00:00"}
 
-        attrs[time_coord_name] = {
-            "long_name": time_coord_name,
-            "units": "days since 0001-01-01 00:00:00",
-            "bounds": tm.tb_name,
-        }
+            attrs[time_coord_name] = {
+                "long_name": time_coord_name,
+                "units": "days since 0001-01-01 00:00:00",
+                "bounds": tm.tb_name,
+            }
 
-        if "calendar" in attrs[time_coord_name]:
-            attrs[tm.tb_name]["calendar"] = attrs[time_coord_name]["calendar"]
+            if "calendar" in attrs[time_coord_name]:
+                attrs[tm.tb_name]["calendar"] = attrs[time_coord_name]["calendar"]
 
     # Put the attributes, encoding back
     computed_dset = set_metadata(computed_dset, attrs, encoding, additional_attrs={})
 
-    computed_dset = tm.restore_dataset(computed_dset)
+    if weighted:
+        pass # TODO
+    else:
+        computed_dset = tm.restore_dataset(computed_dset)
 
     return computed_dset
 
