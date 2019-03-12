@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function
 
 import numpy as np
 import xarray as xr
+import cftime as cft
 
 from .utils.common import esmlab_xr_set_options
 from .utils.time import time_manager, time_year_to_midyeardate
@@ -45,6 +46,16 @@ def compute_mon_climatology(dset, time_coord_name=None):
 
     # save metadata
     attrs, encoding = save_metadata(dset)
+
+    # create a data array of time_bounds (of type cftime)
+    # this data array is to be used when grouping dset
+    tb_name = tm.tb_name
+    tb_cft = xr.DataArray(dset[tb_name])
+    tb_cft = [ [date0.month,date1.month] for [date0,date1] in
+                    cft.num2date(dset[tb_name],
+                                 dset[tb_name].attrs['units'],
+                                 dset[tb_name].attrs['calendar'])]
+
 
     # Compute climatology
     time_dot_month = ".".join([time_coord_name, "month"])
