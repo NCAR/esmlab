@@ -53,6 +53,9 @@ def compute_mon_climatology(dset, time_coord_name=None, weighted=False):
                            "generate weighted monthly climatology.")
 
 
+    # set of partially covered months that are to be dropped
+    partial_mths = set()
+
     def weighted_monthly_mean(ds,calendar):
         """ computes weighted averages of a given dataset group (ds) """
 
@@ -110,13 +113,13 @@ def compute_mon_climatology(dset, time_coord_name=None, weighted=False):
                 weights[-1] =  chunk_duration / duration
 
         else:
-            pass # TODO
-
+            pass # Partially covered month. Will be dropped.
 
 
         if sum(weights)<.9999:
-            print("WARNING: missing slice for the month beginning on:", begin_date)
-            # TODO: proper way of handling this ?
+            print("WARNING: partially covered month beginning on:", begin_date)
+            print("\tDropping this month...")
+            partial_mths.add(group_mth)
 
 
         # convert weights to an xr.DataArray:
@@ -153,6 +156,9 @@ def compute_mon_climatology(dset, time_coord_name=None, weighted=False):
             .apply(weighted_monthly_mean, calendar=dset[time_coord_name].attrs['calendar'])
             .rename({tb_name_mth: time_coord_name})
         )
+
+        # drop partial months:
+        computed_dset = computed_dset.drop(partial_mths, dim=time_coord_name)
 
     else:
         time_dot_month = ".".join([time_coord_name, "month"])
