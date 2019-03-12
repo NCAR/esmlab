@@ -47,14 +47,22 @@ def compute_mon_climatology(dset, time_coord_name=None):
     # save metadata
     attrs, encoding = save_metadata(dset)
 
-    # create a data array of time_bounds (of type cftime)
+    # create a data array of time_bound months
     # this data array is to be used when grouping dset
     tb_name = tm.tb_name
-    tb_cft = xr.DataArray(dset[tb_name])
-    tb_cft = [ [date0.month,date1.month] for [date0,date1] in
-                    cft.num2date(dset[tb_name],
-                                 dset[tb_name].attrs['units'],
-                                 dset[tb_name].attrs['calendar'])]
+    tb_month = xr.DataArray(dset[tb_name])
+    tb_month.data = [ [date0.month,date1.month] for [date0,date1] in
+                        cft.num2date(dset[tb_name],
+                                     dset[tb_name].attrs['units'],
+                                     dset[time_coord_name].attrs['calendar'])]
+
+    # Group by time_bound months
+    computed_dset = (
+        dset.drop(static_variables)
+        .groupby(tb_month)
+        .groups
+    )
+    print(computed_dset)
 
 
     # Compute climatology
