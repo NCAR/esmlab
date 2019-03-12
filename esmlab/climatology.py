@@ -22,7 +22,7 @@ from .utils.variables import (
 @esmlab_xr_set_options(arithmetic_join="exact")
 def compute_mon_climatology(dset, time_coord_name=None):
     """Calculates monthly climatology (monthly means)
- 
+
     Parameters
     ----------
     dset : xarray.Dataset
@@ -260,7 +260,7 @@ def compute_mon_averages(dset, time_coord_name=None):
     computed_dset[time_coord_name].data = times
     computed_dset.drop(tb_name)
     computed_dset[tb_name] = xr.DataArray(time_bounds,
-                                          dims={'d2',time_coord_name},
+                                          dims=(time_coord_name,'d2'),
                                           attrs={'units':dset[tb_name].attrs['units']})
 
     # Put static_variables back
