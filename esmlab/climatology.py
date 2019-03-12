@@ -20,170 +20,6 @@ from .utils.variables import (
 
 
 @esmlab_xr_set_options(arithmetic_join="exact")
-def compute_mon_averages(dset, time_coord_name=None, weighted=False):
-    """Calculates monthly averages from a more frequently recorded dataset
-
-    Parameters
-    ----------
-    dset : xarray.Dataset
-           The data on which to operate
-
-    time_coord_name : string
-            Name for time coordinate
-
-    Returns
-    -------
-    computed_dset : xarray.Dataset
-                    The computed monthly average data
-
-    """
-
-    tm = time_manager(dset, time_coord_name)
-    dset = tm.compute_time()
-    time_coord_name = tm.time_coord_name
-
-    static_variables = get_static_variables(dset, time_coord_name)
-
-    # save metadata
-    attrs, encoding = save_metadata(dset)
-
-
-    if tm.time_bound is None:
-        raise RuntimeError("Dataset must have time_bound variable to be able to"
-                           "generate weighted monthly averages.")
-
-
-    def mth_index(date):
-        """ return the month number of a given date """
-        return date.year*12 + date.month
-
-    # set of partially covered month indices that are to be dropped
-    partial_mths = set()
-
-    def weighted_monthly_mean(ds,calendar):
-        """ computes weighted averages of a given dataset group (ds) """
-
-        # determine the year and month of this group
-        median_date = cft.num2date( ds[tb_name].mean(), #ds[tb_name].median() #not yet implemented on dask
-                                    ds[tb_name].attrs['units'],
-                                    calendar)
-        group_yr = median_date.year
-        group_mth = median_date.month
-
-        # begin date of this group (month):
-        begin_date = cft.datetime(group_yr, group_mth, 1)
-        begin_num = cft.date2num(begin_date,
-                                 ds[tb_name].attrs['units'],
-                                 calendar)
-
-        # end date of this group (month):
-        end_date = cft.datetime(group_yr+(group_mth+1)//12, (group_mth+1)%13 + group_mth//12, 1)
-        end_num = cft.date2num(end_date,
-                               ds[tb_name].attrs['units'],
-                               calendar)
-
-        # length of this group (e.g., number of days in this month):
-        duration = end_num-begin_num
-        nw = len(ds[tb_name].data) # number of weights needed
-        weights = [0.0]*nw
-
-        if nw>1:
-            # determine whether initial and/or last chunks are partly within this group
-            initial_partly = ds[tb_name].data[0] == ds[tb_name].data[1]
-            last_partly = ds[tb_name].data[-2] == ds[tb_name].data[-1]
-
-            # compute the first weight:
-            if not initial_partly:
-                chunk_duration = ds[tb_name].data[1] - ds[tb_name].data[0]
-                weights[0] =  0.5 * chunk_duration / duration
-            else:
-                chunk_duration = ds[tb_name].data[0] - begin_num
-                weights[0] =  chunk_duration / duration
-
-            # compute the weights in the middle
-            for i in range(1,nw-1):
-                if ds[tb_name].data[i] != ds[tb_name].data[i-1]:
-                    chunk_duration = ds[tb_name].data[i] - ds[tb_name].data[i-1]
-                elif ds[tb_name].data[i] != ds[tb_name].data[i+1]:
-                    chunk_duration = ds[tb_name].data[i+1] - ds[tb_name].data[i]
-                weights[i] = 0.5 * chunk_duration / duration
-
-            # compute the last weight:
-            if not last_partly:
-                chunk_duration = ds[tb_name].data[-1] - ds[tb_name].data[-2]
-                weights[-1] =  0.5 * chunk_duration / duration
-            else:
-                chunk_duration = end_num - ds[tb_name].data[-1]
-                weights[-1] =  chunk_duration / duration
-
-        else:
-            pass # Partially covered month. Will be dropped.
-
-
-        if sum(weights)<.9999:
-            print("WARNING: partially covered month beginning on:", begin_date)
-            print("\tDropping this month...")
-            partial_mths.add(mth_index(median_date))
-
-
-        # convert weights to an xr.DataArray:
-        weights = xr.DataArray( weights,
-                                coords={"stacked_time_d2":ds.stacked_time_d2},
-                                dims=("stacked_time_d2",) )
-
-        # instantiate the mean dataset. (TODO: make this more efficient)
-        ds_mean = ds.sum(dim="stacked_time_d2")
-
-        # now compute the correct means for variables with time dimension
-        for da in ds_mean.variables:
-            if "stacked_time_d2" in ds[da].dims:
-                ds_mean[da] = xr.dot(ds[da],weights)
-
-        return ds_mean
-
-    # Create a data array of time_bound months.
-    # This data array is to be used when grouping dset.
-    tb_name = tm.tb_name
-    cal_name = dset[time_coord_name].attrs['calendar']
-    tb_name_mth = tb_name+"_mth_index"
-    tb_month = xr.DataArray(dset[tb_name], name=tb_name_mth)
-    tb_month.data = [ [mth_index(date0), mth_index(date1)] \
-                        for [date0,date1] in cft.num2date(dset[tb_name],
-                                                          dset[tb_name].attrs['units'],
-                                                          cal_name)]
-
-    print(tb_month)
-
-    # Group by time_bound months and apply weighted averaging
-    computed_dset = (
-        dset.drop(static_variables)
-        .groupby(tb_month)
-        .apply(weighted_monthly_mean, calendar=cal_name)
-        .rename({tb_name_mth: time_coord_name})
-    )
-
-    # drop partial months:
-    computed_dset = computed_dset.drop(partial_mths, dim=time_coord_name)
-
-    # Put static_variables back
-    computed_dset = set_static_variables(computed_dset, dset, static_variables)
-
-    # add month_bounds
-    computed_dset["month"] = computed_dset[time_coord_name].copy()
-    attrs["month"] = {"long_name": "Month", "units": "month"}
-    encoding["month"] = {"dtype": "int32", "_FillValue": None}
-    encoding[time_coord_name] = {"dtype": "float", "_FillValue": None}
-
-    if "calendar" in attrs[time_coord_name]:
-        attrs[time_coord_name]["calendar"] = attrs[time_coord_name]["calendar"]
-
-    # Put the attributes, encoding back
-    computed_dset = set_metadata(computed_dset, attrs, encoding, additional_attrs={})
-
-    return computed_dset
-
-
-@esmlab_xr_set_options(arithmetic_join="exact")
 def compute_mon_climatology(dset, time_coord_name=None):
     """Calculates monthly climatology (monthly means)
     Parameters
@@ -248,6 +84,186 @@ def compute_mon_climatology(dset, time_coord_name=None):
     computed_dset = set_metadata(computed_dset, attrs, encoding, additional_attrs={})
 
     computed_dset = tm.restore_dataset(computed_dset)
+
+    return computed_dset
+
+
+@esmlab_xr_set_options(arithmetic_join="exact")
+def compute_mon_averages(dset, time_coord_name=None):
+    """Calculates monthly averages from a more frequently recorded dataset
+
+    Parameters
+    ----------
+    dset : xarray.Dataset
+           The data on which to operate
+
+    time_coord_name : string
+            Name for time coordinate
+
+    Returns
+    -------
+    computed_dset : xarray.Dataset
+                    The computed monthly average data
+
+    """
+
+    tm = time_manager(dset, time_coord_name)
+    dset = tm.compute_time()
+    time_coord_name = tm.time_coord_name
+
+    static_variables = get_static_variables(dset, time_coord_name)
+
+    # save metadata
+    attrs, encoding = save_metadata(dset)
+
+
+    if tm.time_bound is None:
+        raise RuntimeError("Dataset must have time_bound variable to be able to"
+                           "generate weighted monthly averages.")
+
+
+    def date2mthIndex(date):
+        """ return the month number of a given date """
+        return date.year*12 + date.month
+    def mthIndex2date(mth_index):
+        """ return a datetime object for a given month index"""
+        return cft.datetime((mth_index-1)//12, (mth_index-1)%12 +1, 1)
+
+    # set of partially covered month indices that are to be dropped
+    partial_mths = set()
+
+    def weighted_monthly_mean(ds_grp,calendar):
+        """ computes weighted averages of a given dataset group (ds_grp) """
+
+        # determine the year and month of this group
+        median_date = cft.num2date( ds_grp[tb_name].mean(),
+                                    ds_grp[tb_name].attrs['units'],
+                                    calendar)
+        group_yr = median_date.year
+        group_mth = median_date.month
+
+        # begin date of this group (month):
+        begin_date = cft.datetime(group_yr, group_mth, 1)
+        begin_num = cft.date2num(begin_date,
+                                 ds_grp[tb_name].attrs['units'],
+                                 calendar)
+
+        # end date of this group (month):
+        end_date = cft.datetime(group_yr+(group_mth+1)//12, (group_mth+1)%13 + group_mth//12, 1)
+        end_num = cft.date2num(end_date,
+                               ds_grp[tb_name].attrs['units'],
+                               calendar)
+
+        # length of this group (e.g., number of days in this month):
+        duration = end_num-begin_num
+        nw = len(ds_grp[tb_name].data) # number of weights needed
+        weights = [0.0]*nw
+
+        if nw>1:
+            # determine whether initial and/or last chunks are partly within this group
+            initial_partly = ds_grp[tb_name].data[0] == ds_grp[tb_name].data[1]
+            last_partly = ds_grp[tb_name].data[-2] == ds_grp[tb_name].data[-1]
+
+            # compute the first weight:
+            if not initial_partly:
+                chunk_duration = ds_grp[tb_name].data[1] - ds_grp[tb_name].data[0]
+                weights[0] =  0.5 * chunk_duration / duration
+            else:
+                chunk_duration = ds_grp[tb_name].data[0] - begin_num
+                weights[0] =  chunk_duration / duration
+
+            # compute the weights in the middle
+            for i in range(1,nw-1):
+                if ds_grp[tb_name].data[i] != ds_grp[tb_name].data[i-1]:
+                    chunk_duration = ds_grp[tb_name].data[i] - ds_grp[tb_name].data[i-1]
+                elif ds_grp[tb_name].data[i] != ds_grp[tb_name].data[i+1]:
+                    chunk_duration = ds_grp[tb_name].data[i+1] - ds_grp[tb_name].data[i]
+                weights[i] = 0.5 * chunk_duration / duration
+
+            # compute the last weight:
+            if not last_partly:
+                chunk_duration = ds_grp[tb_name].data[-1] - ds_grp[tb_name].data[-2]
+                weights[-1] =  0.5 * chunk_duration / duration
+            else:
+                chunk_duration = end_num - ds_grp[tb_name].data[-1]
+                weights[-1] =  chunk_duration / duration
+
+        else:
+            pass # Partially covered month. Will be dropped.
+
+
+        if sum(weights)<.9999:
+            print("WARNING: partially covered month beginning on:", begin_date)
+            print("\tDropping this month...")
+            partial_mths.add(date2mthIndex(median_date))
+
+
+        # convert weights to an xr.DataArray:
+        weights = xr.DataArray( weights,
+                                coords={"stacked_time_d2":ds_grp.stacked_time_d2},
+                                dims=("stacked_time_d2",) )
+
+        # instantiate the mean dataset. (TODO: make this more efficient)
+        ds_mean = ds_grp.sum(dim="stacked_time_d2")
+
+        # now compute the correct means for variables with time dimension
+        for da in ds_mean.variables:
+            if "stacked_time_d2" in ds_grp[da].dims:
+                ds_mean[da] = xr.dot(ds_grp[da],weights)
+
+        return ds_mean
+
+    # Create a data array of time_bound months.
+    # This data array is to be used when grouping dset.
+    tb_name = tm.tb_name
+    cal_name = dset[time_coord_name].attrs['calendar']
+    tb_name_mth = tb_name+"_mth_index"
+    tb_month = xr.DataArray(dset[tb_name], name=tb_name_mth)
+    tb_month.data = [ [date2mthIndex(date0), date2mthIndex(date1)] \
+                        for [date0,date1] in cft.num2date(dset[tb_name],
+                                                          dset[tb_name].attrs['units'],
+                                                          cal_name)]
+
+    # Group by time_bound months and apply weighted averaging
+    computed_dset = (
+        dset.drop(static_variables)
+        .groupby(tb_month)
+        .apply(weighted_monthly_mean, calendar=cal_name)
+        .rename({tb_name_mth: time_coord_name})
+    )
+
+    # drop partial months:
+    computed_dset = computed_dset.drop(partial_mths, dim=time_coord_name)
+
+    # correct time and time_bound
+    ntime = len(computed_dset[time_coord_name])
+    times = []
+    time_bounds = []
+    for t in range(ntime):
+        begin_date  = mthIndex2date(computed_dset[time_coord_name][t])
+        begin_num   = cft.date2num( begin_date,
+                                    dset[time_coord_name].attrs['units'],
+                                    cal_name)
+        end_date    = mthIndex2date(computed_dset[time_coord_name][t]+1)
+        end_num     = cft.date2num( end_date, 
+                                    dset[time_coord_name].attrs['units'],
+                                    cal_name)
+
+        mean_num   = (end_num+begin_num)/2.0
+        times.append(mean_num)
+        time_bounds.append([begin_num,end_num])
+
+    computed_dset[time_coord_name].data = times
+    computed_dset.drop(tb_name)
+    computed_dset[tb_name] = xr.DataArray(time_bounds,
+                                          dims={'d2',time_coord_name},
+                                          attrs={'units':dset[tb_name].attrs['units']})
+
+    # Put static_variables back
+    computed_dset = set_static_variables(computed_dset, dset, static_variables)
+
+    # Put the attributes, encoding back
+    computed_dset = set_metadata(computed_dset, attrs, encoding, additional_attrs={})
 
     return computed_dset
 
