@@ -53,7 +53,11 @@ def compute_mon_climatology(dset, time_coord_name=None, weighted=False):
                            "generate weighted monthly climatology.")
 
 
-    # set of partially covered months that are to be dropped
+    def mth_index(date):
+        """ return the month number of a given date """
+        return date.year*12 + date.month
+
+    # set of partially covered month indices that are to be dropped
     partial_mths = set()
 
     def weighted_monthly_mean(ds,calendar):
@@ -119,7 +123,7 @@ def compute_mon_climatology(dset, time_coord_name=None, weighted=False):
         if sum(weights)<.9999:
             print("WARNING: partially covered month beginning on:", begin_date)
             print("\tDropping this month...")
-            partial_mths.add(group_mth)
+            partial_mths.add(mth_index(median_date))
 
 
         # convert weights to an xr.DataArray:
@@ -142,18 +146,21 @@ def compute_mon_climatology(dset, time_coord_name=None, weighted=False):
         # Create a data array of time_bound months.
         # This data array is to be used when grouping dset.
         tb_name = tm.tb_name
-        tb_name_mth = tb_name+"_month"
+        cal_name = dset[time_coord_name].attrs['calendar']
+        tb_name_mth = tb_name+"_mth_index"
         tb_month = xr.DataArray(dset[tb_name], name=tb_name_mth)
-        tb_month.data = [ [date0.month,date1.month] for [date0,date1] in
-                            cft.num2date(dset[tb_name],
-                                         dset[tb_name].attrs['units'],
-                                         dset[time_coord_name].attrs['calendar'])]
+        tb_month.data = [ [mth_index(date0), mth_index(date1)] \
+                            for [date0,date1] in cft.num2date(dset[tb_name],
+                                                              dset[tb_name].attrs['units'],
+                                                              cal_name)]
+
+        print(tb_month)
 
         # Group by time_bound months and apply weighted averaging
         computed_dset = (
             dset.drop(static_variables)
             .groupby(tb_month)
-            .apply(weighted_monthly_mean, calendar=dset[time_coord_name].attrs['calendar'])
+            .apply(weighted_monthly_mean, calendar=cal_name)
             .rename({tb_name_mth: time_coord_name})
         )
 
