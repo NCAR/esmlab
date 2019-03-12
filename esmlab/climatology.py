@@ -69,15 +69,15 @@ def compute_mon_climatology(dset, time_coord_name=None, weighted=False):
                                  ds[tb_name].attrs['units'],
                                  calendar)
 
-        # end date of this month:
+        # end date of this group (month):
         end_date = cft.datetime(group_yr+(group_mth+1)//12, (group_mth+1)%13 + group_mth//12, 1)
         end_num = cft.date2num(end_date,
                                ds[tb_name].attrs['units'],
                                calendar)
 
-        # length of this group:
+        # length of this group (e.g., number of days in this month):
         duration = end_num-begin_num
-        nw = len(ds[tb_name].data) # number of weights neeeded
+        nw = len(ds[tb_name].data) # number of weights needed
         weights = [0.0]*nw
 
         if nw>1:
@@ -112,8 +112,10 @@ def compute_mon_climatology(dset, time_coord_name=None, weighted=False):
         else:
             pass # TODO
 
+
+
         if sum(weights)<.9999:
-            print("WARNING: Mean of empty slice for the month beginning on:", begin_date)
+            print("WARNING: missing slice for the month beginning on:", begin_date)
             # TODO: proper way of handling this ?
 
 
@@ -130,17 +132,15 @@ def compute_mon_climatology(dset, time_coord_name=None, weighted=False):
             if "stacked_time_d2" in ds[da].dims:
                 ds_mean[da] = xr.dot(ds[da],weights)
 
-        # construct time:
-        ds_mean["time"] = ds_mean["time_bound"]
-
         return ds_mean
 
     # Compute climatology
     if weighted:
-        # create a data array of time_bound months
-        # this data array is to be used when grouping dset
+        # Create a data array of time_bound months.
+        # This data array is to be used when grouping dset.
         tb_name = tm.tb_name
-        tb_month = xr.DataArray(dset[tb_name])
+        tb_name_mth = tb_name+"_month"
+        tb_month = xr.DataArray(dset[tb_name], name=tb_name_mth)
         tb_month.data = [ [date0.month,date1.month] for [date0,date1] in
                             cft.num2date(dset[tb_name],
                                          dset[tb_name].attrs['units'],
@@ -151,7 +151,9 @@ def compute_mon_climatology(dset, time_coord_name=None, weighted=False):
             dset.drop(static_variables)
             .groupby(tb_month)
             .apply(weighted_monthly_mean, calendar=dset[time_coord_name].attrs['calendar'])
+            .rename({tb_name_mth: time_coord_name})
         )
+
     else:
         time_dot_month = ".".join([time_coord_name, "month"])
         computed_dset = (
