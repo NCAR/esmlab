@@ -9,8 +9,8 @@ import xarray as xr
 
 from .variables import get_variables
 
-DEFAULT_TIME_UNITS = "days since 0001-01-01 00:00:00"
-DEFAULT_CALENDAR = "standard"
+DEFAULT_TIME_UNITS = 'days since 0001-01-01 00:00:00'
+DEFAULT_CALENDAR = 'standard'
 
 
 class time_manager(object):
@@ -27,7 +27,7 @@ class time_manager(object):
            Name of the time coordinate of `ds`; if not provided, the
            code will attempt to infer it.
         """
-        self._ds = xr.Dataset(ds)
+        self._ds = ds.copy()
         self.orig_time_coord_name = None
         self.orig_time_coord_decoded = None
         self._time_computed = False
@@ -36,10 +36,10 @@ class time_manager(object):
             self.time_coord_name = self._infer_time_coord_name()
         else:
             self.time_coord_name = time_coord_name
+        self._infer_time_bound_var()
 
         self.year_offset = year_offset
-
-        self._infer_time_bound_var()
+        self.time_orig = self.time.copy()
 
     @property
     def time(self):
@@ -52,48 +52,48 @@ class time_manager(object):
         attrs = self.time.attrs
         encoding = self.time.encoding
 
-        if "units" in attrs:
-            units = attrs["units"]
-        elif "units" in encoding:
-            units = encoding["units"]
+        if 'units' in attrs:
+            units = attrs['units']
+        elif 'units' in encoding:
+            units = encoding['units']
         else:
             units = None
 
-        if "calendar" in attrs:
-            calendar = attrs["calendar"]
-        elif "calendar" in encoding:
-            calendar = encoding["calendar"]
+        if 'calendar' in attrs:
+            calendar = attrs['calendar']
+        elif 'calendar' in encoding:
+            calendar = encoding['calendar']
         else:
             calendar = DEFAULT_CALENDAR
 
-        if "bounds" in attrs:
-            bounds = attrs["bounds"]
-        elif "bounds" in encoding:
-            bounds = encoding["bounds"]
+        if 'bounds' in attrs:
+            bounds = attrs['bounds']
+        elif 'bounds' in encoding:
+            bounds = encoding['bounds']
         else:
             bounds = None
 
-        return {"units": units, "calendar": calendar, "bounds": bounds}
+        return {'units': units, 'calendar': calendar, 'bounds': bounds}
 
     def _infer_time_coord_name(self):
         """Infer name for time coordinate in a dataset
         """
 
-        if "time" in self._ds.variables:
-            return "time"
+        if 'time' in self._ds.variables:
+            return 'time'
 
-        unlimited_dims = self._ds.encoding.get("unlimited_dims", None)
+        unlimited_dims = self._ds.encoding.get('unlimited_dims', None)
         if len(unlimited_dims) == 1:
             return list(unlimited_dims)[0]
         raise ValueError(
-            "Cannot infer `time_coord_name` from multiple unlimited dimensions: %s \n\t\t ***** Please specify time_coord_name to use. *****"
+            'Cannot infer `time_coord_name` from multiple unlimited dimensions: %s \n\t\t ***** Please specify time_coord_name to use. *****'
             % unlimited_dims
         )
 
     def _infer_time_bound_var(self):
         """Infer time_bound variable in a dataset.
         """
-        self.tb_name = self.time_attrs["bounds"]
+        self.tb_name = self.time_attrs['bounds']
         self.tb_dim = None
 
         if self.tb_name:
@@ -102,18 +102,18 @@ class time_manager(object):
     def get_time_undecoded(self):
         """Return time undecoded.
         """
-        if self.time.dtype != np.dtype("O"):
+        if self.time.dtype != np.dtype('O'):
             if self.orig_time_coord_decoded is None:
                 self.orig_time_coord_decoded = False
             return self.time
 
-        if not self.time_attrs["units"]:
-            raise ValueError("cannot undecode time")
+        if not self.time_attrs['units']:
+            raise ValueError('cannot undecode time')
 
         # un-decode time
         time = xr.DataArray(self.time)
         time.values = cftime.date2num(
-            self.time, units=self.time_attrs["units"], calendar=self.time_attrs["calendar"]
+            self.time, units=self.time_attrs['units'], calendar=self.time_attrs['calendar']
         )
         if self.orig_time_coord_decoded is None:
             self.orig_time_coord_decoded = True
@@ -124,7 +124,7 @@ class time_manager(object):
         """
         # to compute a time midpoint, we need a time_bound variable
         if midpoint and self.time_bound is None:
-            raise ValueError("cannot compute time midpoint w/o time bounds")
+            raise ValueError('cannot compute time midpoint w/o time bounds')
 
         if midpoint:
             time_values = self.time_bound.mean(self.tb_dim)
@@ -132,7 +132,7 @@ class time_manager(object):
         else:
             # if time has already been decoded and there's no year_offset,
             # just return the time as is
-            if self.time.dtype == np.dtype("O"):
+            if self.time.dtype == np.dtype('O'):
                 if self.year_offset is None:
                     return time_values
 
@@ -147,28 +147,28 @@ class time_manager(object):
         if self.year_offset is not None:
             time_values += cftime.date2num(
                 datetime(int(self.year_offset), 1, 1),
-                units=self.time_attrs["units"],
-                calendar=self.time_attrs["calendar"],
+                units=self.time_attrs['units'],
+                calendar=self.time_attrs['calendar'],
             )
 
         time_out = xr.DataArray(self.time)
         time_out.values = xr.CFTimeIndex(
             cftime.num2date(
-                time_values, units=self.time_attrs["units"], calendar=self.time_attrs["calendar"]
+                time_values, units=self.time_attrs['units'], calendar=self.time_attrs['calendar']
             )
         )
         return time_out
 
-    def compute_time(self):
+    def compute_time(self, retain_orig_time_coord=True):
         """Compute the mid-point of the time bounds.
         """
 
         if self._time_computed:
             return self._ds
 
-        self.orig_time_coord_name = "t" + uuid.uuid4().hex
-
-        self._ds[self.orig_time_coord_name] = self.get_time_undecoded()
+        if retain_orig_time_coord:
+            self.orig_time_coord_name = 't' + uuid.uuid4().hex
+            self._ds[self.orig_time_coord_name] = self.get_time_undecoded()
 
         if self.time_bound is not None:
             groupby_coord = self.get_time_decoded(midpoint=True)
@@ -182,18 +182,18 @@ class time_manager(object):
 
         return self._ds
 
-    def restore_dataset(self, ds):
+    def restore_dataset(self, ds=None):
         """Return the original time variable.
         """
         if not self._time_computed:
-            raise ValueError("time was not computed; cannot restore dataset")
+            raise ValueError('time was not computed; cannot restore dataset')
         time_values = ds[self.orig_time_coord_name].values
         if self.orig_time_coord_decoded:
             time_values = xr.CFTimeIndex(
                 cftime.num2date(
                     time_values,
-                    units=self.time_attrs["units"],
-                    calendar=self.time_attrs["calendar"],
+                    units=self.time_attrs['units'],
+                    calendar=self.time_attrs['calendar'],
                 )
             )
         ds[self.time_coord_name].values = time_values
@@ -207,13 +207,13 @@ class time_manager(object):
         if self.tb_name is None:
             return
 
-        if self._ds[self.tb_name].dtype == np.dtype("O"):
+        if self._ds[self.tb_name].dtype == np.dtype('O'):
             tb_value = cftime.date2num(
                 self._ds[self.tb_name],
-                units=self.time_attrs["units"],
-                calendar=self.time_attrs["calendar"],
+                units=self.time_attrs['units'],
+                calendar=self.time_attrs['calendar'],
             )
-            return xr.DataArray(tb_value, dims=(self.time_coord_name))
+            return xr.DataArray(tb_value, dims=(self.time_coord_name, self.tb_dim))
         else:
             return self._ds[self.tb_name]
 
@@ -223,7 +223,7 @@ class time_manager(object):
         """
         time_bound_diff = xr.ones_like(self.time, dtype=self.time.dtype)
 
-        time_bound_diff.name = self.tb_name + "_diff"
+        time_bound_diff.name = self.tb_name + '_diff'
         time_bound_diff.attrs = {}
 
         if self.time_bound is not None:
