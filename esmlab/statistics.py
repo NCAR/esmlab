@@ -138,15 +138,7 @@ def weighted_mean(x, weights=None, dim=None, apply_nan_mask=True):
         x, weights=weights, dim=dim, apply_nan_mask=apply_nan_mask
     )
 
-    # If the mask is applied in previous operation,
-    # disable it for subseqent operations
-    if apply_nan_mask:
-        apply_nan_mask_flag = False
-    else:
-        apply_nan_mask_flag = True
-    x_w_mean = weighted_sum(
-        x, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask_flag
-    ) / weights.sum(op_over_dims)
+    x_w_mean = (x * weights).sum(op_over_dims) / weights.sum(op_over_dims)
     original_attrs, original_encoding = get_original_attrs(x)
     return update_attrs(x_w_mean, original_attrs, original_encoding)
 
