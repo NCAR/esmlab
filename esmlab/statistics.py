@@ -25,7 +25,6 @@ def validate_weights(da, dim, weights):
     return weights, total_weights
 
 
-@esmlab_xr_set_options(arithmetic_join='exact')
 def weighted_sum_da(da, dim=None, weights=None):
 
     """ Compute weighted mean for DataArray
@@ -78,7 +77,7 @@ def weighted_sum_ds(ds, dim=None, weights=None):
         ds.apply(weighted_sum_da, dim=dim, weights=weights)
 
 
-@esmlab_xr_set_options(arithmetic_join='exact')
+@esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
 def weighted_sum(data, dim=None, weights=None):
     """ Compute weighted sum for xarray objects
     Parameters
@@ -156,7 +155,7 @@ def weighted_mean_ds(ds, dim=None, weights=None):
         ds.apply(weighted_mean_da, dim=dim, weights=weights)
 
 
-@esmlab_xr_set_options(arithmetic_join='exact')
+@esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
 def weighted_mean(data, dim=None, weights=None):
     """ Compute weighted mean for xarray objects
     Parameters
@@ -238,7 +237,7 @@ def weighted_std_ds(ds, dim=None, weights=None):
         ds.apply(weighted_std_da, dim=dim, weights=weights)
 
 
-@esmlab_xr_set_options(arithmetic_join='exact')
+@esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
 def weighted_std(data, dim=None, weights=None):
     """ Compute weighted standard deviation for xarray objects
     Parameters
@@ -264,7 +263,7 @@ def weighted_std(data, dim=None, weights=None):
         raise ValueError('Data must be an xarray Dataset or DataArray')
 
 
-@esmlab_xr_set_options(arithmetic_join='exact')
+@esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
 def weighted_rmsd(x, y, dim=None, weights=None):
     """ Compute weighted root mean square deviation between two xarray Objects
 
@@ -288,7 +287,7 @@ def weighted_rmsd(x, y, dim=None, weights=None):
     return np.sqrt(dev_mean)
 
 
-@esmlab_xr_set_options(arithmetic_join='exact')
+@esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
 def weighted_cov(x, y, dim=None, weights=None):
     """ Compute weighted covariance between two xarray objects.
 
@@ -319,7 +318,7 @@ def weighted_cov(x, y, dim=None, weights=None):
     return cov_xy
 
 
-@esmlab_xr_set_options(arithmetic_join='exact')
+@esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
 def weighted_corr(x, y, dim=None, weights=None):
     """ Compute weighted correlation between two xarray objects.
 
