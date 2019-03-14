@@ -77,6 +77,18 @@ def test_weighted_rmsd_ds():
         np.testing.assert_allclose(rmsd, np.array([0.0, 0.0]))
 
 
+def test_weighted_cov():
+    dim = ['x', 'y']
+    valid = da1.notnull() & da2.notnull()
+    N = valid.sum(dim)
+    da1_dev = da1 - da1.mean(dim)
+    da2_dev = da2 - da2.mean(dim)
+    cov = (da1_dev * da2_dev).sum(dim) / N
+    with pytest.warns(UserWarning):
+        w_cov = statistics.weighted_cov(da1, da2, dim)
+        np.testing.assert_allclose(cov, w_cov)
+
+
 @pytest.mark.skip
 def test_weighted_sum():
     with pytest.warns(UserWarning):
@@ -84,16 +96,6 @@ def test_weighted_sum():
     np.testing.assert_allclose(w_sum, x.sum())
     assert x.attrs == w_sum.attrs
     assert x.encoding == w_sum.encoding
-
-
-@pytest.mark.skip
-def test_weighted_cov():
-    x_dev = x - x.mean()
-    y_dev = y - y.mean()
-    cov = (x_dev * y_dev).sum() / N
-    with pytest.warns(UserWarning):
-        w_cov = statistics.weighted_cov(x, y)
-        np.testing.assert_allclose(cov, w_cov)
 
 
 @pytest.mark.skip
