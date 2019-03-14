@@ -18,6 +18,91 @@ from .utils.variables import (
 )
 
 
+def weighted_mean_da(da, dim=None, weights=None):
+    """ Compute weighted mean for DataArrays
+    Parameters
+    ----------
+    da : xarray.DataArray
+        DataArray for which to compute `weighted mean`
+    dim : str or sequence of str, optional
+        Dimension(s) over which to apply mean.
+    weights : DataArray
+        weights to apply. Shape must be broadcastable to shape of da.
+
+    Returns
+    -------
+    reduced : DataArray
+        New DataArray with mean applied to its data and the indicated
+        dimension(s) removed.
+
+    """
+    if weights is None:
+        warn('Computing mean using equal weights for all data points')
+        return da.mean(dim)
+
+    else:
+        if not isinstance(weights, xr.DataArray):
+            raise ValueError('Weights must be an xarray DataArray')
+        # if NaN are present, we need to use individual weights
+        if da.notnull().any():
+            total_weights = weights.where(da.notnull()).sum(dim=dim)
+        else:
+            total_weights = weights.sum(dim)
+
+        return (da * weights).sum(dim) / total_weights
+
+
+def weighted_mean_ds(ds, dim=None, weights=None):
+    """ Compute weighted mean for DataArrays
+    Parameters
+    ----------
+    da : xarray.Dataset
+        Dataset for which to compute `weighted mean`
+    dim : str or sequence of str, optional
+        Dimension(s) over which to apply mean.
+    weights : DataArray
+        weights to apply. Shape must be broadcastable to shape of data.
+
+    Returns
+    -------
+    reduced : Dataset
+        New Dataset with mean applied to its data and the indicated
+        dimension(s) removed.
+
+    """
+    if weights is None:
+        warn('Computing mean using equal weights for all data points')
+        return ds.mean(dim)
+    else:
+        ds.apply(weighted_mean_da, dim=dim, weights=weights)
+
+
+@esmlab_xr_set_options(arithmetic_join='exact')
+def weighted_mean(data, dim=None, weights=None):
+    """ Compute weighted mean for xarray objects
+    Parameters
+    ----------
+    data : Dataset or DataArray
+         xarray object for which to compute `weighted mean`
+    dim : str or sequence of str, optional
+        Dimension(s) over which to apply mean.
+    weights : DataArray
+        weights to apply. Shape must be broadcastable to shape of data.
+
+    Returns
+    -------
+    reduced : Dataset or DataArray
+        New xarray object with weighted mean applied to its data and the indicated
+        dimension(s) removed.
+    """
+    if isinstance(data, xr.DataArray):
+        return weighted_mean_da(data, dim, weights)
+    elif isinstance(data, xr.Dataset):
+        return weighted_mean_ds(data, dim, weights)
+    else:
+        raise ValueError('Data must be an xarray Dataset or DataArray')
+
+
 def _apply_nan_mask(weights, x, y=None):
     # If y is specified, make sure x and y have same shape
     if y is not None and isinstance(y, xr.DataArray):
@@ -101,46 +186,6 @@ def weighted_sum(x, weights=None, dim=None, apply_nan_mask=True):
 
     original_attrs, original_encoding = get_original_attrs(x)
     return update_attrs(x_w_sum, original_attrs, original_encoding)
-
-
-@esmlab_xr_set_options(arithmetic_join='exact')
-def weighted_mean(x, weights=None, dim=None, apply_nan_mask=True):
-    """Reduce `xarray.DataArray` by applying weighted mean along some dimension(s).
-
-        Parameters
-        ----------
-
-        x : `xarray.DataArray`
-           xarray object for which to compute `weighted mean`.
-
-        weights : array_like, optional
-                weights to use. By default, weights=`None`
-
-        dim : str or sequence of str, optional
-           Dimension(s) over which to apply `weighted mean`. By default weighted mean
-           is applied over all dimensions.
-
-        apply_nan_mask : bool, default: True
-
-
-        Returns
-        -------
-
-        weighted_mean : `xarray.DataArray`
-             New DataArray object with ` weighted mean` applied to its data
-             and the indicated dimension(s) removed. If `weights` is None,
-                returns regular mean using equal weights for all data points.
-    """
-    if weights is None:
-        warn('Computing mean using equal weights for all data points')
-
-    weights, op_over_dims = _get_weights_and_dims(
-        x, weights=weights, dim=dim, apply_nan_mask=apply_nan_mask
-    )
-
-    x_w_mean = (x * weights).sum(op_over_dims) / weights.sum(op_over_dims)
-    original_attrs, original_encoding = get_original_attrs(x)
-    return update_attrs(x_w_mean, original_attrs, original_encoding)
 
 
 @esmlab_xr_set_options(arithmetic_join='exact')

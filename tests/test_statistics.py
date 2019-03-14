@@ -15,13 +15,38 @@ N = valid.sum()
 x = x.where(valid)
 y = y.where(valid)
 
+data1 = np.arange(27, dtype='float32').reshape(3, 3, 3)
+data2 = np.arange(9, dtype='float32').reshape(3, 3)
+data2[1, 2:3] = np.nan
+data1[0, 2] = np.nan
+data1[2, 1:3] = np.nan
+da1 = xr.DataArray(data1, dims=['x', 'y', 'z'])
+da2 = xr.DataArray(data2, dims=['x', 'y'])
+ds = xr.Dataset({'variable_x': (['x', 'y', 'z'], da1), 'variable_y': (['x', 'y'], da2)})
 
-def test_weighted_mean():
+
+@pytest.mark.parametrize('data', [da1, da2])
+def test_weighted_mean_da(data):
     with pytest.warns(UserWarning):
-        w_mean = statistics.weighted_mean(x)
-    np.testing.assert_allclose(w_mean, x.mean())
-    assert x.attrs == w_mean.attrs
-    assert x.encoding == w_mean.encoding
+        w_mean = statistics.weighted_mean(data)
+    np.testing.assert_allclose(w_mean, data.mean())
+    assert data.attrs == w_mean.attrs
+    assert data.encoding == w_mean.encoding
+
+
+@pytest.mark.parametrize('data', [da1, da2])
+def test_weighted_mean_da_with_dim(data, dim=['x', 'y']):
+    with pytest.warns(UserWarning):
+        w_mean = statistics.weighted_mean(data, dim)
+    np.testing.assert_allclose(w_mean, data.mean(dim))
+    assert data.attrs == w_mean.attrs
+    assert data.encoding == w_mean.encoding
+
+
+def test_weighted_mean_ds():
+    with pytest.warns(UserWarning):
+        w_mean = statistics.weighted_mean(ds)
+    np.testing.assert_allclose(w_mean['variable_x'], ds['variable_x'].mean())
 
 
 @pytest.mark.skip
