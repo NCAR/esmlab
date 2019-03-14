@@ -24,18 +24,13 @@ da1 = xr.DataArray(data1, dims=['x', 'y', 'z'])
 da2 = xr.DataArray(data2, dims=['x', 'y'])
 ds = xr.Dataset({'variable_x': (['x', 'y', 'z'], da1), 'variable_y': (['x', 'y'], da2)})
 
+test_data_da = [(da1, ['x', 'y', 'z']), (da1, None), (da2, ['x', 'y'])]
 
-@pytest.mark.parametrize('data', [da1, da2])
-def test_weighted_mean_da(data):
-    with pytest.warns(UserWarning):
-        w_mean = statistics.weighted_mean(data)
-    np.testing.assert_allclose(w_mean, data.mean())
-    assert data.attrs == w_mean.attrs
-    assert data.encoding == w_mean.encoding
+test_data_ds = [(ds, ['x', 'y']), (ds, None)]
 
 
-@pytest.mark.parametrize('data', [da1, da2])
-def test_weighted_mean_da_with_dim(data, dim=['x', 'y']):
+@pytest.mark.parametrize('data,dim', test_data_da)
+def test_weighted_mean_da(data, dim):
     with pytest.warns(UserWarning):
         w_mean = statistics.weighted_mean(data, dim)
     np.testing.assert_allclose(w_mean, data.mean(dim))
@@ -43,19 +38,27 @@ def test_weighted_mean_da_with_dim(data, dim=['x', 'y']):
     assert data.encoding == w_mean.encoding
 
 
-def test_weighted_mean_ds():
+@pytest.mark.parametrize('data,dim', test_data_ds)
+def test_weighted_mean_ds(data, dim):
     with pytest.warns(UserWarning):
-        w_mean = statistics.weighted_mean(ds)
-    np.testing.assert_allclose(w_mean['variable_x'], ds['variable_x'].mean())
+        w_mean = statistics.weighted_mean(ds, dim)
+    np.testing.assert_allclose(w_mean['variable_x'], ds['variable_x'].mean(dim))
 
 
-@pytest.mark.skip
-def test_weighted_std():
+@pytest.mark.parametrize('data,dim', test_data_da)
+def test_weighted_std_da(data, dim):
     with pytest.warns(UserWarning):
-        w_std = statistics.weighted_std(x)
-    np.testing.assert_allclose(w_std, x.std())
-    assert x.attrs == w_std.attrs
-    assert x.encoding == w_std.encoding
+        w_std = statistics.weighted_std(data, dim)
+    np.testing.assert_allclose(w_std, data.std(dim))
+    assert data.attrs == w_std.attrs
+    assert data.encoding == w_std.encoding
+
+
+@pytest.mark.parametrize('data,dim', test_data_ds)
+def test_weighted_std_ds(data, dim):
+    with pytest.warns(UserWarning):
+        w_std = statistics.weighted_std(ds, dim)
+    np.testing.assert_allclose(w_std['variable_x'], ds['variable_x'].std(dim))
 
 
 @pytest.mark.skip
