@@ -61,6 +61,22 @@ def test_weighted_std_ds(data, dim):
     np.testing.assert_allclose(w_std['variable_x'], ds['variable_x'].std(dim))
 
 
+def test_weighted_rmsd_da():
+    dim = ['x', 'y']
+    valid = da1.notnull() & da2.notnull()
+    N = valid.sum(dim)
+    rmsd = np.sqrt(((da1 - da2) ** 2).sum(dim) / N)
+    with pytest.warns(UserWarning):
+        w_rmsd = statistics.weighted_rmsd(da1, da2, dim)
+        np.testing.assert_allclose(rmsd, w_rmsd)
+
+
+def test_weighted_rmsd_ds():
+    with pytest.warns(UserWarning):
+        rmsd = statistics.weighted_rmsd(ds, ds).to_array().values
+        np.testing.assert_allclose(rmsd, np.array([0.0, 0.0]))
+
+
 @pytest.mark.skip
 def test_weighted_sum():
     with pytest.warns(UserWarning):
@@ -68,14 +84,6 @@ def test_weighted_sum():
     np.testing.assert_allclose(w_sum, x.sum())
     assert x.attrs == w_sum.attrs
     assert x.encoding == w_sum.encoding
-
-
-@pytest.mark.skip
-def test_weighted_rmsd():
-    rmsd = np.sqrt(((x - y) ** 2).sum() / N)
-    with pytest.warns(UserWarning):
-        w_rmsd = statistics.weighted_rmsd(x, y)
-        np.testing.assert_allclose(rmsd, w_rmsd)
 
 
 @pytest.mark.skip
