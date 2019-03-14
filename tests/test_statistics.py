@@ -38,6 +38,13 @@ def test_weighted_sum_da(data, dim):
     assert data.encoding == w_sum.encoding
 
 
+@pytest.mark.parametrize('data,dim', test_data_ds)
+def test_weighted_sum_ds(data, dim):
+    with pytest.warns(UserWarning):
+        w_sum = statistics.weighted_sum(ds, dim)
+    np.testing.assert_allclose(w_sum['variable_x'], ds['variable_x'].sum(dim))
+
+
 @pytest.mark.parametrize('data,dim', test_data_da)
 def test_weighted_mean_da(data, dim):
     with pytest.warns(UserWarning):
