@@ -7,14 +7,6 @@ import xarray as xr
 
 from esmlab import statistics
 
-x = xr.DataArray(np.random.uniform(0, 10, (10, 10)), dims=('x', 'y'), name='x_var')
-y = xr.DataArray(np.random.uniform(0, 10, (10, 10)), dims=('x', 'y'), name='y_var')
-y[3, 3:10] = np.nan
-valid = x.notnull() & y.notnull()
-N = valid.sum()
-x = x.where(valid)
-y = y.where(valid)
-
 data1 = np.arange(27, dtype='float32').reshape(3, 3, 3)
 data2 = np.arange(9, dtype='float32').reshape(3, 3)
 data2[1, 2:3] = np.nan
@@ -22,9 +14,10 @@ data1[0, 2] = np.nan
 data1[2, 1:3] = np.nan
 da1 = xr.DataArray(data1, dims=['x', 'y', 'z'])
 da2 = xr.DataArray(data2, dims=['x', 'y'])
+da3 = xr.DataArray(np.random.rand(3, 3, 3, 3).astype('float32'), dims=['time', 'x', 'y', 'z'])
 ds = xr.Dataset({'variable_x': (['x', 'y', 'z'], da1), 'variable_y': (['x', 'y'], da2)})
 
-test_data_da = [(da1, ['x', 'y', 'z']), (da1, None), (da2, ['x', 'y'])]
+test_data_da = [(da1, ['x', 'y', 'z']), (da1, None), (da2, ['x', 'y']), (da3, ['time', 'z'])]
 
 test_data_ds = [(ds, ['x', 'y']), (ds, None)]
 
@@ -108,16 +101,18 @@ def test_weighted_cov():
 def test_weighted_corr():
     dim = ['x', 'y']
     valid = da1.notnull() & da2.notnull()
+    da1_ = da1.where(valid)
+    da2_ = da2.where(valid)
     N = valid.sum(dim)
-    x_dev = x - x.mean(dim)
-    y_dev = y - y.mean(dim)
-    cov = (x_dev * y_dev).sum(dim) / N
-    covx = (x_dev ** 2).sum(dim) / N
-    covy = (y_dev ** 2).sum(dim) / N
+    da1_dev = da1_ - da1_.mean(dim)
+    da2_dev = da2_ - da2_.mean(dim)
+    cov = (da1_dev * da2_dev).sum(dim) / N
+    covx = (da1_dev ** 2).sum(dim) / N
+    covy = (da2_dev ** 2).sum(dim) / N
     corr = cov / np.sqrt(covx * covy)
 
     with pytest.warns(UserWarning):
-        w_corr = statistics.weighted_corr(x, y, dim)
+        w_corr = statistics.weighted_corr(da1, da2, dim)
         np.testing.assert_allclose(corr, w_corr)
 
 

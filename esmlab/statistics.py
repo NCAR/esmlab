@@ -342,6 +342,9 @@ def weighted_corr(x, y, dim=None, weights=None):
 
     """
 
+    valid_values = x.notnull() & y.notnull()
+    x = x.where(valid_values)
+    y = y.where(valid_values)
     numerator = weighted_cov(x, y, dim, weights)
     denominator = np.sqrt(weighted_cov(x, x, dim, weights) * weighted_cov(y, y, dim, weights))
     corr_xy = numerator / denominator
