@@ -30,6 +30,15 @@ test_data_ds = [(ds, ['x', 'y']), (ds, None)]
 
 
 @pytest.mark.parametrize('data,dim', test_data_da)
+def test_weighted_sum_da(data, dim):
+    with pytest.warns(UserWarning):
+        w_sum = statistics.weighted_sum(data, dim)
+    np.testing.assert_allclose(w_sum, data.sum(dim))
+    assert data.attrs == w_sum.attrs
+    assert data.encoding == w_sum.encoding
+
+
+@pytest.mark.parametrize('data,dim', test_data_da)
 def test_weighted_mean_da(data, dim):
     with pytest.warns(UserWarning):
         w_mean = statistics.weighted_mean(data, dim)
@@ -89,30 +98,22 @@ def test_weighted_cov():
         np.testing.assert_allclose(cov, w_cov)
 
 
-@pytest.mark.skip
-def test_weighted_sum():
-    with pytest.warns(UserWarning):
-        w_sum = statistics.weighted_sum(x)
-    np.testing.assert_allclose(w_sum, x.sum())
-    assert x.attrs == w_sum.attrs
-    assert x.encoding == w_sum.encoding
-
-
-@pytest.mark.skip
 def test_weighted_corr():
-    x_dev = x - x.mean()
-    y_dev = y - y.mean()
-    cov = (x_dev * y_dev).sum() / N
-    covx = (x_dev ** 2).sum() / N
-    covy = (y_dev ** 2).sum() / N
+    dim = ['x', 'y']
+    valid = da1.notnull() & da2.notnull()
+    N = valid.sum(dim)
+    x_dev = x - x.mean(dim)
+    y_dev = y - y.mean(dim)
+    cov = (x_dev * y_dev).sum(dim) / N
+    covx = (x_dev ** 2).sum(dim) / N
+    covy = (y_dev ** 2).sum(dim) / N
     corr = cov / np.sqrt(covx * covy)
 
     with pytest.warns(UserWarning):
-        w_corr = statistics.weighted_corr(x, y)
+        w_corr = statistics.weighted_corr(x, y, dim)
         np.testing.assert_allclose(corr, w_corr)
 
 
-@pytest.mark.skip
 def test_weighted_sum_float32():
     from esmlab.datasets import open_dataset
 
@@ -121,6 +122,6 @@ def test_weighted_sum_float32():
         tmp_data = ds['TLAT']
         tmp_data.values = np.where(np.greater_equal(ds['KMT'].values, 1), ds['TLAT'], np.nan)
         tmp_data = tmp_data.astype(np.float32)
-    w_sum = statistics.weighted_sum(tmp_data, weights)
+    w_sum = statistics.weighted_sum(tmp_data, dim=None, weights=weights)
     assert tmp_data.attrs == w_sum.attrs
     assert tmp_data.encoding == w_sum.encoding

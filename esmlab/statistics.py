@@ -7,22 +7,108 @@ import numpy as np
 import xarray as xr
 
 from .utils.common import esmlab_xr_set_options
-from .utils.variables import (
-    get_original_attrs,
-    get_static_variables,
-    get_variables,
-    save_metadata,
-    set_metadata,
-    set_static_variables,
-    update_attrs,
-)
+
+
+def validate_weights(da, dim, weights):
+    if not isinstance(weights, xr.DataArray):
+        raise ValueError('Weights must be an xarray DataArray')
+    # if NaN are present, we need to use individual weights
+    if da.notnull().any():
+        total_weights = weights.where(da.notnull()).sum(dim=dim)
+    else:
+        total_weights = weights.sum(dim)
+
+    # Make sure weights add up to 1.0
+    rtol = 1e-6 if weights.dtype == np.float32 else 1e-7
+    np.testing.assert_allclose((weights / weights.sum(dim)).sum(dim), 1.0, rtol=rtol)
+
+    return weights, total_weights
+
+
+@esmlab_xr_set_options(arithmetic_join='exact')
+def weighted_sum_da(da, dim=None, weights=None):
+
+    """ Compute weighted mean for DataArray
+    Parameters
+    ----------
+    da : DataArray
+        DataArray for which to compute `weighted mean`
+    dim : str or sequence of str, optional
+        Dimension(s) over which to apply mean.
+    weights : DataArray
+        weights to apply. Shape must be broadcastable to shape of da.
+
+    Returns
+    -------
+    reduced : DataArray
+        New DataArray with mean applied to its data and the indicated
+        dimension(s) removed.
+
+    """
+    if weights is None:
+        warn('Computing sum using equal weights for all data points')
+        return da.sum(dim)
+    else:
+        weights, _ = validate_weights(da, dim, weights)
+        return (da * weights).sum(dim)
+
+
+def weighted_sum_ds(ds, dim=None, weights=None):
+    """ Compute weighted sum for Dataset
+    Parameters
+    ----------
+    da : Dataset
+        Dataset for which to compute `weighted sum`
+    dim : str or sequence of str, optional
+        Dimension(s) over which to apply sum.
+    weights : DataArray
+        weights to apply. Shape must be broadcastable to shape of data.
+
+    Returns
+    -------
+    reduced : Dataset
+        New Dataset with sum applied to its data and the indicated
+        dimension(s) removed.
+
+    """
+    if weights is None:
+        warn('Computing sum using equal weights for all data points')
+        return ds.sum(dim)
+    else:
+        ds.apply(weighted_sum_da, dim=dim, weights=weights)
+
+
+@esmlab_xr_set_options(arithmetic_join='exact')
+def weighted_sum(data, dim=None, weights=None):
+    """ Compute weighted sum for xarray objects
+    Parameters
+    ----------
+    data : Dataset or DataArray
+         xarray object for which to compute `weighted sum`
+    dim : str or sequence of str, optional
+        Dimension(s) over which to apply sum.
+    weights : DataArray
+        weights to apply. Shape must be broadcastable to shape of data.
+
+    Returns
+    -------
+    reduced : Dataset or DataArray
+        New xarray object with weighted sum applied to its data and the indicated
+        dimension(s) removed.
+    """
+    if isinstance(data, xr.DataArray):
+        return weighted_sum_da(data, dim, weights)
+    elif isinstance(data, xr.Dataset):
+        return weighted_sum_ds(data, dim, weights)
+    else:
+        raise ValueError('Data must be an xarray Dataset or DataArray')
 
 
 def weighted_mean_da(da, dim=None, weights=None):
-    """ Compute weighted mean for DataArrays
+    """ Compute weighted mean for DataArray
     Parameters
     ----------
-    da : xarray.DataArray
+    da : DataArray
         DataArray for which to compute `weighted mean`
     dim : str or sequence of str, optional
         Dimension(s) over which to apply mean.
@@ -41,22 +127,15 @@ def weighted_mean_da(da, dim=None, weights=None):
         return da.mean(dim)
 
     else:
-        if not isinstance(weights, xr.DataArray):
-            raise ValueError('Weights must be an xarray DataArray')
-        # if NaN are present, we need to use individual weights
-        if da.notnull().any():
-            total_weights = weights.where(da.notnull()).sum(dim=dim)
-        else:
-            total_weights = weights.sum(dim)
-
+        weights, total_weights = validate_weights(da, dim, weights)
         return (da * weights).sum(dim) / total_weights
 
 
 def weighted_mean_ds(ds, dim=None, weights=None):
-    """ Compute weighted mean for DataArrays
+    """ Compute weighted mean for Dataset
     Parameters
     ----------
-    da : xarray.Dataset
+    da : Dataset
         Dataset for which to compute `weighted mean`
     dim : str or sequence of str, optional
         Dimension(s) over which to apply mean.
@@ -104,10 +183,10 @@ def weighted_mean(data, dim=None, weights=None):
 
 
 def weighted_std_da(da, dim=None, weights=None, ddof=0):
-    """ Compute weighted standard deviation for DataArrays
+    """ Compute weighted standard deviation for DataArray
     Parameters
     ----------
-    da : xarray.DataArray
+    da : DataArray
         DataArray for which to compute `weighted std`
     dim : str or sequence of str, optional
         Dimension(s) over which to apply standard deviation.
@@ -128,23 +207,17 @@ def weighted_std_da(da, dim=None, weights=None, ddof=0):
         return da.std(dim)
 
     else:
-        if not isinstance(weights, xr.DataArray):
-            raise ValueError('Weights must be an xarray DataArray')
-        # if NaN are present, we need to use individual weights
-        if da.notnull().any():
-            total_weights = weights.where(da.notnull()).sum(dim=dim)
-        else:
-            total_weights = weights.sum(dim)
+        weights, total_weights = validate_weights(da, dim, weights)
         da_mean = weighted_mean_da(da, dim, weights)
         std = np.sqrt((weights * (da - da_mean) ** 2).sum(dim) / (total_weights - ddof))
         return std
 
 
 def weighted_std_ds(ds, dim=None, weights=None):
-    """ Compute weighted standard deviation for DataArrays
+    """ Compute weighted standard deviation for Dataset
     Parameters
     ----------
-    da : xarray.Dataset
+    da : Dataset
         Dataset for which to compute `weighted standard deviation`
     dim : str or sequence of str, optional
         Dimension(s) over which to apply standard deviation.
@@ -246,138 +319,30 @@ def weighted_cov(x, y, dim=None, weights=None):
     return cov_xy
 
 
-def _apply_nan_mask(weights, x, y=None):
-    # If y is specified, make sure x and y have same shape
-    if y is not None and isinstance(y, xr.DataArray):
-        assert x.shape == y.shape
-        valid = x.notnull() & y.notnull()
-    else:
-        valid = x.notnull()
-
-    # Apply nan mask
-    return weights.where(valid)
-
-
-def _get_weights_and_dims(x, y=None, weights=None, dim=None, apply_nan_mask=True):
-    """ Get weights and dimensions """
-
-    if dim and isinstance(dim, str):
-        dims = [dim]
-
-    elif isinstance(dim, list):
-        dims = dim
-
-    else:
-        dims = [k for k in x.dims]
-
-    op_over_dims = [k for k in dims if k in x.dims]
-    if not op_over_dims:
-        raise ValueError('Unexpected dimensions for variable {0}'.format(x.name))
-
-    dims_shape = tuple(l for i, l in enumerate(x.shape) if x.dims[i] in op_over_dims)
-    if weights is None:
-        weights = xr.DataArray(np.ones(dims_shape), dims=op_over_dims)
-        weights = _apply_nan_mask(weights, x, y)
-
-    else:
-        assert weights.shape == dims_shape
-        if apply_nan_mask:
-            weights = _apply_nan_mask(weights, x, y)
-
-    # Make sure weights add up to 1.0
-    rtol = 1e-6 if weights.dtype == np.float32 else 1e-7
-    np.testing.assert_allclose(
-        (weights / weights.sum(op_over_dims)).sum(op_over_dims), 1.0, rtol=rtol
-    )
-    return weights, op_over_dims
-
-
 @esmlab_xr_set_options(arithmetic_join='exact')
-def weighted_sum(x, weights=None, dim=None, apply_nan_mask=True):
-    """Reduce `xarray.DataArray` by applying `weighted sum` along some dimension(s).
-
-            Parameters
-            ----------
-
-            x : `xarray.DataArray`
-               xarray object for which to compute `weighted sum`.
-
-            weights : array_like, optional
-                    weights to use. By default, weights=`None`
-
-            dim : str or sequence of str, optional
-                Dimension(s) over which to apply mean. By default `weighted sum`
-                is applied over all dimensions.
-
-            apply_nan_mask : bool, default: True
-
-            Returns
-            -------
-
-            Weighted_sum : `xarray.DataArray`
-                New DataArray object with `weighted sum` applied to its data
-                and the indicated dimension(s) removed. If `weights` is None,
-                returns regular sum using equal weights for all data points.
-    """
-    if weights is None:
-        warn('Computing sum using equal weights for all data points')
-
-    weights, op_over_dims = _get_weights_and_dims(
-        x, weights=weights, dim=dim, apply_nan_mask=apply_nan_mask
-    )
-    x_w_sum = (x * weights).sum(op_over_dims)
-
-    original_attrs, original_encoding = get_original_attrs(x)
-    return update_attrs(x_w_sum, original_attrs, original_encoding)
-
-
-@esmlab_xr_set_options(arithmetic_join='exact')
-def weighted_corr(x, y, weights=None, dim=None, apply_nan_mask=True):
-    """ Compute weighted correlation between two `xarray.DataArray` objects.
+def weighted_corr(x, y, dim=None, weights=None):
+    """ Compute weighted correlation between two xarray objects.
 
     Parameters
     ----------
 
-    x, y : `xarray.DataArray` objects
-        xarray objects for which to compute `weighted correlation`.
-
-    weights : array_like, optional
-             weights to use. By default, weights=`None`
+    x, y : xarray objects
+        xarray objects (Dataset/DataArray) for which to compute `weighted correlation`.
 
     dim : str or sequence of str, optional
-           Dimension(s) over which to apply `weighted correlation`
-           By default weighted correlation is applied over all dimensions.
-
-    apply_nan_mask : bool, default: True
+        Dimension(s) over which to apply correlation.
+    weights : DataArray
+        weights to apply. Shape must be broadcastable to shape of data.
 
     Returns
     -------
-
-    weighted_correlation : float
-              If `weights` is None, returns correlation using equal weights for all data points.
-
+    reduced : Dataset or DataArray
+        New Dataset/DataArray with correlation applied to x, y and the indicated
+        dimension(s) removed.
 
     """
-    if weights is None:
-        warn('Computing weighted correlation using equal weights for all data points')
 
-    weights, op_over_dims = _get_weights_and_dims(
-        x, weights=weights, dim=dim, apply_nan_mask=apply_nan_mask
-    )
-
-    # If the mask is applied in previous operation,
-    # disable it for subseqent operations to speed up computation
-    if apply_nan_mask:
-        apply_nan_mask_flag = False
-    else:
-        apply_nan_mask_flag = True
-
-    numerator = weighted_cov(
-        x=x, y=y, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask_flag
-    )
-    denominator = np.sqrt(
-        weighted_cov(x, x, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask_flag)
-        * weighted_cov(y, y, weights=weights, dim=op_over_dims, apply_nan_mask=apply_nan_mask_flag)
-    )
+    numerator = weighted_cov(x, y, dim, weights)
+    denominator = np.sqrt(weighted_cov(x, x, dim, weights) * weighted_cov(y, y, dim, weights))
     corr_xy = numerator / denominator
     return corr_xy
