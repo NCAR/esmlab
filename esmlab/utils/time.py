@@ -62,7 +62,9 @@ class time_manager(object):
 
         key_attrs = {'units': units, 'calendar': calendar, 'bounds': bounds}
         other_attrs = {k: v for k, v in attrs.items() if k not in key_attrs}
-        return dict(**key_attrs, **other_attrs)
+        z = key_attrs.copy()
+        z.update(other_attrs)
+        return z
 
     @property
     def time_bound_attrs(self):
@@ -74,7 +76,9 @@ class time_manager(object):
         attrs = self._ds[self.tb_name].attrs
         key_attrs = self.time_attrs
         other_attrs = {k: v for k, v in attrs.items() if k not in key_attrs}
-        return dict(**key_attrs, **other_attrs)
+        z = key_attrs.copy()
+        z.update(other_attrs)
+        return z
 
     def _set_time(self, time_coord_name):
         """store the original time and time_bound data from the dataset;
