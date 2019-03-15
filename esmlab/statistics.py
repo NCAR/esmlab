@@ -13,7 +13,7 @@ def validate_weights(da, dim, weights):
     if not isinstance(weights, xr.DataArray):
         raise ValueError('Weights must be an xarray DataArray')
     # if NaN are present, we need to use individual weights
-    if da.notnull().any():
+    if ~da.notnull().all():
         total_weights = weights.where(da.notnull()).sum(dim=dim)
     else:
         total_weights = weights.sum(dim)
