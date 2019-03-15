@@ -91,27 +91,24 @@ class time_manager(object):
         if self.tb_name is None:
             self.time_bound = None
 
-        elif self.isdecoded(self._ds[self.tb_name]):
-            tb_value = cftime.date2num(
-                self._ds[self.tb_name],
-                units=self.time_attrs['units'],
-                calendar=self.time_attrs['calendar'],
-            )
-            self.time_bound = xr.DataArray(
-                tb_value, dims=(self.time_coord_name, self.tb_dim), coords={'time': self.time}
-            )
         else:
             self.time_bound = self._ds[self.tb_name].copy()
+            if self.isdecoded(self._ds[self.tb_name]):
+                tb_data = cftime.date2num(
+                    self._ds[self.tb_name],
+                    units=self.time_attrs['units'],
+                    calendar=self.time_attrs['calendar'],
+                )
+                self.time_bound.data = tb_data
 
     def _compute_time_bound_diff(self, ds):
         """Compute the difference between time bounds.
         """
         time_bound_diff = xr.ones_like(ds[self.time_coord_name], dtype=self.time.dtype)
 
-        time_bound_diff.name = self.tb_name + '_diff'
-        time_bound_diff.attrs = {}
-
         if self.time_bound is not None:
+            time_bound_diff.name = self.tb_name + '_diff'
+            time_bound_diff.attrs = {}
             time_bound_diff.data = self.time_bound.diff(dim=self.tb_dim)[:, 0]
             if self.tb_dim in time_bound_diff.coords:
                 time_bound_diff = time_bound_diff.drop(self.tb_dim)
@@ -182,7 +179,7 @@ class time_manager(object):
             # just return the time as is
             if self.isdecoded(self.time):
                 if self.year_offset is None:
-                    return time_data
+                    return self.time
 
                 # if we need to un-decode time to apply the year_offset,
                 time_data = self.get_time_undecoded()
@@ -219,8 +216,10 @@ class time_manager(object):
             groupby_coord = self.get_time_decoded(midpoint=False)
 
         ds[self.time_coord_name].data = groupby_coord.data
-        ds[self.tb_name].data = self.time_bound.data
-        self.time_bound[self.time_coord_name].data = groupby_coord.data
+
+        if self.time_bound is not None:
+            ds[self.tb_name].data = self.time_bound.data
+            self.time_bound[self.time_coord_name].data = groupby_coord.data
         self.time_bound_diff = self._compute_time_bound_diff(ds)
 
         return ds
@@ -238,9 +237,11 @@ class time_manager(object):
             time_data = cftime.date2num(
                 time_data, units=self.time_attrs['units'], calendar=self.time_attrs['calendar']
             )
-            ds[self.time_coord_name].attrs = self.time_attrs
 
+        ds[self.time_coord_name].attrs = self.time_attrs
         ds[self.time_coord_name].data = time_data.astype(self.time.dtype)
+        if self.time_bound is not None:
+            ds[self.tb_name].attrs = self.time_bound_attrs
 
         return ds
 
