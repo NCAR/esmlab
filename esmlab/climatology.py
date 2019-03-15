@@ -38,7 +38,7 @@ def compute_mon_climatology(dset, time_coord_name=None):
     """
 
     tm = time_manager(dset, time_coord_name)
-    dset = tm.compute_time(retain_orig_time_coord=False)
+    dset = tm.compute_time()
     time_coord_name = tm.time_coord_name
 
     static_variables = get_static_variables(dset, time_coord_name)
@@ -66,19 +66,15 @@ def compute_mon_climatology(dset, time_coord_name=None):
 
     if tm.time_bound is not None:
         computed_dset[tm.tb_name] = computed_dset[tm.tb_name] - computed_dset[tm.tb_name][0, 0]
-        computed_dset[time_coord_name].values = computed_dset[tm.tb_name].mean(tm.tb_dim).values
+        computed_dset[time_coord_name].data = computed_dset[tm.tb_name].mean(tm.tb_dim).data
 
         encoding[tm.tb_name] = {'dtype': 'float', '_FillValue': None}
-        attrs[tm.tb_name] = {
-            'long_name': tm.tb_name,
-            'units': tm.time_attrs['units'],
-            'calendar': tm.time_attrs['calendar'],
-        }
+        attrs[tm.tb_name] = tm.time_bound_attrs
 
     # Put the attributes, encoding back
     computed_dset = set_metadata(computed_dset, attrs, encoding, additional_attrs={})
 
-    # computed_dset = tm.restore_dataset(computed_dset)
+    computed_dset = tm.restore_dataset(computed_dset)
 
     return computed_dset
 
@@ -107,7 +103,7 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None, time_coord_name=None):
     """
 
     tm = time_manager(dset, time_coord_name)
-    dset = tm.compute_time(retain_orig_time_coord=False)
+    dset = tm.compute_time()
     time_coord_name = tm.time_coord_name
 
     static_variables = get_static_variables(dset, time_coord_name)
@@ -137,7 +133,12 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None, time_coord_name=None):
         computed_dset, attrs, encoding, additional_attrs={'month': {'long_name': 'Month'}}
     )
 
-    computed_dset[time_coord_name] = tm.time_orig
+    # put the time coordinate back
+    computed_dset[time_coord_name].data = tm.time.data
+    if tm.time_bound is not None:
+        computed_dset[tm.tb_name].data = tm.time_bound.data
+
+    computed_dset = tm.restore_dataset(computed_dset)
 
     return computed_dset
 
@@ -234,15 +235,6 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
     for v in variables:
         computed_dset[v] = computed_dset[v].where(valid[v])
 
-    # address time
-    attrs[time_coord_name] = {
-        'long_name': time_coord_name,
-        'units': 'days since 0001-01-01 00:00:00',
-    }
-
-    if 'calendar' in attrs[time_coord_name]:
-        attrs[time_coord_name]['calendar'] = attrs[time_coord_name]['calendar']
-
     # compute the time_bound variable
     if tm.time_bound is not None:
         tb_out_lo = (
@@ -258,8 +250,8 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
             .rename({'year': time_coord_name})
         )
 
+        attrs[time_coord_name] = tm.time_attrs
         computed_dset[tm.tb_name] = xr.concat((tb_out_lo, tb_out_hi), dim=tm.tb_dim)
-        attrs[time_coord_name]['bounds'] = tm.tb_name
 
     # Put static_variables back
     computed_dset = set_static_variables(computed_dset, dset, static_variables)
