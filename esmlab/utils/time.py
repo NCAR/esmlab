@@ -61,9 +61,8 @@ class time_manager(object):
             bounds = None
 
         key_attrs = {'units': units, 'calendar': calendar, 'bounds': bounds}
-        other_attrs = {k: v for k, v in attrs.items() if k not in key_attrs}
-        z = key_attrs.copy()
-        z.update(other_attrs)
+        z = attrs.copy()
+        z.update(key_attrs)
         return z
 
     @property
@@ -75,9 +74,8 @@ class time_manager(object):
             return {}
         attrs = self._ds[self.tb_name].attrs
         key_attrs = self.time_attrs
-        other_attrs = {k: v for k, v in attrs.items() if k not in key_attrs}
-        z = key_attrs.copy()
-        z.update(other_attrs)
+        z = attrs.copy()
+        z.update(key_attrs)
         return z
 
     def _set_time(self, time_coord_name):
