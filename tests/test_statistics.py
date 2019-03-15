@@ -69,8 +69,7 @@ def test_weighted_mean_ds(data, dim):
 
 @pytest.mark.parametrize('data,dim,weights,axis', test_data_da)
 def test_weighted_std_da(data, dim, weights, axis):
-    with pytest.warns(UserWarning):
-        w_std = statistics.weighted_std(data, dim)
+    w_std = statistics.weighted_std(data, dim)
     np.testing.assert_allclose(w_std, data.std(dim))
     assert data.attrs == w_std.attrs
     assert data.encoding == w_std.encoding
@@ -78,8 +77,7 @@ def test_weighted_std_da(data, dim, weights, axis):
 
 @pytest.mark.parametrize('data,dim', test_data_ds)
 def test_weighted_std_ds(data, dim):
-    with pytest.warns(UserWarning):
-        w_std = statistics.weighted_std(ds, dim)
+    w_std = statistics.weighted_std(ds, dim)
     np.testing.assert_allclose(w_std['variable_x'], ds['variable_x'].std(dim))
 
 
@@ -88,15 +86,13 @@ def test_weighted_rmsd_da():
     valid = da1.notnull() & da2.notnull()
     N = valid.sum(dim)
     rmsd = np.sqrt(((da1 - da2) ** 2).sum(dim) / N)
-    with pytest.warns(UserWarning):
-        w_rmsd = statistics.weighted_rmsd(da1, da2, dim)
-        np.testing.assert_allclose(rmsd, w_rmsd)
+    w_rmsd = statistics.weighted_rmsd(da1, da2, dim)
+    np.testing.assert_allclose(rmsd, w_rmsd)
 
 
 def test_weighted_rmsd_ds():
-    with pytest.warns(UserWarning):
-        rmsd = statistics.weighted_rmsd(ds, ds).to_array().values
-        np.testing.assert_allclose(rmsd, np.array([0.0, 0.0]))
+    rmsd = statistics.weighted_rmsd(ds, ds).to_array().values
+    np.testing.assert_allclose(rmsd, np.array([0.0, 0.0]))
 
 
 def test_weighted_cov():
@@ -106,9 +102,9 @@ def test_weighted_cov():
     da1_dev = da1 - da1.mean(dim)
     da2_dev = da2 - da2.mean(dim)
     cov = (da1_dev * da2_dev).sum(dim) / N
-    with pytest.warns(UserWarning):
-        w_cov = statistics.weighted_cov(da1, da2, dim)
-        np.testing.assert_allclose(cov, w_cov)
+
+    w_cov = statistics.weighted_cov(da1, da2, dim)
+    np.testing.assert_allclose(cov, w_cov)
 
 
 def test_weighted_corr():
@@ -124,9 +120,8 @@ def test_weighted_corr():
     covy = (da2_dev ** 2).sum(dim) / N
     corr = cov / np.sqrt(covx * covy)
 
-    with pytest.warns(UserWarning):
-        w_corr = statistics.weighted_corr(da1, da2, dim)
-        np.testing.assert_allclose(corr, w_corr)
+    w_corr = statistics.weighted_corr(da1, da2, dim)
+    np.testing.assert_allclose(corr, w_corr)
 
 
 def test_weighted_sum_float32():
