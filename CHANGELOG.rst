@@ -7,7 +7,8 @@ Esmlab v2019.3.16 (2019-03-16)
 
 Features
 --------
-- Add statistics functions for DataArray and Dataset to statistics module (:pr:`97`) `Anderson Banihirwe`_
+
+- Add statistics functions for DataArray and Dataset to ``statistics.py`` module (:pr:`97`) `Anderson Banihirwe`_
 
 Functions added:
   - ``weighted_mean``
