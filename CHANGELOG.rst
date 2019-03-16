@@ -7,7 +7,7 @@ Esmlab v2019.3.16 (2019-03-16)
 
 Features
 --------
-- Add statistics functions for DataArray and Dataset (:pr:`97`) `Anderson Banihirwe`_
+- Add statistics functions for DataArray and Dataset to statistics module (:pr:`97`) `Anderson Banihirwe`_
 
 Functions added:
   - ``weighted_mean``
@@ -21,10 +21,10 @@ Bug Fixes
 
 - Increase rtol for float32 weights in ``statistics.py`` module (:pr:`81`) `Michael Levy`_
 - Remove duplicate call to ``statistics._get_weights_and_dims`` (:pr:`88`) `Sudharsana K J L`_
-- Fix bugs ``time.time_manager`` add tests for climatology corner cases (:pr:`100`) `Matthew Long`_
+- Fix bugs in ``utils.time.time_manager`` add tests for climatology corner cases (:pr:`100`) `Matthew Long`_
 
-  - Allow ``compute_ann_mean`` to work if time is encoded
-  - Make sure ``time:calendar`` is preserved in ``compute_ann_mean``
+  - Allow ``climatology.compute_ann_mean`` to work if time is encoded
+  - Make sure ``time:calendar`` is preserved in ``climatolog.compute_ann_mean``
 
 
 Esmlab v2019.2.28 (2019-02-28)
