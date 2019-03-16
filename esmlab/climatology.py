@@ -203,8 +203,7 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
     }
 
     ones = (
-        dset.drop(static_variables)
-        .where(dset.drop(static_variables).isnull())
+        dset.where(dset.drop(static_variables).isnull())
         .fillna(1.0)
         .where(dset.drop(static_variables).notnull())
         .fillna(0.0)

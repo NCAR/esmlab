@@ -104,7 +104,7 @@ class time_manager(object):
     def _compute_time_bound_diff(self, ds):
         """Compute the difference between time bounds.
         """
-        time_bound_diff = xr.ones_like(ds[self.time_coord_name], dtype=self.time.dtype)
+        time_bound_diff = xr.ones_like(ds[self.time_coord_name], dtype=np.float64)
 
         if self.time_bound is not None:
             time_bound_diff.name = self.tb_name + '_diff'
