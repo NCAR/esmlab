@@ -210,18 +210,6 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
     )
 
     # Compute annual mean
-    # computed_dset = (
-    #     (dset.drop(static_variables) * weights)
-    #     .groupby(time_dot_year)
-    #     .sum(time_coord_name)
-    #     .rename({'year': time_coord_name})
-    # )
-    # ones_out = (
-    #     (ones * weights)
-    #     .groupby(time_dot_year)
-    #     .sum(time_coord_name)
-    #     .rename({'year': time_coord_name})
-    # )
     computed_dset = xr.Dataset()
     ones_out = xr.Dataset()
     for v in variables:
