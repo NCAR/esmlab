@@ -9,7 +9,7 @@ Features
 --------
 - Add statistics functions for DataArray and Dataset (:pr:`97`) `Anderson Banihirwe`_
 
-Functions added included:
+Functions added:
   - ``weighted_mean``
   - ``weighted_sum``
   - ``weighted_std``
