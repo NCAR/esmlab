@@ -67,9 +67,7 @@ def compute_mon_climatology(dset, time_coord_name=None):
     if tm.time_bound is not None:
         computed_dset[tm.tb_name] = computed_dset[tm.tb_name] - computed_dset[tm.tb_name][0, 0]
         computed_dset[time_coord_name].data = computed_dset[tm.tb_name].mean(tm.tb_dim).data
-
         encoding[tm.tb_name] = {'dtype': 'float', '_FillValue': None}
-        attrs[tm.tb_name] = tm.time_bound_attrs
 
     # Put the attributes, encoding back
     computed_dset = set_metadata(computed_dset, attrs, encoding, additional_attrs={})
@@ -189,9 +187,7 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
 
     elif not weights:
         dt = tm.time_bound_diff
-
         weights = dt.groupby(time_dot_year) / dt.groupby(time_dot_year).sum(xr.ALL_DIMS)
-
         np.testing.assert_allclose(weights.groupby(time_dot_year).sum(xr.ALL_DIMS), 1.0)
 
     # groupby.sum() does not seem to handle missing values correctly: yields 0 not nan
@@ -205,27 +201,23 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
         .rename({'year': time_coord_name})
         for v in variables
     }
+
     ones = (
-        dset.drop(static_variables)
-        .where(dset.drop(static_variables).isnull())
+        dset.where(dset.drop(static_variables).isnull())
         .fillna(1.0)
         .where(dset.drop(static_variables).notnull())
         .fillna(0.0)
     )
 
     # Compute annual mean
-    computed_dset = (
-        (dset.drop(static_variables) * weights)
-        .groupby(time_dot_year)
-        .sum(time_coord_name)
-        .rename({'year': time_coord_name})
-    )
-    ones_out = (
-        (ones * weights)
-        .groupby(time_dot_year)
-        .sum(time_coord_name)
-        .rename({'year': time_coord_name})
-    )
+    computed_dset = xr.Dataset()
+    ones_out = xr.Dataset()
+    for v in variables:
+        computed_dset[v] = (dset[v] * weights).groupby(time_dot_year).sum(time_coord_name)
+        ones_out[v] = (ones[v] * weights).groupby(time_dot_year).sum(time_coord_name)
+
+    computed_dset = computed_dset.rename({'year': time_coord_name})
+    ones_out = ones_out.rename({'year': time_coord_name})
     ones_out = ones_out.where(ones_out > 0.0)
 
     # Renormalize to appropriately account for missing values
