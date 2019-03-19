@@ -320,8 +320,7 @@ def weighted_cov(x, y, dim=None, weights=None):
 
 
 @esmlab_xr_set_options(arithmetic_join='exact')
-def weighted_corr(x, y, weights=None, dim=None, apply_nan_mask=True,
-                  return_p=True):
+def weighted_corr(x, y, dim=None, weights=None, return_p=True):
     """ Compute weighted correlation between two `xarray.DataArray` objects.
 
     Parameters
@@ -385,10 +384,8 @@ def compute_corr_significance(r, N):
 
     """
     df = N - 2
-    t_squared = r**2 * (df / ((1.0 - r) * (1.0 + r)))
+    t_squared = r ** 2 * (df / ((1.0 - r) * (1.0 + r)))
     # method used in scipy, where `np.fmin` constrains values to be
     # below 1 due to errors in floating point arithmetic.
-    pval = special.betainc(0.5 * df, 0.5,
-                           np.fmin(df / (df + t_squared), 1.0))
-    return xr.DataArray(pval, coords=t_squared.coords,
-                        dims=t_squared.dims)
+    pval = special.betainc(0.5 * df, 0.5, np.fmin(df / (df + t_squared), 1.0))
+    return xr.DataArray(pval, coords=t_squared.coords, dims=t_squared.dims)
