@@ -368,11 +368,10 @@ def weighted_corr(x, y, weights=None, dim=None, apply_nan_mask=True,
 @esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
 def compute_corr_significance(r, N):
     """ Compute statistical significance for a pearson correlation between
-        two `xarray.DataArray` objects.
+        two xarray objects.
 
     Parameters
     ----------
-
     r : `xarray.DataArray` object
         correlation coefficient between two time series.
 
