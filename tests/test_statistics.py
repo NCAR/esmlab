@@ -123,6 +123,9 @@ def test_weighted_corr():
     w_corr = statistics.weighted_corr(da1, da2, dim, weights=None, return_p=False)
     np.testing.assert_allclose(corr, w_corr)
 
+    w_corr_with_p = statistics.weighted_corr(da1, da2, dim, weights=None, return_p=True)
+    assert isinstance(w_corr_with_p['p'], xr.DataArray)
+
 
 def test_weighted_sum_float32():
     from esmlab.datasets import open_dataset
