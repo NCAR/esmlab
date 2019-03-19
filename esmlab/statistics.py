@@ -5,7 +5,7 @@ from warnings import warn
 
 import numpy as np
 import xarray as xr
-import scipy.stats
+from scipy import special
 
 from .utils.common import esmlab_xr_set_options
 
@@ -367,7 +367,7 @@ def weighted_corr(x, y, dim=None, weights=None, return_p=True):
 
 
 @esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
-def compute_corr_significance(r, N, two_tailed=True):
+def compute_corr_significance(r, N):
     """ Compute statistical significance for a pearson correlation between
         two xarray objects.
 
@@ -379,19 +379,15 @@ def compute_corr_significance(r, N, two_tailed=True):
     N : int
         length of time series being correlated.
 
-    two_tailed : bool, optional
-        if True, return p value for two-tailed t-test.
-
     Returns
     -------
     pval : float
         p value for pearson correlation.
 
     """
-
-    t = r * np.sqrt((N - 2) / (1 - r**2))
-    if two_tailed:
-        pval = scipy.stats.t.sf(np.abs(t), N - 1) * 2
-    else:
-        pval = scipy.stats.t.sf(np.abs(t), N - 1)
-    return xr.DataArray(pval, coords=t.coords, dims=t.dims)
+    df = N - 2
+    t_squared = r**2 * (df / ((1.0 - r) * (1.0 + r)))
+    pval = special.betainc(0.5 * df, 0.5,
+                           np.fmin(np.asarray(df / (df + t_squared)), 1.0))
+    return xr.DataArray(pval, coords=t_squared.coords,
+                        dims=t_squared.dims)
