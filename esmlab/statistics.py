@@ -387,7 +387,9 @@ def compute_corr_significance(r, N):
     """
     df = N - 2
     t_squared = r**2 * (df / ((1.0 - r) * (1.0 + r)))
+    # method used in scipy, where `np.fmin` constrains values to be
+    # below 1 due to errors in floating point arithmetic.
     pval = special.betainc(0.5 * df, 0.5,
-                           np.fmin(np.asarray(df / (df + t_squared)), 1.0))
+                           np.fmin(df / (df + t_squared)), 1.0)
     return xr.DataArray(pval, coords=t_squared.coords,
                         dims=t_squared.dims)
