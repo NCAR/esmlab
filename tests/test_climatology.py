@@ -11,7 +11,7 @@ from esmlab.climatology import compute_ann_mean, compute_mon_anomaly, compute_mo
 from esmlab.datasets import open_dataset
 
 
-@pytest.mark.parametrize('ds', ['tiny', 'cesm_cice_daily'])
+@pytest.mark.parametrize('ds', ['tiny'])
 def test_compute_climatology_multi(ds):
     dset = open_dataset(ds, decode_times=False)
 
@@ -38,7 +38,7 @@ def test_compute_climatology_multi(ds):
         assert value == computed_dset.time.attrs[key]
 
 
-@pytest.mark.parametrize('ds', ['tiny', 'cesm_cice_daily'])
+@pytest.mark.parametrize('ds', ['tiny'])
 def test_compute_climatology_multi_decoded(ds):
     dset = open_dataset(ds, decode_times=True)
 
@@ -95,7 +95,7 @@ def test_compute_climatology_multi_drop_time_bound_decoded(ds):
         assert value == computed_dset.time.attrs[key]
 
 
-@pytest.mark.parametrize('ds', ['tiny', 'cesm_cice_daily'])
+@pytest.mark.parametrize('ds', ['tiny'])
 def test_compute_climatology_multi_drop_time_bound(ds):
     dset = open_dataset(ds, decode_times=False)
     dset_time_bound = dset.time.attrs['bounds']
