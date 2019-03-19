@@ -16,6 +16,7 @@ dependencies:
   - nbsphinx
   - netcdf4
   - numpy
+  - scipy
   - numpydoc
   - pytest
   - pytest-cov

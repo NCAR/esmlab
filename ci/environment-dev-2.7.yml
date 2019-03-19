@@ -9,11 +9,12 @@ dependencies:
   - matplotlib
   - netcdf4
   - numpy
+  - scipy
   - pytest
   - pytest-cov
   - python=2.7
-  - xarray>=0.11.2
   - zarr
   - pip:
     - pytest-lazy-fixture
     - contextlib2
+    - xarray>=0.11.2
