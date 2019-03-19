@@ -338,6 +338,10 @@ def weighted_corr(x, y, dim=None, weights=None, return_p=True):
         If True, compute and return the p-value(s) associated with the
         correlation.
 
+    return_p : bool, default: True
+        If True, compute and return the p-value(s) associated with the
+        correlation.
+
     Returns
     -------
     reduced : Dataset or DataArray
