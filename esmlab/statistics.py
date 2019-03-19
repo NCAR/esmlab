@@ -339,18 +339,14 @@ def weighted_corr(x, y, weights=None, dim=None, apply_nan_mask=True,
         If True, compute and return the p-value(s) associated with the
         correlation.
 
-    return_p : bool, default: True
-        If True, compute and return the p-value(s) associated with the
-        correlation.
-
     Returns
     -------
     reduced : Dataset or DataArray
         New Dataset/DataArray with correlation applied to x, y and the indicated
         dimension(s) removed.
 
-    pval : float
-              If `return_p` is True, returns the p value from a two-tailed t-test.
+        If `return_p` is True, appends the resulting p values to the
+        returned Dataset.
     """
 
     valid_values = x.notnull() & y.notnull()
@@ -362,7 +358,9 @@ def weighted_corr(x, y, weights=None, dim=None, apply_nan_mask=True,
 
     if return_p:
         p = compute_corr_significance(corr_xy, len(x))
-        return corr_xy, p
+        corr_xy.name = 'r'
+        p.name = 'p'
+        return xr.merge([corr_xy, p])
     else:
         return corr_xy
 
@@ -392,6 +390,6 @@ def compute_corr_significance(r, N):
     # method used in scipy, where `np.fmin` constrains values to be
     # below 1 due to errors in floating point arithmetic.
     pval = special.betainc(0.5 * df, 0.5,
-                           np.fmin(df / (df + t_squared)), 1.0)
+                           np.fmin(df / (df + t_squared), 1.0))
     return xr.DataArray(pval, coords=t_squared.coords,
                         dims=t_squared.dims)
