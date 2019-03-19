@@ -338,18 +338,14 @@ def weighted_corr(x, y, dim=None, weights=None, return_p=True):
         If True, compute and return the p-value(s) associated with the
         correlation.
 
-    return_p : bool, default: True
-        If True, compute and return the p-value(s) associated with the
-        correlation.
-
     Returns
     -------
     reduced : Dataset or DataArray
         New Dataset/DataArray with correlation applied to x, y and the indicated
         dimension(s) removed.
 
-    pval : float
-              If `return_p` is True, returns the p value from a two-tailed t-test.
+        If `return_p` is True, appends the resulting p values to the
+        returned Dataset.
     """
 
     valid_values = x.notnull() & y.notnull()
