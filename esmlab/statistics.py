@@ -361,7 +361,9 @@ def weighted_corr(x, y, dim=None, weights=None, return_p=True):
 
     if return_p:
         p = compute_corr_significance(corr_xy, len(x))
-        return corr_xy, p
+        corr_xy.name = 'r'
+        p.name = 'p'
+        return xr.merge([corr_xy, p])
     else:
         return corr_xy
 
@@ -390,6 +392,6 @@ def compute_corr_significance(r, N):
     # method used in scipy, where `np.fmin` constrains values to be
     # below 1 due to errors in floating point arithmetic.
     pval = special.betainc(0.5 * df, 0.5,
-                           np.fmin(df / (df + t_squared)), 1.0)
+                           np.fmin(df / (df + t_squared), 1.0))
     return xr.DataArray(pval, coords=t_squared.coords,
                         dims=t_squared.dims)
