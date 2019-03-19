@@ -6,13 +6,14 @@ dependencies:
   - coverage
   - dask
   - distributed
+  - git
   - matplotlib
   - netcdf4
   - numpy
-  - scipy
   - pytest
   - pytest-cov
   - python=2.7
+  - scipy
   - zarr
   - pip:
     - pytest-lazy-fixture

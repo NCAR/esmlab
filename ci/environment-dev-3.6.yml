@@ -7,14 +7,15 @@ dependencies:
   - dask
   - distributed
   - esmpy
+  - git
   - ipykernel
   - matplotlib
   - netcdf4
   - numpy
-  - scipy
   - pytest
   - pytest-cov
   - python=3.6
+  - scipy
   - xesmf
   - zarr
   - pip:

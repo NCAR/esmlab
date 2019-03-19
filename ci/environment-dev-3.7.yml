@@ -10,6 +10,7 @@ dependencies:
   - distributed
   - esmpy
   - flake8
+  - git
   - ipykernel
   - isort
   - make
@@ -20,9 +21,9 @@ dependencies:
   - numpydoc
   - pytest
   - pytest-cov
-  - scipy
   - python=3.7
   - recommonmark
+  - scipy
   - sphinx_rtd_theme
   - sphinx>=1.6
   - tornado==5.1.1
