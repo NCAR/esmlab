@@ -2,6 +2,15 @@
 Changelog history
 ==================
 
+Esmlab v2019.3. (2019-03)
+==============================
+
+Features
+--------
+
+- Enable computing significance metrics (p-value) for ``weighted_corr`` (:pr:`90`) `Riley Brady`_
+
+
 Esmlab v2019.3.16 (2019-03-16)
 ==============================
 
@@ -83,4 +92,5 @@ Esmlab v2019.2.0 (2019-02-02)
 .. _`Anderson Banihirwe`: https://github.com/andersy005
 .. _`Matthew Long`: https://github.com/matt-long
 .. _`Michael Levy`: https://github.com/mnlevy1981
+.. _`Riley Brady`: https://github.com/bradyrx
 .. _`Sudharsana K J L`: https://github.com/sudharsana-kjl

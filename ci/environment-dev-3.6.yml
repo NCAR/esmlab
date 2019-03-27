@@ -7,6 +7,7 @@ dependencies:
   - dask
   - distributed
   - esmpy
+  - git
   - ipykernel
   - matplotlib
   - netcdf4
@@ -14,8 +15,9 @@ dependencies:
   - pytest
   - pytest-cov
   - python=3.6
-  - xarray>=0.11.3
+  - scipy
   - xesmf
   - zarr
   - pip:
     - pytest-lazy-fixture
+    - git+https://github.com/pydata/xarray.git

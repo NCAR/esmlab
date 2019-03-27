@@ -10,6 +10,7 @@ dependencies:
   - distributed
   - esmpy
   - flake8
+  - git
   - ipykernel
   - isort
   - make
@@ -22,12 +23,13 @@ dependencies:
   - pytest-cov
   - python=3.7
   - recommonmark
+  - scipy
   - sphinx_rtd_theme
   - sphinx>=1.6
   - tornado==5.1.1
-  - xarray>=0.11.2
   - xesmf
   - zarr
   - pip:
     - pytest-lazy-fixture
     - sphinx_copybutton
+    - git+https://github.com/pydata/xarray.git

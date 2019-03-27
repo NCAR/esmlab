@@ -3,3 +3,4 @@ netcdf4
 cftime
 esmpy
 xesmf
+scipy

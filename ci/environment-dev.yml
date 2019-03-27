@@ -10,6 +10,7 @@ dependencies:
   - distributed
   - esmpy
   - flake8
+  - git
   - ipykernel
   - isort
   - matplotlib
@@ -21,6 +22,7 @@ dependencies:
   - pytest-cov
   - python=3.7
   - recommonmark
+  - scipy
   - sphinx_rtd_theme
   - sphinx>=1.6
   - xesmf

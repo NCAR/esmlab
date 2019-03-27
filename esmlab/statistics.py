@@ -5,6 +5,7 @@ from warnings import warn
 
 import numpy as np
 import xarray as xr
+from scipy import special
 
 from .utils.common import esmlab_xr_set_options
 
@@ -318,9 +319,9 @@ def weighted_cov(x, y, dim=None, weights=None):
     return cov_xy
 
 
-@esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
-def weighted_corr(x, y, dim=None, weights=None):
-    """ Compute weighted correlation between two xarray objects.
+@esmlab_xr_set_options(arithmetic_join='exact')
+def weighted_corr(x, y, dim=None, weights=None, return_p=True):
+    """ Compute weighted correlation between two `xarray.DataArray` objects.
 
     Parameters
     ----------
@@ -333,12 +334,18 @@ def weighted_corr(x, y, dim=None, weights=None):
     weights : DataArray
         weights to apply. Shape must be broadcastable to shape of data.
 
+    return_p : bool, default: True
+        If True, compute and return the p-value(s) associated with the
+        correlation.
+
     Returns
     -------
     reduced : Dataset or DataArray
         New Dataset/DataArray with correlation applied to x, y and the indicated
         dimension(s) removed.
 
+        If `return_p` is True, appends the resulting p values to the
+        returned Dataset.
     """
 
     valid_values = x.notnull() & y.notnull()
@@ -347,4 +354,38 @@ def weighted_corr(x, y, dim=None, weights=None):
     numerator = weighted_cov(x, y, dim, weights)
     denominator = np.sqrt(weighted_cov(x, x, dim, weights) * weighted_cov(y, y, dim, weights))
     corr_xy = numerator / denominator
-    return corr_xy
+
+    if return_p:
+        p = compute_corr_significance(corr_xy, len(x))
+        corr_xy.name = 'r'
+        p.name = 'p'
+        return xr.merge([corr_xy, p])
+    else:
+        return corr_xy
+
+
+@esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
+def compute_corr_significance(r, N):
+    """ Compute statistical significance for a pearson correlation between
+        two xarray objects.
+
+    Parameters
+    ----------
+    r : `xarray.DataArray` object
+        correlation coefficient between two time series.
+
+    N : int
+        length of time series being correlated.
+
+    Returns
+    -------
+    pval : float
+        p value for pearson correlation.
+
+    """
+    df = N - 2
+    t_squared = r ** 2 * (df / ((1.0 - r) * (1.0 + r)))
+    # method used in scipy, where `np.fmin` constrains values to be
+    # below 1 due to errors in floating point arithmetic.
+    pval = special.betainc(0.5 * df, 0.5, np.fmin(df / (df + t_squared), 1.0))
+    return xr.DataArray(pval, coords=t_squared.coords, dims=t_squared.dims)
