@@ -5,8 +5,6 @@ API reference
 .. currentmodule:: esmlab
 
 .. autosummary::
-   config.set_options
-   config.get_options
    datasets.open_dataset
 
 Statistics functions
@@ -28,11 +26,6 @@ Climatology functions
    climatology.compute_mon_anomaly
    climatology.compute_ann_mean
 
-Regridding
-~~~~~~~~~~
-
-.. autosummary::
-   regrid.regridder
 
 Utilities
 ~~~~~~~~~~~
@@ -43,10 +36,6 @@ Utilities
    utils.time.sel_time
 
 
-
-.. currentmodule:: esmlab.config
-.. autoclass:: set_options
-.. autofunction:: get_options
 
 .. currentmodule:: esmlab.datasets
 .. autofunction:: open_dataset
@@ -69,13 +58,7 @@ Utilities
 .. autofunction:: compute_mon_anomaly
 .. autofunction:: compute_ann_mean
 
-.. currentmodule:: esmlab.regrid
 
-.. autoclass:: regridder
-   :members:
-
-   .. automethod:: __init__
-   .. automethod:: __call__
 
 .. currentmodule:: esmlab.utils.time
 
