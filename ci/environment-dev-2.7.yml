@@ -6,14 +6,16 @@ dependencies:
   - coverage
   - dask
   - distributed
+  - git
   - matplotlib
   - netcdf4
   - numpy
   - pytest
   - pytest-cov
   - python=2.7
-  - xarray>=0.11.2
+  - scipy
   - zarr
   - pip:
     - pytest-lazy-fixture
     - contextlib2
+    - xarray>=0.11.2
