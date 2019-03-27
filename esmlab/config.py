@@ -1,101 +1,4 @@
-''' The configuration script: set global settings.
-
-from __future__ import absolute_import, print_function
-
-import os
-
-import yaml
-
-GRIDFILE_DIRECTORY = "gridfile_directory"
-GRID_DEFITIONS_FILE = "grid_defitions_file"
-
-_here = os.path.abspath(os.path.dirname(__file__))
-_config_dir = os.path.join(os.path.expanduser("~"), ".esmlab")
-_path_config_yml = os.path.join(_config_dir, "config.yml")
-
-if os.path.exists(".config-esmlab.yml"):
-    _path_config_yml = os.path.join(".config-esmlab.yml")
-
-SETTINGS = {
-    GRIDFILE_DIRECTORY: os.path.join(_config_dir, "esmlab-grid-files"),
-    GRID_DEFITIONS_FILE: os.path.join(_here, "grid_definitions.yml"),
-}
-
-for key in [GRIDFILE_DIRECTORY]:
-    if not os.path.exists(SETTINGS[key]):
-        os.makedirs(SETTINGS[key])
-
-
-def _check_path_write_access(value):
-    value = os.path.abspath(os.path.expanduser(value))
-    if os.path.exists(value):
-        if not os.access(value, os.W_OK):
-            print("no write access to: {0}".format(value))
-            return False
-        return True
-
-    try:
-        os.makedirs(value)
-        return True
-    except (OSError, PermissionError) as err:
-        print("could not make directory: {0}".format(value))
-        raise err
-
-
-def _full_path(value):
-    return os.path.abspath(os.path.expanduser(value))
-
-
-def _check_exists(value):
-    return os.path.exists(value)
-
-
-_VALIDATORS = {GRIDFILE_DIRECTORY: _check_path_write_access, GRID_DEFITIONS_FILE: _check_exists}
-
-_SETTERS = {GRIDFILE_DIRECTORY: _full_path}
-
-
-class set_options(object):
-    """Set configurable settings."""
-
-    def __init__(self, **kwargs):
-        self.old = {}
-        for key, val in kwargs.items():
-            if key not in SETTINGS:
-                raise ValueError(
-                    "{key} is not in the set of valid settings:\n {set}".format(
-                        key=key, set=set(SETTINGS)
-                    )
-                )
-            if key in _VALIDATORS and not _VALIDATORS[key](val):
-                raise ValueError("{val} is not a valid value for {key}".format(key=key, val=val))
-            self.old[key] = SETTINGS[key]
-        self._apply_update(kwargs)
-
-    def _apply_update(self, settings_dict):
-        for key, val in settings_dict.items():
-            if key in _SETTERS:
-                settings_dict[key] = _SETTERS[key](val)
-        SETTINGS.update(settings_dict)
-
-    def __enter__(self):
-        return
-
-    def __exit__(self, type, value, traceback):
-        self._apply_update(self.old)
-
-
-def get_options():
-    return SETTINGS
-
-
-if os.path.exists(_path_config_yml):
-    with open(_path_config_yml) as f:
-        dot_file_settings = yaml.load(f)
-    if dot_file_settings:
-        set_options(**dot_file_settings)
-'''
-
+''' The configuration script: set global settings. '''
 
 from __future__ import absolute_import, print_function
 
@@ -248,7 +151,7 @@ def collect_yaml(paths=paths):
 def collect_env(env=None):
     """ Collect config from environment variables
 
-    This grabs environment variables of the form "INTAKE_ESM_FOO__BAR_BAZ=123" and
+    This grabs environment variables of the form "ESMLAB_FOO__BAR_BAZ=123" and
     turns these into config variables of the form ``{"foo": {"bar-baz": 123}}``
     It transforms the key and value in the following way:
 
@@ -263,8 +166,8 @@ def collect_env(env=None):
 
     d = {}
     for name, value in env.items():
-        if name.startswith('INTAKE_ESM_'):
-            varname = name[11:].lower().replace('__', '.')
+        if name.startswith('ESMLAB_'):
+            varname = name[7:].lower().replace('__', '.')
             varname = normalize_key(varname)
             try:
                 d[varname] = ast.literal_eval(value)
@@ -293,8 +196,8 @@ def ensure_file(source, destination=None, comment=True):
     source : string, filename
         Source configuration file, typically within a source directory.
     destination : string, directory
-        Destination directory. Configurable by ``INTAKE_ESM_CONFIG`` environment
-        variable, falling back to ~/.intake_esm.
+        Destination directory. Configurable by ``ESMLAB_CONFIG`` environment
+        variable, falling back to ~/.esmlab.
     comment : bool, True by default
         Whether or not to comment out the config file when copying.
     """
@@ -343,13 +246,13 @@ class set(object):
 
     Examples
     --------
-    >>> import intake_esm
-    >>> with intake_esm.config.set({'foo': 123}):
+    >>> import esmlab
+    >>> with esmlab.config.set({'foo': 123}):
     ...     pass
 
     See Also
     --------
-    intake_esm.config.get
+    esmlab.config.get
     """
 
     def __init__(self, arg=None, config=config, lock=config_lock, **kwargs):
@@ -435,7 +338,7 @@ def collect(paths=paths, env=None):
 
     See Also
     --------
-    intake_esm.config.refresh: collect configuration and update into primary config
+    esmlab.config.refresh: collect configuration and update into primary config
     """
     if env is None:
         env = os.environ
@@ -453,7 +356,7 @@ def refresh(config=config, defaults=defaults, **kwargs):
     """
     Update configuration by re-reading yaml files and env variables
 
-    This mutates the global intake_esm.config.config, or the config parameter if
+    This mutates the global esmlab.config.config, or the config parameter if
     passed in.
 
     This goes through the following stages:
@@ -470,8 +373,8 @@ def refresh(config=config, defaults=defaults, **kwargs):
 
     See Also
     --------
-    intake_esm.config.collect: for parameters
-    intake_esm.config.update_defaults
+    esmlab.config.collect: for parameters
+    esmlab.config.update_defaults
     """
     config.clear()
 
@@ -489,7 +392,7 @@ def get(key, default=no_default, config=config):
 
     Examples
     --------
-    >>> from intake_esm import config
+    >>> from esmlab import config
     >>> config.get('foo')  # doctest: +SKIP
     {'x': 1, 'y': 2}
 
@@ -501,7 +404,7 @@ def get(key, default=no_default, config=config):
 
     See Also
     --------
-    intake_esm.config.set
+    esmlab.config.set
     """
     keys = key.split('.')
     result = config
