@@ -215,7 +215,10 @@ def ensure_file(source, destination=None, comment=True):
 
     try:
         if not os.path.exists(destination):
-            os.makedirs(directory, exist_ok=True)
+            if not os.path.isdir(directory):
+                os.makedirs(directory)
+            else:
+                pass
 
             # Atomically create destination.  Parallel testing discovered
             # a race condition where a process can be busy creating the
