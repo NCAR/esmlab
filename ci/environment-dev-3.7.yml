@@ -5,7 +5,6 @@ dependencies:
   - autopep8
   - black
   - codecov
-  - coverage
   - dask
   - distributed
   - esmpy
@@ -26,10 +25,10 @@ dependencies:
   - scipy
   - sphinx_rtd_theme
   - sphinx>=1.6
-  - tornado==5.1.1
+  - tornado
   - xesmf
   - zarr
+  - xarray>=0.12
   - pip:
     - pytest-lazy-fixture
     - sphinx_copybutton
-    - git+https://github.com/pydata/xarray.git
