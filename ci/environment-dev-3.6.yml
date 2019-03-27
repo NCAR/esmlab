@@ -18,6 +18,6 @@ dependencies:
   - scipy
   - xesmf
   - zarr
+  - xarray
   - pip:
     - pytest-lazy-fixture
-    - git+https://github.com/pydata/xarray.git

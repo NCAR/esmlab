@@ -29,7 +29,7 @@ dependencies:
   - tornado==5.1.1
   - xesmf
   - zarr
+  - xarray
   - pip:
     - pytest-lazy-fixture
     - sphinx_copybutton
-    - git+https://github.com/pydata/xarray.git

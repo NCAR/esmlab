@@ -15,7 +15,7 @@ dependencies:
   - python=2.7
   - scipy
   - zarr
+  - xarray>=0.11.2
   - pip:
     - pytest-lazy-fixture
     - contextlib2
-    - xarray>=0.11.2
