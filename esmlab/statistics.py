@@ -46,7 +46,6 @@ def weighted_sum_da(da, dim=None, weights=None):
 
     """
     if weights is None:
-        warn('Computing sum using equal weights for all data points')
         return da.sum(dim)
     else:
         weights, _ = validate_weights(da, dim, weights)
@@ -72,7 +71,6 @@ def weighted_sum_ds(ds, dim=None, weights=None):
 
     """
     if weights is None:
-        warn('Computing sum using equal weights for all data points')
         return ds.sum(dim)
     else:
         ds.apply(weighted_sum_da, dim=dim, weights=weights)
@@ -123,7 +121,6 @@ def weighted_mean_da(da, dim=None, weights=None):
 
     """
     if weights is None:
-        warn('Computing mean using equal weights for all data points')
         return da.mean(dim)
 
     else:
@@ -150,7 +147,6 @@ def weighted_mean_ds(ds, dim=None, weights=None):
 
     """
     if weights is None:
-        warn('Computing mean using equal weights for all data points')
         return ds.mean(dim)
     else:
         ds.apply(weighted_mean_da, dim=dim, weights=weights)
@@ -203,7 +199,6 @@ def weighted_std_da(da, dim=None, weights=None, ddof=0):
 
     """
     if weights is None:
-        warn('Computing standard deviation using equal weights for all data points')
         return da.std(dim)
 
     else:
@@ -232,7 +227,6 @@ def weighted_std_ds(ds, dim=None, weights=None):
 
     """
     if weights is None:
-        warn('Computing standard deviation using equal weights for all data points')
         return ds.std(dim)
     else:
         ds.apply(weighted_std_da, dim=dim, weights=weights)

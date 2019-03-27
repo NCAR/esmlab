@@ -34,8 +34,7 @@ test_data_ds = [(ds, ['x', 'y']), (ds, None)]
 
 @pytest.mark.parametrize('data,dim,weights,axis', test_data_da)
 def test_weighted_sum_da(data, dim, weights, axis):
-    with pytest.warns(UserWarning):
-        w_sum = statistics.weighted_sum(data, dim)
+    w_sum = statistics.weighted_sum(data, dim)
     np.testing.assert_allclose(w_sum, data.sum(dim))
     assert data.attrs == w_sum.attrs
     assert data.encoding == w_sum.encoding
@@ -43,8 +42,7 @@ def test_weighted_sum_da(data, dim, weights, axis):
 
 @pytest.mark.parametrize('data,dim', test_data_ds)
 def test_weighted_sum_ds(data, dim):
-    with pytest.warns(UserWarning):
-        w_sum = statistics.weighted_sum(ds, dim)
+    w_sum = statistics.weighted_sum(ds, dim)
     np.testing.assert_allclose(w_sum['variable_x'], ds['variable_x'].sum(dim))
 
 
@@ -62,8 +60,8 @@ def test_weighted_mean_da(data, dim, weights, axis):
 
 @pytest.mark.parametrize('data,dim', test_data_ds)
 def test_weighted_mean_ds(data, dim):
-    with pytest.warns(UserWarning):
-        w_mean = statistics.weighted_mean(ds, dim)
+
+    w_mean = statistics.weighted_mean(data, dim)
     np.testing.assert_allclose(w_mean['variable_x'], ds['variable_x'].mean(dim))
 
 
@@ -77,7 +75,7 @@ def test_weighted_std_da(data, dim, weights, axis):
 
 @pytest.mark.parametrize('data,dim', test_data_ds)
 def test_weighted_std_ds(data, dim):
-    w_std = statistics.weighted_std(ds, dim)
+    w_std = statistics.weighted_std(data, dim)
     np.testing.assert_allclose(w_std['variable_x'], ds['variable_x'].std(dim))
 
 

@@ -15,10 +15,14 @@ Esmlab (Earth System Model Lab)
 .. image:: https://img.shields.io/pypi/v/esmlab.svg?style=for-the-badge
     :target: https://pypi.org/project/esmlab
     :alt: Python Package Index
-    
+
 .. image:: https://img.shields.io/conda/vn/conda-forge/esmlab.svg?style=for-the-badge
     :target: https://anaconda.org/conda-forge/esmlab
     :alt: Conda Version
+
+.. image:: http://img.shields.io/badge/DOI-10.5281%20%2F%20zenodo.156243509-blue.svg?style=for-the-badge
+    :target: https://zenodo.org/badge/latestdoi/156243509
+    :alt: Zenodo
 
 
 
