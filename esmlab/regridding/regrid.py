@@ -6,7 +6,7 @@ import numpy as np
 import xarray as xr
 import xesmf as xe
 
-from .config import SETTINGS
+from ..config import SETTINGS
 
 logger = logging.getLogger(__name__)
 
@@ -17,8 +17,8 @@ class _grid_ref(object):
 
     def __init__(self, name, overwrite_existing=False):
         self.name = name
-        grid_file_dir = SETTINGS["gridfile_directory"]
-        self.scrip_grid_file = f"{grid_file_dir}/{self.name}.nc"
+        grid_file_dir = SETTINGS['gridfile_directory']
+        self.scrip_grid_file = f'{grid_file_dir}/{self.name}.nc'
 
         self._gen_grid_file(overwrite_existing=overwrite_existing)
 
@@ -30,14 +30,14 @@ class _grid_ref(object):
         if os.path.exists(self.scrip_grid_file) and not overwrite_existing:
             return
 
-        raise NotImplementedError("grid file generation is not implemented")
+        raise NotImplementedError('grid file generation is not implemented')
 
     def _esmf_grid_from_scrip(self):
         """Generate an ESMF grid object from a SCRIP grid file.
         """
 
         if not os.path.exists(self.scrip_grid_file):
-            raise ValueError(f"file not found: {self.scrip_grid_file}")
+            raise ValueError(f'file not found: {self.scrip_grid_file}')
 
         self.ds = xr.open_dataset(self.scrip_grid_file)
 
@@ -56,7 +56,7 @@ class regridder(object):
     """Class to enable regridding between named grids.
     """
 
-    def __init__(self, name_grid_src, name_grid_dst, method="bilinear", overwrite_existing=False):
+    def __init__(self, name_grid_src, name_grid_dst, method='bilinear', overwrite_existing=False):
         """
         Parameters
         ----------
@@ -92,20 +92,20 @@ class regridder(object):
     def _gen_weights(self, overwrite_existing):
         """Generate regridding weights
         """
-        grid_file_dir = SETTINGS["gridfile_directory"]
+        grid_file_dir = SETTINGS['gridfile_directory']
 
-        self.weight_file = "{0}/{1}_to_{2}_{3}.nc".format(
+        self.weight_file = '{0}/{1}_to_{2}_{3}.nc'.format(
             grid_file_dir, self.name_grid_src, self.name_grid_dst, self.method
         )
 
         if os.path.exists(self.weight_file):
             if overwrite_existing:
-                logger.info(f"removing {self.weight_file}")
+                logger.info(f'removing {self.weight_file}')
                 os.remove(self.weight_file)
             else:
                 return
 
-        logger.info(f"generating {self.weight_file}")
+        logger.info(f'generating {self.weight_file}')
         regrid = xe.backend.esmf_regrid_build(
             self.grid_ref_src.grid,
             self.grid_ref_dst.grid,
@@ -204,7 +204,7 @@ class regridder(object):
         da_out = xr.DataArray(
             data_dst, name=da_in.name, dims=da_in.dims, attrs=da_in.attrs, coords=copy_coords
         )
-        da_out.attrs["regrid_method"] = self.method
+        da_out.attrs['regrid_method'] = self.method
 
         # interpolate coordinates (i.e., vertical)
         # setup to copy lowest/highest values where extrapolation is needed
@@ -215,15 +215,15 @@ class regridder(object):
 
                     da_out = da_out.interp(
                         coords={dim: new_coord},
-                        method="linear",
+                        method='linear',
                         assume_sorted=True,
-                        kwargs={"fill_value": extrap_values},
+                        kwargs={'fill_value': extrap_values},
                     )
 
         # apply a missing-values mask
         if apply_mask is not None:
             if apply_mask.dims != da_in.dims:
-                logger.warning(f"masking {apply_mask.dims}; " f"data have dims: {da_in.dims}")
+                logger.warning(f'masking {apply_mask.dims}; ' f'data have dims: {da_in.dims}')
             da_out = da_out.where(apply_mask)
 
         # apply a post_method

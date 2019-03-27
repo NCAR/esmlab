@@ -9,9 +9,9 @@ from ._version import get_versions
 from .config import get_options, set_options
 
 if sys.version_info > (3, 0):
-    from .regrid import regridder
+    from .regridding.regrid import regridder
 
-__version__ = get_versions()["version"]
+__version__ = get_versions()['version']
 del get_versions
 
 
