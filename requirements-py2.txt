@@ -3,3 +3,4 @@ netcdf4
 cftime
 contextlib2
 scipy
+bottleneck

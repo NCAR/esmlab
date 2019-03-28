@@ -4,6 +4,7 @@ channels:
 dependencies:
   - autopep8
   - black
+  - bottleneck
   - codecov
   - dask
   - distributed

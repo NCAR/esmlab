@@ -2,6 +2,7 @@ name: esmlab-dev
 channels:
   - conda-forge
 dependencies:
+  - bottleneck
   - codecov
   - dask
   - distributed
