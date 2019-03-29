@@ -6,14 +6,14 @@ import sys
 
 from . import datasets
 from ._version import get_versions
-from .core import EsmlabAccessor, mon_anomaly, mon_climatology, ann_mean
 from .common_utils import esmlab_xr_set_options
+from .core import EsmlabAccessor, ann_mean, mon_anomaly, mon_climatology
 from .statistics import (
     weighted_corr,
-    weighted_mean,
-    weighted_std,
-    weighted_rmsd,
     weighted_cov,
+    weighted_mean,
+    weighted_rmsd,
+    weighted_std,
     weighted_sum,
 )
 
