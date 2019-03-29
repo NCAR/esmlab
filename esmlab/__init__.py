@@ -4,13 +4,18 @@
 
 import sys
 
-from . import climatology, datasets, statistics
-from .core import EsmlabAccessor
+from . import datasets
+from .statistics import (
+    weighted_corr,
+    weighted_mean,
+    weighted_std,
+    weighted_rmsd,
+    weighted_cov,
+    weighted_sum,
+)
+from .core import EsmlabAccessor, mon_anomaly, mon_climatology, ann_mean
 from ._version import get_versions
+from .common_utils import esmlab_xr_set_options
 
 __version__ = get_versions()['version']
 del get_versions
-
-
-_module_imports = (climatology, statistics, datasets)
-__all__ = list(map(lambda x: x.__name__, _module_imports))

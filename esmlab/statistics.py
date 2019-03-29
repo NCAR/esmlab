@@ -7,7 +7,7 @@ import numpy as np
 import xarray as xr
 from scipy import special
 
-from .utils.common import esmlab_xr_set_options
+from .common_utils import esmlab_xr_set_options
 
 
 def validate_weights(da, dim, weights):
@@ -54,6 +54,7 @@ def weighted_sum_da(da, dim=None, weights=None):
 
 def weighted_sum_ds(ds, dim=None, weights=None):
     """ Compute weighted sum for Dataset
+
     Parameters
     ----------
     da : Dataset
@@ -79,6 +80,7 @@ def weighted_sum_ds(ds, dim=None, weights=None):
 @esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
 def weighted_sum(data, dim=None, weights=None):
     """ Compute weighted sum for xarray objects
+
     Parameters
     ----------
     data : Dataset or DataArray
@@ -104,6 +106,7 @@ def weighted_sum(data, dim=None, weights=None):
 
 def weighted_mean_da(da, dim=None, weights=None):
     """ Compute weighted mean for DataArray
+
     Parameters
     ----------
     da : DataArray
@@ -130,6 +133,7 @@ def weighted_mean_da(da, dim=None, weights=None):
 
 def weighted_mean_ds(ds, dim=None, weights=None):
     """ Compute weighted mean for Dataset
+
     Parameters
     ----------
     da : Dataset
@@ -155,6 +159,7 @@ def weighted_mean_ds(ds, dim=None, weights=None):
 @esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
 def weighted_mean(data, dim=None, weights=None):
     """ Compute weighted mean for xarray objects
+
     Parameters
     ----------
     data : Dataset or DataArray
@@ -180,6 +185,7 @@ def weighted_mean(data, dim=None, weights=None):
 
 def weighted_std_da(da, dim=None, weights=None, ddof=0):
     """ Compute weighted standard deviation for DataArray
+
     Parameters
     ----------
     da : DataArray
@@ -210,6 +216,7 @@ def weighted_std_da(da, dim=None, weights=None, ddof=0):
 
 def weighted_std_ds(ds, dim=None, weights=None):
     """ Compute weighted standard deviation for Dataset
+
     Parameters
     ----------
     da : Dataset
@@ -235,6 +242,7 @@ def weighted_std_ds(ds, dim=None, weights=None):
 @esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
 def weighted_std(data, dim=None, weights=None):
     """ Compute weighted standard deviation for xarray objects
+
     Parameters
     ----------
     data : Dataset or DataArray

@@ -3,8 +3,11 @@ from __future__ import absolute_import, division, print_function
 from datetime import datetime
 
 import cftime
+import dask.array as da
 import numpy as np
 import xarray as xr
+
+from .common_utils import esmlab_xr_set_options
 
 
 @xr.register_dataset_accessor('esmlab')
@@ -193,8 +196,6 @@ class EsmlabAccessor(object):
         """Compute the mid-point of the time bounds.
         """
 
-        print('Computing Time')
-
         ds = self._ds.copy(deep=True)
 
         if self.time_bound is not None:
@@ -226,8 +227,67 @@ class EsmlabAccessor(object):
                 and v not in [self.time_coord_name, self.tb_name]
             ]
 
+    def time_year_to_midyeardate(self):
+        """Set the time coordinate to the mid-point of the year.
+        """
+        ds = self._ds_time_computed.copy(True)
+        ds[self.time_coord_name].data = np.array(
+            [cftime.datetime(entry.year, 7, 2) for entry in ds[self.time_coord_name].data]
+        )
+        return ds
+
+    def compute_time_var(self, midpoint=True, year_offset=None):
+        """Compute the time coordinate of a dataset.
+
+        Parameters
+        ----------
+        midpoint : bool, optional [default=True]
+                Return time at the midpoints of the `time:bounds`
+        year_offset : numeric, optional
+        Integer year by which to offset the time axis.
+
+        Returns
+        -------
+        ds : `xarray.Dataset`
+        The dataset with time coordinate modified.
+        """
+        self.year_offset = year_offset
+        ds = self._ds_time_computed.copy(True)
+        ds[self.time_coord_name] = self.get_time_decoded(midpoint)
+        return ds
+
+    def uncompute_time_var(self):
+        """Return time coordinate from object to float.
+        Returns
+        -------
+        ds : `xarray.Dataset`
+        The dataset with time coordinate modified.
+        """
+        ds = self._ds_time_computed.copy(True)
+        ds[self.time_coord_name] = self.get_time_undecoded()
+        return ds
+
     def sel_time(self, indexer_val, year_offset=None):
-        return self._ds_time_computed.sel(**{self.time_coord_name: indexer_val})
+        """Return dataset truncated to specified time range.
+
+        Parameters
+        ----------
+
+        indexer_val : scalar, slice, or array_like
+            value passed to ds.isel(**{time_coord_name: indexer_val})
+        year_offset : numeric, optional
+            Integer year by which to offset the time axis.
+
+        Returns
+        -------
+        ds : `xarray.Dataset`
+        The dataset with time coordinate truncated.
+        """
+        self.year_offset = year_offset
+        self.compute_time()
+        ds = self._ds_time_computed.copy(True)
+        ds = ds.sel(**{self.time_coord_name: indexer_val})
+        return ds
 
     def _get_original_metadata(self):
         self._attrs = {v: self._ds[v].attrs for v in self.variables}
@@ -285,12 +345,13 @@ class EsmlabAccessor(object):
             )
 
         ds[self.time_coord_name].attrs = self.time_attrs
-        ds[self.time_coord_name].data = time_data
+        ds[self.time_coord_name].data = time_data.astype(self.time.dtype)
         if self.time_bound is not None:
             ds[self.tb_name].attrs = self.time_bound_attrs
 
         return self.update_metadata(ds, new_attrs=attrs, new_encoding=encoding)
 
+    @esmlab_xr_set_options(arithmetic_join='exact')
     def mon_climatology(self):
         """ Calculates monthly climatology """
 
@@ -317,6 +378,7 @@ class EsmlabAccessor(object):
             encoding[self.tb_name] = {'dtype': 'float', '_FillValue': None}
         return self.restore_dataset(computed_dset, attrs=attrs, encoding=encoding)
 
+    @esmlab_xr_set_options(arithmetic_join='exact')
     def mon_anomaly(self, slice_mon_clim_time=None):
         """ Calculates monthly anomaly
 
@@ -354,6 +416,57 @@ class EsmlabAccessor(object):
 
         attrs = {'month': {'long_name': 'Month'}}
         return self.restore_dataset(computed_dset, attrs=attrs)
+
+    @esmlab_xr_set_options(arithmetic_join='exact')
+    def ann_mean(self, weights=None):
+        """ Calculates annual mean """
+        time_dot_year = '.'.join([self.time_coord_name, 'year'])
+
+        if isinstance(weights, xr.DataArray):
+            data = weights.data
+
+        elif isinstance(weights, (list, np.ndarray, da.Array)):
+            data = weights
+
+        else:
+            data = self.time_bound_diff
+
+        wgts = xr.ones_like(self.time_bound_diff)
+        wgts.data = data
+        wgts = wgts.groupby(time_dot_year) / wgts.groupby(time_dot_year).sum(xr.ALL_DIMS)
+        wgts = wgts.rename('weights')
+        groups = len(wgts.groupby(time_dot_year).groups)
+        np.testing.assert_allclose(wgts.groupby(time_dot_year).sum(xr.ALL_DIMS), np.ones(groups))
+
+        dset = self._ds_time_computed.drop(self.static_variables) * wgts
+
+        def weighted_mean_arr(darr, wgts=None):
+            if ~darr.notnull().all():
+                total_weights = wgts.where(darr.notnull()).sum(dim=self.time_coord_name)
+            else:
+                total_weights = wgts.sum(dim=self.time_coord_name)
+
+            return (
+                darr.resample({self.time_coord_name: 'A'}).mean(dim=self.time_coord_name)
+                / total_weights
+            )
+
+        ds_resample_mean = dset.apply(weighted_mean_arr, wgts=wgts)
+
+        # ds_resample_mean = xr.Dataset()
+        # for dvar in self.variables:
+        #     darr = dset[dvar]
+        #     # if NaN are present, we need to use individual weights
+        #     if ~darr.notnull().all():
+        #         total_weights = wgts.where(darr.notnull()).sum(dim=self.time_coord_name)
+        #     else:
+        #         total_weights = wgts.sum(dim=self.time_coord_name)
+
+        #     ds_resample_mean[dvar] = darr.resample({self.time_coord_name:'A'}).mean(dim=self.time_coord_name) / total_weights
+
+        mid_time = wgts[self.time_coord_name].groupby(time_dot_year).mean()
+        ds_resample_mean[self.time_coord_name].data = mid_time.data
+        return self.restore_dataset(ds_resample_mean)
 
 
 def mon_climatology(dset):
@@ -395,3 +508,26 @@ def mon_anomaly(dset, slice_mon_clim_time=None):
     """
 
     return dset.esmlab.mon_anomaly(slice_mon_clim_time=slice_mon_clim_time)
+
+
+def ann_mean(dset, weights=None):
+    """Calculates annual means
+
+    Parameters
+    ----------
+    dset : xarray.Dataset
+           The data on which to operate
+
+    weights : array_like, optional
+              weights to use for each time period.
+              If None and dataset doesn't have `time_bound` variable,
+              every time period has equal weight of 1.
+
+    Returns
+    -------
+    computed_dset : xarray.Dataset
+                    The computed annual mean data
+
+    """
+
+    return dset.esmlab.ann_mean(weights=weights)

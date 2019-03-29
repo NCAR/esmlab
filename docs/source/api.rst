@@ -1,8 +1,14 @@
-API reference
+API Reference
 =============
+
+This page provides an auto-generated summary of esmlab’s API.
+For more details and examples, refer to the relevant chapters in the main part of the documentation.
 
 
 .. currentmodule:: esmlab
+
+Utilities
+~~~~~~~~~~~
 
 .. autosummary::
    datasets.open_dataset
@@ -22,24 +28,15 @@ Climatology functions
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autosummary::
-   climatology.compute_mon_climatology
-   climatology.compute_mon_anomaly
-   climatology.compute_ann_mean
+   mon_climatology
+   mon_anomaly
+   ann_mean
 
-
-Utilities
-~~~~~~~~~~~
-
-.. autosummary::
-   utils.time.compute_time_var
-   utils.time.uncompute_time_var
-   utils.time.sel_time
 
 
 
 .. currentmodule:: esmlab.datasets
 .. autofunction:: open_dataset
-
 
 
 
@@ -52,16 +49,8 @@ Utilities
 .. autofunction:: weighted_cov
 .. autofunction:: weighted_corr
 
-.. currentmodule:: esmlab.climatology
+.. currentmodule:: esmlab
 
-.. autofunction:: compute_mon_climatology
-.. autofunction:: compute_mon_anomaly
-.. autofunction:: compute_ann_mean
-
-
-
-.. currentmodule:: esmlab.utils.time
-
-.. autofunction:: compute_time_var
-.. autofunction:: uncompute_time_var
-.. autofunction:: sel_time
+.. autofunction:: mon_climatology
+.. autofunction:: mon_anomaly
+.. autofunction:: ann_mean
