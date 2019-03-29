@@ -7,6 +7,8 @@ include requirements-py2.txt
 include CONTRIBUTING.rst
 include HOWTORELEASE.rst
 
+recursive-include esmlab *.yaml
+recursive-include esmlab *.yml
 recursive-include tests *.py
 recursive-include tests/data/*.nc
 recursive-include tests/utils/*.py
