@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function
 
 from warnings import warn
 
+import dask.array as dask_array
 import numpy as np
 import xarray as xr
 from scipy import special
@@ -11,8 +12,12 @@ from .common_utils import esmlab_xr_set_options
 
 
 def validate_weights(da, dim, weights):
-    if not isinstance(weights, xr.DataArray):
-        raise ValueError('Weights must be an xarray DataArray')
+
+    if dim is None:
+        dim = list(da.dims)
+
+    if isinstance(weights, (list, np.ndarray, dask_array.Array)):
+        weights = xr.DataArray(weights, dims=dim)
     # if NaN are present, we need to use individual weights
     if ~da.notnull().all():
         total_weights = weights.where(da.notnull()).sum(dim=dim)
@@ -74,7 +79,7 @@ def weighted_sum_ds(ds, dim=None, weights=None):
     if weights is None:
         return ds.sum(dim)
     else:
-        ds.apply(weighted_sum_da, dim=dim, weights=weights)
+        return ds.apply(weighted_sum_da, dim=dim, weights=weights)
 
 
 @esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
@@ -153,7 +158,7 @@ def weighted_mean_ds(ds, dim=None, weights=None):
     if weights is None:
         return ds.mean(dim)
     else:
-        ds.apply(weighted_mean_da, dim=dim, weights=weights)
+        return ds.apply(weighted_mean_da, dim=dim, weights=weights)
 
 
 @esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
@@ -236,7 +241,7 @@ def weighted_std_ds(ds, dim=None, weights=None):
     if weights is None:
         return ds.std(dim)
     else:
-        ds.apply(weighted_std_da, dim=dim, weights=weights)
+        return ds.apply(weighted_std_da, dim=dim, weights=weights)
 
 
 @esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
