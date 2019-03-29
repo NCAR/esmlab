@@ -34,6 +34,7 @@ setup(
     name='esmlab',
     packages=find_packages(),
     test_suite='tests',
+    include_package_data=True,
     tests_require=test_requirements,
     url='https://github.com/NCAR/esmlab',
     version=versioneer.get_version(),
