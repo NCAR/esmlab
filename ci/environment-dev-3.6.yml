@@ -21,3 +21,4 @@ dependencies:
   - xarray>=0.12
   - pip:
     - pytest-lazy-fixture
+    - pytest-xdist

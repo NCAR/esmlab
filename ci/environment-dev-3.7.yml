@@ -33,3 +33,4 @@ dependencies:
   - pip:
     - pytest-lazy-fixture
     - sphinx_copybutton
+    - pytest-xdist
