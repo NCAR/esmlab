@@ -106,16 +106,16 @@ def no_read_permissions(path):
 
 
 def test_default_config():
-    assert isinstance(_config.get('cache-dir'), str)
+    assert isinstance(_config.get('esmlab.cache-dir'), str)
 
 
 def test_set_options():
-    _config.set({'cache_dir': '/tmp/collections'})
-    s1 = _config.get('cache_dir')
+    _config.set({'esmlab.cache_dir': '/tmp/collections'})
+    s1 = _config.get('esmlab.cache_dir')
     assert s1 == os.path.abspath(os.path.expanduser('/tmp/collections'))
 
-    with _config.set({'cache_dir': '/tmp/collections'}):
-        s1 = _config.get('cache_dir')
+    with _config.set({'esmlab.cache_dir': '/tmp/collections'}):
+        s1 = _config.get('esmlab.cache_dir')
         assert s1 == os.path.abspath(os.path.expanduser('/tmp/collections'))
 
 
