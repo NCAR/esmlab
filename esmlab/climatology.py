@@ -150,7 +150,7 @@ def compute_mon_means(dset, time_coord_name=None):
     time_dot_month = ".".join([time_coord_name, "month"])
     computed_dset = (computed_dset
                         .resample({time_coord_name:'1D'})   # resample to daily
-                        .nearest()                          # get nearest since time is midpoint
+                        .nearest()                          # get nearest (since time is midpoint)
                         .isel({time_coord_name:slice(0,-1)})# drop the last day: the end time
                         .groupby(time_dot_month)            # group by month
                         .mean(time_coord_name)              # monthly means
@@ -171,31 +171,29 @@ def compute_mon_means(dset, time_coord_name=None):
         mth_index += begin_datetime.year*12 + begin_datetime.month
         return cft.datetime((mth_index-1)//12, (mth_index-1)%12 +1, 1)
 
-    if tm.time_bound is not None:
+    # Correct time bounds:
+    for m in range(len(computed_dset["month"])):
+        computed_dset[tm.tb_name].values[m] = [
+              # month begin date:
+              cft.date2num( month2date(m,tbegin_decoded),
+                            units= attrs[time_coord_name]["units"],
+                            calendar = cal_name),
+              # month end date:
+              cft.date2num( month2date(m+1,tbegin_decoded),
+                            units= attrs[time_coord_name]["units"],
+                            calendar = cal_name) ]
 
-        # Correct time bounds:
-        for m in range(len(computed_dset["month"])):
-            computed_dset[tm.tb_name].values[m] = [
-                  # month begin date:
-                  cft.date2num( month2date(m,tbegin_decoded),
-                                units= attrs[time_coord_name]["units"],
-                                calendar = cal_name),
-                  # month end date:
-                  cft.date2num( month2date(m+1,tbegin_decoded),
-                                units= attrs[time_coord_name]["units"],
-                                calendar = cal_name) ]
+    encoding[tm.tb_name] = {"dtype": "float", "_FillValue": None}
+    attrs[tm.tb_name] = {"long_name": tm.tb_name, "units": "days since 0001-01-01 00:00:00"}
 
-        encoding[tm.tb_name] = {"dtype": "float", "_FillValue": None}
-        attrs[tm.tb_name] = {"long_name": tm.tb_name, "units": "days since 0001-01-01 00:00:00"}
+    attrs[time_coord_name] = {
+        "long_name": time_coord_name,
+        "units": "days since 0001-01-01 00:00:00",
+        "bounds": tm.tb_name,
+    }
 
-        attrs[time_coord_name] = {
-            "long_name": time_coord_name,
-            "units": "days since 0001-01-01 00:00:00",
-            "bounds": tm.tb_name,
-        }
-
-        attrs[time_coord_name]["calendar"] = cal_name
-        attrs[tm.tb_name]["calendar"] = cal_name
+    attrs[time_coord_name]["calendar"] = cal_name
+    attrs[tm.tb_name]["calendar"] = cal_name
 
     # Put the attributes, encoding back
     computed_dset = set_metadata(computed_dset, attrs, encoding, additional_attrs={})
