@@ -113,3 +113,16 @@ def test_set_options():
     _config.set({'cache_dir': '/tmp/collections'})
     s1 = _config.get('cache_dir')
     assert s1 == os.path.abspath(os.path.expanduser('/tmp/collections'))
+
+    with _config.set({'cache_dir': '/tmp/collections'}):
+        s1 = _config.get('cache_dir')
+        assert s1 == os.path.abspath(os.path.expanduser('/tmp/collections'))
+
+
+def test_collect_env():
+    env = {}
+    env['ESMLAB_FOO__BAR_BAZ'] = 123
+
+    results = collect_env(env)
+    expected = {'foo': {'bar-baz': 123}}
+    assert expected == results
