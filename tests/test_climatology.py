@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function
 
 import itertools
 import os
+import sys
 
 import numpy as np
 import pytest
@@ -17,6 +18,7 @@ dsets = ['tiny', 'cesm_pop_daily', 'cesm_cice_daily']
 params = list(itertools.product(dsets, decoded, functions))
 
 
+@pytest.mark.skipif(sys.version_info[0] < 3, reason='requires python3')
 @pytest.mark.parametrize('ds, decoded, function', params)
 def test_compute_climatology(ds, decoded, function):
     dset = open_dataset(ds, decode_times=decoded)
@@ -28,6 +30,7 @@ def test_compute_climatology(ds, decoded, function):
         assert value == computed_dset.time.attrs[key]
 
 
+@pytest.mark.skipif(sys.version_info[0] < 3, reason='requires python3')
 @pytest.mark.parametrize('ds, decoded, function', params)
 def test_compute_climatology_drop_time_bound(ds, decoded, function):
     dset = open_dataset(ds, decode_times=decoded)
@@ -45,6 +48,7 @@ def test_compute_climatology_drop_time_bound(ds, decoded, function):
         assert value == computed_dset.time.attrs[key]
 
 
+@pytest.mark.skipif(sys.version_info[0] < 3, reason='requires python3')
 @pytest.mark.parametrize('ds', ['tiny', 'cesm_cice_daily'])
 def test_compute_climatology_daisy_chain(ds):
     dset = open_dataset(ds, decode_times=False)
@@ -83,6 +87,7 @@ def test_mon_anomaly_values(dset):
         assert value == computed_dset.time.attrs[key]
 
 
+@pytest.mark.skipif(sys.version_info[0] < 3, reason='requires python3')
 def test_ann_mean_values(dset):
     weights = np.ones(24)
     computed_dset = ann_mean(dset, weights=weights)
@@ -94,6 +99,7 @@ def test_ann_mean_values(dset):
     )
 
 
+@pytest.mark.skipif(sys.version_info[0] < 3, reason='requires python3')
 def test_ann_mean_values_missing(dset):
     weights = np.ones(24)
     dset.variable_1.values[0:3, :, :] = np.nan
