@@ -7,7 +7,12 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from esmlab.climatology import compute_ann_mean, compute_mon_anomaly, compute_mon_climatology
+from esmlab.climatology import (
+    compute_ann_mean,
+    compute_mon_anomaly,
+    compute_mon_climatology,
+    compute_mon_means,
+)
 from esmlab.datasets import open_dataset
 
 
@@ -26,6 +31,13 @@ def test_compute_climatology_multi(ds):
     computed_dset = compute_mon_anomaly(dset)
     print(computed_dset)
     print()
+    assert isinstance(computed_dset, xr.Dataset)
+
+
+@pytest.mark.parametrize('ds', ['tiny'])
+def test_compute_mon_means(ds):
+    dset = open_dataset(ds, decode_times=False, decode_coords=False)
+    computed_dset = compute_mon_means(dset)
     assert isinstance(computed_dset, xr.Dataset)
 
 
