@@ -145,7 +145,7 @@ class time_manager(object):
             # just return the time as is
             if self.time.dtype == np.dtype('O'):
                 if self.year_offset is None:
-                    return time_values
+                    return self.time
 
                 # if we need to un-decode time to apply the year_offset,
                 # make sure there are units to do so with

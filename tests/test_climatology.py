@@ -17,7 +17,7 @@ from esmlab.climatology import (
 from esmlab.datasets import open_dataset
 
 
-@pytest.mark.parametrize('ds', ['tiny', 'cesm_cice_daily'])
+@pytest.mark.parametrize('ds', ['tiny', 'cesm_pop_daily'])
 def test_compute_climatology_multi(ds):
     dset = open_dataset(ds, decode_times=False)
     print(dset)
@@ -36,7 +36,7 @@ def test_compute_climatology_multi(ds):
 
 
 @pytest.mark.skipif(sys.version_info[0] < 3, reason='requires python3')
-@pytest.mark.parametrize('ds', ['tiny'])
+@pytest.mark.parametrize('ds', ['cesm_cam_monthly_full', 'tiny', 'cesm_pop_daily'])
 def test_compute_mon_means(ds):
     dset = open_dataset(ds, decode_times=False, decode_coords=False)
     computed_dset = compute_mon_means(dset)

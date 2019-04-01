@@ -117,7 +117,7 @@ def compute_mon_means(dset, time_coord_name=None):
     tb_name = tm.tb_name
     cal_name = dset[time_coord_name].attrs['calendar']
 
-    static_variables = get_static_variables(dset, time_coord_name)
+    # static_variables = get_static_variables(dset, time_coord_name)
 
     # save metadata
     attrs, encoding = save_metadata(dset)
@@ -164,7 +164,7 @@ def compute_mon_means(dset, time_coord_name=None):
     )
 
     # Put static_variables back
-    computed_dset = set_static_variables(computed_dset, dset, static_variables)
+    # computed_dset = set_static_variables(computed_dset, dset, static_variables)
 
     # add month_bounds
     computed_dset['month'] = computed_dset[time_coord_name].copy()
