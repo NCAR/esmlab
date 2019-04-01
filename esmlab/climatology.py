@@ -65,24 +65,10 @@ def compute_mon_climatology(dset, time_coord_name=None):
     encoding['month'] = {'dtype': 'int32', '_FillValue': None}
     encoding[time_coord_name] = {'dtype': 'float', '_FillValue': None}
 
-    if 'calendar' in attrs[time_coord_name]:
-        attrs[time_coord_name]['calendar'] = attrs[time_coord_name]['calendar']
-
     if tm.time_bound is not None:
-        computed_dset[tm.tb_name] = tm.time_bound - tm.time_bound[0, 0]
-        computed_dset[time_coord_name].values = computed_dset[tm.tb_name].mean(tm.tb_dim).values
-
+        computed_dset[tm.tb_name] = computed_dset[tm.tb_name] - computed_dset[tm.tb_name][0, 0]
+        computed_dset[time_coord_name].data = computed_dset[tm.tb_name].mean(tm.tb_dim).data
         encoding[tm.tb_name] = {'dtype': 'float', '_FillValue': None}
-        attrs[tm.tb_name] = {'long_name': tm.tb_name, 'units': 'days since 0001-01-01 00:00:00'}
-
-        attrs[time_coord_name] = {
-            'long_name': time_coord_name,
-            'units': 'days since 0001-01-01 00:00:00',
-            'bounds': tm.tb_name,
-        }
-
-        if 'calendar' in attrs[time_coord_name]:
-            attrs[tm.tb_name]['calendar'] = attrs[time_coord_name]['calendar']
 
     # Put the attributes, encoding back
     computed_dset = set_metadata(computed_dset, attrs, encoding, additional_attrs={})
@@ -268,6 +254,11 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None, time_coord_name=None):
         computed_dset, attrs, encoding, additional_attrs={'month': {'long_name': 'Month'}}
     )
 
+    # put the time coordinate back
+    computed_dset[time_coord_name].data = tm.time.data
+    if tm.time_bound is not None:
+        computed_dset[tm.tb_name].data = tm.time_bound.data
+
     computed_dset = tm.restore_dataset(computed_dset)
 
     return computed_dset
@@ -319,9 +310,7 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
 
     elif not weights:
         dt = tm.time_bound_diff
-
         weights = dt.groupby(time_dot_year) / dt.groupby(time_dot_year).sum(xr.ALL_DIMS)
-
         np.testing.assert_allclose(weights.groupby(time_dot_year).sum(xr.ALL_DIMS), 1.0)
 
     # groupby.sum() does not seem to handle missing values correctly: yields 0 not nan
@@ -335,27 +324,23 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
         .rename({'year': time_coord_name})
         for v in variables
     }
+
     ones = (
-        dset.drop(static_variables)
-        .where(dset.drop(static_variables).isnull())
+        dset.where(dset.drop(static_variables).isnull())
         .fillna(1.0)
         .where(dset.drop(static_variables).notnull())
         .fillna(0.0)
     )
 
     # Compute annual mean
-    computed_dset = (
-        (dset.drop(static_variables) * weights)
-        .groupby(time_dot_year)
-        .sum(time_coord_name)
-        .rename({'year': time_coord_name})
-    )
-    ones_out = (
-        (ones * weights)
-        .groupby(time_dot_year)
-        .sum(time_coord_name)
-        .rename({'year': time_coord_name})
-    )
+    computed_dset = xr.Dataset()
+    ones_out = xr.Dataset()
+    for v in variables:
+        computed_dset[v] = (dset[v] * weights).groupby(time_dot_year).sum(time_coord_name)
+        ones_out[v] = (ones[v] * weights).groupby(time_dot_year).sum(time_coord_name)
+
+    computed_dset = computed_dset.rename({'year': time_coord_name})
+    ones_out = ones_out.rename({'year': time_coord_name})
     ones_out = ones_out.where(ones_out > 0.0)
 
     # Renormalize to appropriately account for missing values
@@ -364,15 +349,6 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
     # Apply the valid-values mask
     for v in variables:
         computed_dset[v] = computed_dset[v].where(valid[v])
-
-    # address time
-    attrs[time_coord_name] = {
-        'long_name': time_coord_name,
-        'units': 'days since 0001-01-01 00:00:00',
-    }
-
-    if 'calendar' in attrs[time_coord_name]:
-        attrs[time_coord_name]['calendar'] = attrs[time_coord_name]['calendar']
 
     # compute the time_bound variable
     if tm.time_bound is not None:
@@ -389,8 +365,8 @@ def compute_ann_mean(dset, weights=None, time_coord_name=None):
             .rename({'year': time_coord_name})
         )
 
+        attrs[time_coord_name] = tm.time_attrs
         computed_dset[tm.tb_name] = xr.concat((tb_out_lo, tb_out_hi), dim=tm.tb_dim)
-        attrs[time_coord_name]['bounds'] = tm.tb_name
 
     # Put static_variables back
     computed_dset = set_static_variables(computed_dset, dset, static_variables)

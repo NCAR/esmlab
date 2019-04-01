@@ -3,10 +3,10 @@ channels:
   - conda-forge
 dependencies:
   - codecov
-  - coverage
   - dask
   - distributed
   - esmpy
+  - git
   - ipykernel
   - matplotlib
   - netcdf4
@@ -14,8 +14,9 @@ dependencies:
   - pytest
   - pytest-cov
   - python=3.6
-  - xarray>=0.11.3
+  - scipy
   - xesmf
   - zarr
+  - xarray>=0.12
   - pip:
     - pytest-lazy-fixture

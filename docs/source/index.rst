@@ -5,7 +5,6 @@
    :caption: Contents:
 
    install
-   regridding.ipynb
    api
    contributing
    release_procedure
