@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function
 
 import os
+import sys
 
 import numpy as np
 import pytest
@@ -34,6 +35,7 @@ def test_compute_climatology_multi(ds):
     assert isinstance(computed_dset, xr.Dataset)
 
 
+@pytest.mark.skipif(sys.version_info[0] < 3, reason='requires python3')
 @pytest.mark.parametrize('ds', ['tiny'])
 def test_compute_mon_means(ds):
     dset = open_dataset(ds, decode_times=False, decode_coords=False)
