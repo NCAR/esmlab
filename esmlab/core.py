@@ -441,11 +441,8 @@ class EsmlabAccessor(object):
         dset = self._ds_time_computed.drop(self.static_variables) * wgts
 
         def weighted_mean_arr(darr, wgts=None):
-            if ~darr.notnull().all():
-                total_weights = wgts.where(darr.notnull()).sum(dim=self.time_coord_name)
-            else:
-                total_weights = wgts.sum(dim=self.time_coord_name)
-
+            # if NaN are present, we need to use individual weights
+            total_weights = wgts.where(darr.notnull()).sum(dim=self.time_coord_name)
             return (
                 darr.resample({self.time_coord_name: 'A'}).mean(dim=self.time_coord_name)
                 / total_weights
