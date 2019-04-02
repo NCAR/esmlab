@@ -19,10 +19,7 @@ def validate_weights(da, dim, weights):
     if isinstance(weights, (list, np.ndarray, dask_array.Array)):
         weights = xr.DataArray(weights, dims=dim)
     # if NaN are present, we need to use individual weights
-    if ~da.notnull().all():
-        total_weights = weights.where(da.notnull()).sum(dim=dim)
-    else:
-        total_weights = weights.sum(dim)
+    total_weights = weights.where(da.notnull()).sum(dim=dim)
 
     # Make sure weights add up to 1.0
     rtol = 1e-6 if weights.dtype == np.float32 else 1e-7
