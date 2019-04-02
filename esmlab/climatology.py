@@ -79,7 +79,7 @@ def compute_mon_climatology(dset, time_coord_name=None):
 
 
 @esmlab_xr_set_options(arithmetic_join='exact')
-def compute_mon_means(dset, time_coord_name=None):
+def compute_mon_mean(dset, time_coord_name=None):
     """Calculates monthly averages of a dataset
 
     Parameters

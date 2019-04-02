@@ -12,7 +12,7 @@ from esmlab.climatology import (
     compute_ann_mean,
     compute_mon_anomaly,
     compute_mon_climatology,
-    compute_mon_means,
+    compute_mon_mean,
 )
 from esmlab.datasets import open_dataset
 
@@ -46,9 +46,9 @@ def test_compute_climatology_multi(ds):
 
 @pytest.mark.skipif(sys.version_info[0] < 3, reason='requires python3')
 @pytest.mark.parametrize('ds', ['cesm_cam_monthly_full', 'tiny', 'cesm_pop_daily'])
-def test_compute_mon_means(ds):
+def test_compute_mon_mean(ds):
     dset = open_dataset(ds, decode_times=False, decode_coords=False)
-    computed_dset = compute_mon_means(dset)
+    computed_dset = compute_mon_mean(dset)
     assert isinstance(computed_dset, xr.Dataset)
 
 
