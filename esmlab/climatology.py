@@ -97,6 +97,19 @@ def compute_mon_mean(dset, time_coord_name=None):
 
     """
 
+    def month2date(mth_index, begin_datetime):
+        """ return a datetime object for a given month index"""
+        mth_index += begin_datetime.year * 12 + begin_datetime.month
+        calendar = begin_datetime.calendar
+        units = 'days since 0001-01-01 00:00:00' # won't affect what's returned.
+
+        # base datetime object:
+        date = cft.datetime((mth_index - 1) // 12, (mth_index - 1) % 12 + 1, 1)
+
+        # datetime object with the calendar encoded:
+        date_with_cal = cft.num2date(cft.date2num(date, units, calendar), units, calendar)
+        return date_with_cal
+
     tm = time_manager(dset, time_coord_name)
     dset = tm.compute_time()
     time_coord_name = tm.time_coord_name
@@ -149,6 +162,15 @@ def compute_mon_mean(dset, time_coord_name=None):
         .rename({'month': time_coord_name})
     )
 
+    # drop the first and/or last month if partially covered:
+    t_slice_start = 0
+    t_slice_stop = len(computed_dset[time_coord_name])
+    if tbegin_decoded.day != 1:
+        t_slice_start += 1
+    if tend_decoded.day != 1:
+        t_slice_stop -= 1
+    computed_dset = computed_dset.isel({time_coord_name: slice(t_slice_start, t_slice_stop)})
+
     # Put static_variables back
     # computed_dset = set_static_variables(computed_dset, dset, static_variables)
 
@@ -157,11 +179,6 @@ def compute_mon_mean(dset, time_coord_name=None):
     attrs['month'] = {'long_name': 'Month', 'units': 'month'}
     encoding['month'] = {'dtype': 'int32', '_FillValue': None}
     encoding[time_coord_name] = {'dtype': 'float', '_FillValue': None}
-
-    def month2date(mth_index, begin_datetime):
-        """ return a datetime object for a given month index"""
-        mth_index += begin_datetime.year * 12 + begin_datetime.month
-        return cft.datetime((mth_index - 1) // 12, (mth_index - 1) % 12 + 1, 1)
 
     # Correct time bounds:
     for m in range(len(computed_dset['month'])):
