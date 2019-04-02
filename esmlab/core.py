@@ -463,7 +463,8 @@ class EsmlabAccessor(object):
 
         mid_time = wgts[self.time_coord_name].groupby(time_dot_year).mean()
         ds_resample_mean[self.time_coord_name].data = mid_time.data
-        return self.restore_dataset(ds_resample_mean)
+        # return self.restore_dataset(ds_resample_mean)
+        return ds_resample_mean
 
 
 def mon_climatology(dset):
