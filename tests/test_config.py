@@ -105,10 +105,6 @@ def no_read_permissions(path):
         os.chmod(path, perm_orig)
 
 
-def test_default_config():
-    assert isinstance(_config.get('cache-dir'), str)
-
-
 def test_set_options():
     _config.set({'cache_dir': '/tmp/collections'})
     s1 = _config.get('cache_dir')

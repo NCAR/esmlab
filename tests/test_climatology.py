@@ -2,12 +2,18 @@
 from __future__ import absolute_import, division, print_function
 
 import os
+import sys
 
 import numpy as np
 import pytest
 import xarray as xr
 
-from esmlab.climatology import compute_ann_mean, compute_mon_anomaly, compute_mon_climatology
+from esmlab.climatology import (
+    compute_ann_mean,
+    compute_mon_anomaly,
+    compute_mon_climatology,
+    compute_mon_mean,
+)
 from esmlab.datasets import open_dataset
 
 
@@ -38,10 +44,15 @@ def test_compute_climatology_multi(ds):
         assert value == computed_dset.time.attrs[key]
 
 
-@pytest.mark.parametrize('ds', ['tiny'])
-def test_compute_climatology_multi_decoded(ds):
-    dset = open_dataset(ds, decode_times=True)
+@pytest.mark.skipif(sys.version_info[0] < 3, reason='requires python3')
+@pytest.mark.parametrize('ds', ['cesm_cam_monthly_full', 'tiny', 'cesm_pop_daily'])
+def test_compute_mon_mean(ds):
+    dset = open_dataset(ds, decode_times=False, decode_coords=False)
+    computed_dset = compute_mon_mean(dset)
+    assert isinstance(computed_dset, xr.Dataset)
 
+
+def test_compute_mon_climatology(dset):
     computed_dset = compute_mon_climatology(dset)
     assert isinstance(computed_dset, xr.Dataset)
     assert computed_dset.time.dtype == dset.time.dtype

@@ -2,6 +2,7 @@
 """Contains functions to compute climatologies."""
 from __future__ import absolute_import, division, print_function
 
+import cftime as cft
 import numpy as np
 import xarray as xr
 
@@ -68,6 +69,145 @@ def compute_mon_climatology(dset, time_coord_name=None):
         computed_dset[tm.tb_name] = computed_dset[tm.tb_name] - computed_dset[tm.tb_name][0, 0]
         computed_dset[time_coord_name].data = computed_dset[tm.tb_name].mean(tm.tb_dim).data
         encoding[tm.tb_name] = {'dtype': 'float', '_FillValue': None}
+
+    # Put the attributes, encoding back
+    computed_dset = set_metadata(computed_dset, attrs, encoding, additional_attrs={})
+
+    computed_dset = tm.restore_dataset(computed_dset)
+
+    return computed_dset
+
+
+@esmlab_xr_set_options(arithmetic_join='exact')
+def compute_mon_mean(dset, time_coord_name=None):
+    """Calculates monthly averages of a dataset
+
+    Parameters
+    ----------
+    dset : xarray.Dataset
+           The data on which to operate
+
+    time_coord_name : string
+            Name for time coordinate
+
+    Returns
+    -------
+    computed_dset : xarray.Dataset
+                    The computed monthly average data
+
+    """
+
+    def month2date(mth_index, begin_datetime):
+        """ return a datetime object for a given month index"""
+        mth_index += begin_datetime.year * 12 + begin_datetime.month
+        calendar = begin_datetime.calendar
+        units = 'days since 0001-01-01 00:00:00'  # won't affect what's returned.
+
+        # base datetime object:
+        date = cft.datetime((mth_index - 1) // 12, (mth_index - 1) % 12 + 1, 1)
+
+        # datetime object with the calendar encoded:
+        date_with_cal = cft.num2date(cft.date2num(date, units, calendar), units, calendar)
+        return date_with_cal
+
+    tm = time_manager(dset, time_coord_name)
+    dset = tm.compute_time()
+    time_coord_name = tm.time_coord_name
+    tb_name = tm.tb_name
+    cal_name = dset[time_coord_name].attrs['calendar']
+
+    # static_variables = get_static_variables(dset, time_coord_name)
+
+    # save metadata
+    attrs, encoding = save_metadata(dset)
+
+    if tm.time_bound is None:
+        raise RuntimeError(
+            'Dataset must have time_bound variable to be able to'
+            'generate weighted monthly averages.'
+        )
+
+    # extrapolate dset to begin time (time_bound[0][0]):
+    # (without extrapolation, resampling is applied only in between the midpoints of first and last
+    # time bounds since time is midpoint of time_bounds)
+    tbegin_decoded = time_manager.decode_time(
+        dset[tb_name].isel({time_coord_name: 0, tm.tb_dim: 0}),
+        units=tm.time_attrs['units'],
+        calendar=cal_name,
+    )
+    dset_begin = dset.isel({time_coord_name: 0})
+    dset_begin[time_coord_name] = tbegin_decoded
+
+    # extrapolate dset to end time (time_bound[-1][1]):
+    # (because time is midpoint)
+    tend_decoded = time_manager.decode_time(
+        dset[tb_name].isel({time_coord_name: -1, tm.tb_dim: 1}),
+        units=tm.time_attrs['units'],
+        calendar=cal_name,
+    )
+    dset_end = dset.isel({time_coord_name: -1})
+    dset_end[time_coord_name] = tend_decoded
+
+    # concatenate dset:
+    computed_dset = xr.concat([dset_begin, dset, dset_end], dim=time_coord_name)
+
+    # compute monthly means
+    time_dot_month = '.'.join([time_coord_name, 'month'])
+    computed_dset = (
+        computed_dset.resample({time_coord_name: '1D'})  # resample to daily
+        .nearest()  # get nearest (since time is midpoint)
+        .isel({time_coord_name: slice(0, -1)})  # drop the last day: the end time
+        .groupby(time_dot_month)  # group by month
+        .mean(time_coord_name)  # monthly means
+        .rename({'month': time_coord_name})
+    )
+
+    # drop the first and/or last month if partially covered:
+    t_slice_start = 0
+    t_slice_stop = len(computed_dset[time_coord_name])
+    if tbegin_decoded.day != 1:
+        t_slice_start += 1
+    if tend_decoded.day != 1:
+        t_slice_stop -= 1
+    computed_dset = computed_dset.isel({time_coord_name: slice(t_slice_start, t_slice_stop)})
+
+    # Put static_variables back
+    # computed_dset = set_static_variables(computed_dset, dset, static_variables)
+
+    # add month_bounds
+    computed_dset['month'] = computed_dset[time_coord_name].copy()
+    attrs['month'] = {'long_name': 'Month', 'units': 'month'}
+    encoding['month'] = {'dtype': 'int32', '_FillValue': None}
+    encoding[time_coord_name] = {'dtype': 'float', '_FillValue': None}
+
+    # Correct time bounds:
+    for m in range(len(computed_dset['month'])):
+        computed_dset[tm.tb_name].values[m] = [
+            # month begin date:
+            cft.date2num(
+                month2date(m, tbegin_decoded),
+                units=attrs[time_coord_name]['units'],
+                calendar=cal_name,
+            ),
+            # month end date:
+            cft.date2num(
+                month2date(m + 1, tbegin_decoded),
+                units=attrs[time_coord_name]['units'],
+                calendar=cal_name,
+            ),
+        ]
+
+    encoding[tm.tb_name] = {'dtype': 'float', '_FillValue': None}
+    attrs[tm.tb_name] = {'long_name': tm.tb_name, 'units': 'days since 0001-01-01 00:00:00'}
+
+    attrs[time_coord_name] = {
+        'long_name': time_coord_name,
+        'units': 'days since 0001-01-01 00:00:00',
+        'bounds': tm.tb_name,
+    }
+
+    attrs[time_coord_name]['calendar'] = cal_name
+    attrs[tm.tb_name]['calendar'] = cal_name
 
     # Put the attributes, encoding back
     computed_dset = set_metadata(computed_dset, attrs, encoding, additional_attrs={})

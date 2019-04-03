@@ -25,6 +25,7 @@ Climatology functions
    climatology.compute_mon_climatology
    climatology.compute_mon_anomaly
    climatology.compute_ann_mean
+   climatology.compute_mon_mean
 
 
 Utilities
@@ -57,6 +58,7 @@ Utilities
 .. autofunction:: compute_mon_climatology
 .. autofunction:: compute_mon_anomaly
 .. autofunction:: compute_ann_mean
+.. autofunction:: compute_mon_mean
 
 
 

@@ -164,6 +164,17 @@ class time_manager(object):
 
         return time
 
+    @staticmethod
+    def decode_time(num_time_var, units, calendar):
+        """Decode an arbitrary time var of type number
+        """
+
+        # Check if num_time_var is already decoded:
+        if num_time_var.dtype not in [np.int, np.float]:
+            raise ValueError('cannot decode non-numeric time')
+
+        return cftime.num2date(num_time_var, units=units, calendar=calendar)
+
     def get_time_decoded(self, midpoint=True):
         """Return time decoded.
         """
