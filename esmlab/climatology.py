@@ -101,7 +101,7 @@ def compute_mon_mean(dset, time_coord_name=None):
         """ return a datetime object for a given month index"""
         mth_index += begin_datetime.year * 12 + begin_datetime.month
         calendar = begin_datetime.calendar
-        units = 'days since 0001-01-01 00:00:00' # won't affect what's returned.
+        units = 'days since 0001-01-01 00:00:00'  # won't affect what's returned.
 
         # base datetime object:
         date = cft.datetime((mth_index - 1) // 12, (mth_index - 1) % 12 + 1, 1)
