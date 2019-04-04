@@ -176,6 +176,15 @@ class EsmlabAccessor(object):
         )
         return time_out
 
+    @staticmethod
+    def decode_arbitrary_time(num_time_var, units, calendar):
+        """Decode an arbitrary time var of type number
+        """
+        # Check if num_time_var is already decoded:
+        if not issubclass(num_time_var.dtype.type, np.number):
+            raise ValueError('cannot decode non-numeric time')
+        return cftime.num2date(num_time_var, units=units, calendar=calendar)
+
     def _infer_time_coord_name(self):
         """Infer name for time coordinate in a dataset
         """
@@ -308,13 +317,16 @@ class EsmlabAccessor(object):
         encoding.update(new_encoding)
 
         for v in self.variables:
-            ds[v].attrs = attrs[v]
+            try:
+                ds[v].attrs = attrs[v]
 
-            if v in encoding:
-                if ds[v].dtype == 'int64':  # int64 breaks some other tools
-                    encoding[v]['dtype'] = 'int32'
+                if v in encoding:
+                    if ds[v].dtype == 'int64':  # int64 breaks some other tools
+                        encoding[v]['dtype'] = 'int32'
 
-                ds[v].encoding = encoding[v]
+                    ds[v].encoding = encoding[v]
+            except Exception:
+                continue
 
         return ds
 
@@ -352,7 +364,7 @@ class EsmlabAccessor(object):
         return self.update_metadata(ds, new_attrs=attrs, new_encoding=encoding)
 
     @esmlab_xr_set_options(arithmetic_join='exact')
-    def mon_climatology(self):
+    def compute_mon_climatology(self):
         """ Calculates monthly climatology """
 
         time_dot_month = '.'.join([self.time_coord_name, 'month'])
@@ -379,7 +391,7 @@ class EsmlabAccessor(object):
         return self.restore_dataset(computed_dset, attrs=attrs, encoding=encoding)
 
     @esmlab_xr_set_options(arithmetic_join='exact')
-    def mon_anomaly(self, slice_mon_clim_time=None):
+    def compute_mon_anomaly(self, slice_mon_clim_time=None):
         """ Calculates monthly anomaly
 
         Parameters
@@ -418,7 +430,7 @@ class EsmlabAccessor(object):
         return self.restore_dataset(computed_dset, attrs=attrs)
 
     @esmlab_xr_set_options(arithmetic_join='exact')
-    def ann_mean(self, weights=None):
+    def compute_ann_mean(self, weights=None):
         """ Calculates annual mean """
         time_dot_year = '.'.join([self.time_coord_name, 'year'])
 
@@ -465,8 +477,125 @@ class EsmlabAccessor(object):
         ds_resample_mean[self.time_coord_name].data = mid_time.data
         return self.restore_dataset(ds_resample_mean)
 
+    @esmlab_xr_set_options(arithmetic_join='exact')
+    def compute_mon_mean(self):
+        """Calculates monthly averages of a dataset
 
-def mon_climatology(dset):
+        Notes
+        -----
+
+        Algorithm steps:
+
+        Step 1. Extrapolate dset to begin time (time_bound[0][0]):
+          (without extrapolation, resampling is applied only in between the midpoints of first and last
+           time bounds since time is midpoint of time_bounds) : dset_begin
+
+        Step 2. Extrapolate dset to end time (time_bound[-1][1]): (because time is midpoint) : dset_end
+
+        Step 3. Concatenate dset_begin, dset, dset_end
+
+        Step 4. Compute monthly means
+
+        Step 5. Drop the first and/or last month if partially covered
+
+        Step 6. Correct time bounds
+
+        """
+
+        def month2date(mth_index, begin_datetime):
+            """ return a datetime object for a given month index"""
+            mth_index += begin_datetime.year * 12 + begin_datetime.month
+            calendar = begin_datetime.calendar
+            units = 'days since 0001-01-01 00:00:00'  # won't affect what's returned.
+
+            # base datetime object:
+            date = cftime.datetime((mth_index - 1) // 12, (mth_index - 1) % 12 + 1, 1)
+
+            # datetime object with the calendar encoded:
+            date_with_cal = cftime.num2date(cftime.date2num(date, units, calendar), units, calendar)
+            return date_with_cal
+
+        if self.time_bound is None:
+            raise RuntimeError(
+                'Dataset must have time_bound variable to be able to'
+                'generate weighted monthly averages.'
+            )
+
+        # Step 1
+        tbegin_decoded = EsmlabAccessor.decode_arbitrary_time(
+            self._ds_time_computed[self.tb_name].isel({self.time_coord_name: 0, self.tb_dim: 0}),
+            units=self.time_attrs['units'],
+            calendar=self.time_attrs['calendar'],
+        )
+        dset_begin = self._ds_time_computed.isel({self.time_coord_name: 0})
+        dset_begin[self.time_coord_name] = tbegin_decoded
+
+        # Step 2
+        tend_decoded = EsmlabAccessor.decode_arbitrary_time(
+            self._ds_time_computed[self.tb_name].isel({self.time_coord_name: -1, self.tb_dim: 1}),
+            units=self.time_attrs['units'],
+            calendar=self.time_attrs['calendar'],
+        )
+        dset_end = self._ds_time_computed.isel({self.time_coord_name: -1})
+        dset_end[self.time_coord_name] = tend_decoded
+
+        # Step 3: Concatenate dsets
+        computed_dset = xr.concat(
+            [dset_begin, self._ds_time_computed, dset_end], dim=self.time_coord_name
+        )
+        computed_dset = computed_dset.drop(self.static_variables)
+
+        # Step 4: Compute monthly means
+        time_dot_month = '.'.join([self.time_coord_name, 'month'])
+        computed_dset = (
+            computed_dset.resample({self.time_coord_name: '1D'})  # resample to daily
+            .nearest()  # get nearest (since time is midpoint)
+            .isel({self.time_coord_name: slice(0, -1)})  # drop the last day: the end time
+            .groupby(time_dot_month)
+            .mean(dim=self.time_coord_name)
+            .rename({'month': self.time_coord_name})
+        )
+
+        # Step 5
+        t_slice_start = 0
+        t_slice_stop = len(computed_dset[self.time_coord_name])
+        if tbegin_decoded.day != 1:
+            t_slice_start += 1
+        if tend_decoded.day != 1:
+            t_slice_stop -= 1
+
+        computed_dset = computed_dset.isel(
+            {self.time_coord_name: slice(t_slice_start, t_slice_stop)}
+        )
+
+        # Step 6
+        computed_dset['month'] = computed_dset[self.time_coord_name].copy(True)
+        for m in range(len(computed_dset['month'])):
+            computed_dset[self.tb_name].data[m] = [
+                # month begin date:
+                cftime.date2num(
+                    month2date(m, tbegin_decoded),
+                    units=self.time_attrs['units'],
+                    calendar=self.time_attrs['calendar'],
+                ),
+                # month end date:
+                cftime.date2num(
+                    month2date(m + 1, tbegin_decoded),
+                    units=self.time_attrs['units'],
+                    calendar=self.time_attrs['calendar'],
+                ),
+            ]
+
+        attrs, encoding = {}, {}
+        attrs['month'] = {'long_name': 'Month', 'units': 'month'}
+        encoding['month'] = {'dtype': 'int32', '_FillValue': None}
+        encoding[self.time_coord_name] = {'dtype': 'float', '_FillValue': None}
+        encoding[self.tb_name] = {'dtype': 'float', '_FillValue': None}
+
+        return self.restore_dataset(computed_dset, attrs=attrs, encoding=encoding)
+
+
+def compute_mon_climatology(dset):
     """Calculates monthly climatology
 
     Parameters
@@ -481,10 +610,10 @@ def mon_climatology(dset):
 
     """
 
-    return dset.esmlab.mon_climatology()
+    return dset.esmlab.compute_mon_climatology()
 
 
-def mon_anomaly(dset, slice_mon_clim_time=None):
+def compute_mon_anomaly(dset, slice_mon_clim_time=None):
     """Calculates monthly anomaly
 
     Parameters
@@ -504,10 +633,10 @@ def mon_anomaly(dset, slice_mon_clim_time=None):
 
     """
 
-    return dset.esmlab.mon_anomaly(slice_mon_clim_time=slice_mon_clim_time)
+    return dset.esmlab.compute_mon_anomaly(slice_mon_clim_time=slice_mon_clim_time)
 
 
-def ann_mean(dset, weights=None):
+def compute_ann_mean(dset, weights=None):
     """Calculates annual means
 
     Parameters
@@ -527,4 +656,24 @@ def ann_mean(dset, weights=None):
 
     """
 
-    return dset.esmlab.ann_mean(weights=weights)
+    return dset.esmlab.compute_ann_mean(weights=weights)
+
+
+def compute_mon_mean(dset):
+    """ Calculates monthly averages of a dataset
+
+    Parameters
+    ----------
+
+    dset : xarray.Dataset
+           The data on which to operate
+
+
+    Returns
+    -------
+    computed_dset : xarray.Dataset
+                    The computed monthly averages
+
+    """
+
+    return dset.esmlab.compute_mon_mean()
