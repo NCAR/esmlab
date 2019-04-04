@@ -9,11 +9,11 @@ from esmlab.datasets import open_dataset
 
 
 def test_open_dataset():
-    ds = open_dataset('cesm_cice_daily')
+    ds = open_dataset('cesm_pop_yearly')
     assert isinstance(ds, xr.Dataset)
 
 
 def test_open_dataset_cache():
-    ds = open_dataset('cesm_pop_daily', cache=False)
+    ds = open_dataset('ncep_forecast_tseries', cache=False)
     assert isinstance(ds, xr.Dataset)
-    assert not os.path.exists(os.path.abspath('~/.esmlab_data/cesm_pop_daily.nc'))
+    assert not os.path.exists(os.path.abspath('~/.esmlab_data/ncep_forecast_tseries.nc'))

@@ -126,3 +126,10 @@ def test_collect_env():
     results = collect_env(env)
     expected = {'foo': {'bar-baz': 123}}
     assert expected == results
+
+
+def test_rename():
+    d = {'esmlab': 5}
+    rename({'esmlab': 'esmlab_default'}, config=d)
+    expected = {'esmlab-default': 5}
+    assert expected == d
