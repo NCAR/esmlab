@@ -4,7 +4,7 @@ build:
   image: latest
 
 conda:
-  file: ci/environment-dev-3.7.yml
+  environment: ci/environment-dev-3.7.yml
 
 python:
   version: 3.7
