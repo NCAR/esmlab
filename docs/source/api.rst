@@ -24,16 +24,21 @@ Statistics functions
    statistics.weighted_cov
    statistics.weighted_corr
 
-Climatology functions
-~~~~~~~~~~~~~~~~~~~~~~~
+Functions that computes climatologies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autosummary::
    compute_mon_climatology
    compute_mon_anomaly
+
+
+
+Functions that computes averages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autosummary::
    compute_mon_mean
    compute_ann_mean
-
-
 
 
 .. currentmodule:: esmlab.datasets

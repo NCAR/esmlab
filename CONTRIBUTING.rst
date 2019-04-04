@@ -1,6 +1,6 @@
-============================
-Contribution getting started
-============================
+=====================
+Contribution Guide
+=====================
 
 Contributions are highly welcomed and appreciated.  Every little help counts,
 so do not hesitate!
@@ -56,7 +56,7 @@ fix the bug itself.
 Fix bugs
 --------
 
-Look through the `GitHub issues for bugs <https://github.com/NCAR/esmlab/labels/type:%20bug>`_.
+Look through the `GitHub issues for bugs <https://github.com/NCAR/esmlab/labels/bug>`_.
 
 Talk to developers to find out how you can fix specific bugs.
 
@@ -77,14 +77,14 @@ without using a local copy.  This can be convenient for small fixes.
     Build the documentation locally with the following command:
 
     .. code:: bash
-        
+
         $ conda env update -f ci/environment-dev-3.7.yml
         $ cd docs
         $ make html
 
     The built documentation should be available in the ``docs/_build/``.
 
- 
+
  .. _`pull requests`:
 .. _pull-requests:
 
@@ -122,7 +122,7 @@ Preparing Pull Requests
 
     $ conda env update -f ci/environment-dev-3.7.yml
 
-   
+
 #. Run all the tests
 
    Now running tests is as simple as issuing this command::
@@ -133,6 +133,20 @@ Preparing Pull Requests
 
    This command will run tests via the "pytest" tool against Python 3.7.
 
+
+
+#. Create a new changelog entry in ``CHANGELOG.rst``:
+
+   - The entry should be entered as:
+
+    <description> (``:pr:`#<pull request number>```) ```<author's names>`_``
+
+    where ``<description>`` is the description of the PR related to the change and ``<pull request number>`` is
+    the pull request number and ``<author's names>`` are your first and last names.
+
+   - Add yourself to list of authors at the end of ``CHANGELOG.rst`` file if not there yet, in alphabetical order.
+
+
 #. You can now edit your local working copy and run the tests again as necessary. Please follow PEP-8 for naming.
 
    When committing, ``pre-commit`` will re-format the files if necessary.
@@ -141,12 +155,6 @@ Preparing Pull Requests
 
     $ git commit -a -m "<commit message>"
     $ git push -u
-
-#. Create a new changelog entry in ``changelog``. The file should be named ``<issueid>.<type>``,
-   where *issueid* is the number of the issue related to the change and *type* is one of
-   ``bugfix``, ``removal``, ``feature``, ``doc`` or ``trivial``.
-
-#. Add yourself to ``AUTHORS`` file if not there yet, in alphabetical order.
 
 #. Finally, submit a pull request through the GitHub website using this data::
 
