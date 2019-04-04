@@ -9,3 +9,8 @@ from esmlab.datasets import open_dataset
 def test_open_dataset():
     ds = open_dataset('cesm_cice_daily')
     assert isinstance(ds, xr.Dataset)
+
+
+def test_open_dataset_cache():
+    ds = open_dataset('cesm_cice_daily', cache=False)
+    assert isinstance(ds, xr.Dataset)

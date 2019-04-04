@@ -6,25 +6,19 @@
 from __future__ import absolute_import, division, print_function
 
 import os
+from urllib.request import urlretrieve
 
 import xarray as xr
 
-try:
-    from urllib.request import urlretrieve
-
-except ImportError:
-    from urllib import urlretrieve
-
-
-_default_cache_dir = os.sep.join(("~", ".esmlab_data"))
+_default_cache_dir = os.sep.join(('~', '.esmlab_data'))
 
 
 def open_dataset(
     name,
     cache=True,
     cache_dir=_default_cache_dir,
-    github_url="https://github.com/NCAR/esmlab-data",
-    branch="master",
+    github_url='https://github.com/NCAR/esmlab-data',
+    branch='master',
     **kwargs
 ):
     """Load a dataset from the online repository (requires access to internet).
@@ -48,9 +42,9 @@ def open_dataset(
         Passed to xarray.open_dataset
     """
     longdir = os.path.expanduser(cache_dir)
-    fullname = name + ".nc"
+    fullname = name + '.nc'
     localfile = os.sep.join((longdir, fullname))
-    md5name = name + ".md5"
+    md5name = name + '.md5'
     md5file = os.sep.join((longdir, md5name))
 
     if not os.path.exists(localfile):
@@ -59,13 +53,13 @@ def open_dataset(
         if not os.path.isdir(longdir):
             os.mkdir(longdir)
 
-        url = "/".join((github_url, "raw", branch, fullname))
+        url = '/'.join((github_url, 'raw', branch, fullname))
         urlretrieve(url, localfile)
-        url = "/".join((github_url, "raw", branch, md5name))
+        url = '/'.join((github_url, 'raw', branch, md5name))
         urlretrieve(url, md5file)
 
         localmd5 = xr.tutorial.file_md5_checksum(localfile)
-        with open(md5file, "r") as f:
+        with open(md5file, 'r') as f:
             remotemd5 = f.read()
 
         if localmd5 != remotemd5:
