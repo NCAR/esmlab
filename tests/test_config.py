@@ -119,6 +119,7 @@ def no_read_permissions(path):
         os.chmod(path, perm_orig)
 
 
+@pytest.mark.skipif('CIRCLECI' in os.environ, reason='Unable to make writeonly file on CIRCLECI')
 @pytest.mark.parametrize('kind', ['directory', 'file'])
 def test_collect_yaml_permission_errors(tmpdir, kind):
     a = {'x': 1, 'y': 2}
@@ -139,7 +140,6 @@ def test_collect_yaml_permission_errors(tmpdir, kind):
     else:
         cant_read = a_path
         expected = b
-
     with no_read_permissions(cant_read):
         config = merge(*collect_yaml(paths=[dir_path]))
         assert config == expected
@@ -304,13 +304,13 @@ def test_ensure_file_directory(mkdir, tmpdir):
     assert os.path.exists(os.path.join(dest, 'source.yaml'))
 
 
-def test_ensure_file_defaults_to_DASK_CONFIG_directory(tmpdir):
+def test_ensure_file_defaults_to_ESMLAB_CONFIG_directory(tmpdir):
     a = {'x': 1, 'y': {'a': 1}}
     source = os.path.join(str(tmpdir), 'source.yaml')
     with open(source, 'w') as f:
         yaml.dump(a, f)
 
-    destination = os.path.join(str(tmpdir), 'dask')
+    destination = os.path.join(str(tmpdir), 'esmlab')
     PATH = esmlab.config.PATH
     try:
         esmlab.config.PATH = destination
