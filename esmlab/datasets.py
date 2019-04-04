@@ -10,7 +10,9 @@ from urllib.request import urlretrieve
 
 import xarray as xr
 
-_default_cache_dir = os.sep.join(('~', '.esmlab_data'))
+from esmlab import config
+
+_default_cache_dir = config.get('esmlab.sample_data_dir')
 
 
 def open_dataset(
