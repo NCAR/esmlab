@@ -19,6 +19,7 @@ dependencies:
   - netcdf4
   - numpy
   - numpydoc
+  - pip
   - pytest
   - pytest-cov
   - python=3.7
@@ -27,9 +28,9 @@ dependencies:
   - sphinx_rtd_theme
   - sphinx>=1.6
   - tornado
+  - xarray>=0.12
   - xesmf
   - zarr
-  - xarray>=0.12
   - pip:
     - pytest-lazy-fixture
     - sphinx_copybutton
