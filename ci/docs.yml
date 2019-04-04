@@ -11,5 +11,13 @@ dependencies:
   - recommonmark
   - sphinx_rtd_theme
   - sphinx>=1.6
+  - esmpy
+  - xesmf
+  - xarray
+  - netcdf4
+  - dask
+  - cftime
+  - bottleneck
+  - scipy
   - pip:
     - sphinx_copybutton
