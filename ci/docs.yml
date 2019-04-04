@@ -1,0 +1,15 @@
+name: esmlab-dev
+channels:
+  - conda-forge
+dependencies:
+  - jupyterlab
+  - nbsphinx
+  - numpy
+  - numpydoc
+  - pip
+  - python=3.7
+  - recommonmark
+  - sphinx_rtd_theme
+  - sphinx>=1.6
+  - pip:
+    - sphinx_copybutton
