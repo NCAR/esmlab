@@ -1,5 +1,12 @@
+version: 2
+
+build:
+  image: latest
+
 conda:
   file: ci/environment-dev-3.7.yml
+
 python:
-  version: 3
+  version: 3.7
   setup_py_install: true
+  system_packages: true
