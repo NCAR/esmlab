@@ -3,10 +3,11 @@
 
 """The setup script."""
 
-import sys
-from setuptools import setup, find_packages
-import versioneer
 from os.path import exists
+
+from setuptools import find_packages, setup
+
+import versioneer
 
 if exists('README.rst'):
     with open('README.rst') as f:
@@ -14,23 +15,34 @@ if exists('README.rst'):
 else:
     long_description = ''
 
-if sys.version_info > (3, 0):
-    with open('requirements.txt') as f:
-        install_requires = f.read().strip().split('\n')
-else:
-    with open('requirements-py2.txt') as f:
-        install_requires = f.read().strip().split('\n')
+
+with open('requirements.txt') as f:
+    install_requires = f.read().strip().split('\n')
 
 test_requirements = ['pytest']
+CLASSIFIERS = [
+    'Development Status :: 4 - Beta',
+    'License :: OSI Approved :: Apache Software License',
+    'Operating System :: OS Independent',
+    'Intended Audience :: Science/Research',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.5',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
+    'Topic :: Scientific/Engineering',
+]
+
 
 setup(
     maintainer='Anderson Banihirwe',
     maintainer_email='abanihi@ucar.edu',
     description='Tools for working with earth system multi-model analyses with xarray',
     install_requires=install_requires,
+    python_requires='>=3.5',
     license='Apache License 2.0',
     long_description=long_description,
-    keywords='esmlab xarray cmip cesm',
+    classifiers=CLASSIFIERS,
     name='esmlab',
     packages=find_packages(),
     test_suite='tests',
