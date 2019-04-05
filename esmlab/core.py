@@ -480,9 +480,10 @@ class EsmlabAccessor(object):
                 .rename({'year': self.time_coord_name})
             )
 
-        ds_resample_mean[self.tb_name].data = xr.concat(
-            (tb_out_lo, tb_out_hi), dim=self.tb_dim
-        ).data
+            tb_data_shape = ds_resample_mean[self.tb_name].data.shape
+            ds_resample_mean[self.tb_name].data = xr.concat(
+                (tb_out_lo, tb_out_hi), dim=self.tb_dim
+            ).data.reshape(tb_data_shape)
         mid_time = wgts[self.time_coord_name].groupby(time_dot_year).mean()
         ds_resample_mean[self.time_coord_name].data = mid_time.data
         return self.restore_dataset(ds_resample_mean)
