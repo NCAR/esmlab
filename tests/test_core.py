@@ -155,3 +155,16 @@ def test_uncompute_time_var(dset, time_coord_name='time'):
 def test_sel_time(dset):
     dset = dset.esmlab.sel_time(indexer_val=slice('1850-01-01', '1850-12-31'), year_offset=1850)
     assert len(dset.time) == 12
+
+
+def test_accessor_failure():
+    data = xr.DataArray(
+        [1, 2],
+        dims=['time'],
+        coords={'time': pd.date_range(start='2000', freq='1D', periods=2)},
+        attrs={'calendar': 'standard'},
+        name='rand',
+    ).to_dataset()
+
+    with pytest.raises(RuntimeError):
+        data.esmlab.time_attrs
