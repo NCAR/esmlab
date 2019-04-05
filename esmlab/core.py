@@ -359,6 +359,7 @@ class EsmlabAccessor(object):
         ds[self.time_coord_name].attrs = self.time_attrs
         ds[self.time_coord_name].data = time_data.astype(self.time.dtype)
         if self.time_bound is not None:
+
             ds[self.tb_name].attrs = self.time_bound_attrs
 
         return self.update_metadata(ds, new_attrs=attrs, new_encoding=encoding)
@@ -448,7 +449,10 @@ class EsmlabAccessor(object):
         wgts = wgts.groupby(time_dot_year) / wgts.groupby(time_dot_year).sum(xr.ALL_DIMS)
         wgts = wgts.rename('weights')
         groups = len(wgts.groupby(time_dot_year).groups)
-        np.testing.assert_allclose(wgts.groupby(time_dot_year).sum(xr.ALL_DIMS), np.ones(groups))
+        rtol = 1e-6 if wgts.dtype == np.float32 else 1e-7
+        np.testing.assert_allclose(
+            wgts.groupby(time_dot_year).sum(xr.ALL_DIMS), np.ones(groups), rtol=rtol
+        )
 
         dset = self._ds_time_computed.drop(self.static_variables) * wgts
 
@@ -462,17 +466,23 @@ class EsmlabAccessor(object):
 
         ds_resample_mean = dset.apply(weighted_mean_arr, wgts=wgts)
 
-        # ds_resample_mean = xr.Dataset()
-        # for dvar in self.variables:
-        #     darr = dset[dvar]
-        #     # if NaN are present, we need to use individual weights
-        #     if ~darr.notnull().all():
-        #         total_weights = wgts.where(darr.notnull()).sum(dim=self.time_coord_name)
-        #     else:
-        #         total_weights = wgts.sum(dim=self.time_coord_name)
+        if self.time_bound is not None:
+            tb_out_lo = (
+                self.time_bound[:, 0]
+                .groupby(time_dot_year)
+                .min(dim=self.time_coord_name)
+                .rename({'year': self.time_coord_name})
+            )
+            tb_out_hi = (
+                self.time_bound[:, 1]
+                .groupby(time_dot_year)
+                .max(dim=self.time_coord_name)
+                .rename({'year': self.time_coord_name})
+            )
 
-        #     ds_resample_mean[dvar] = darr.resample({self.time_coord_name:'A'}).mean(dim=self.time_coord_name) / total_weights
-
+        ds_resample_mean[self.tb_name].data = xr.concat(
+            (tb_out_lo, tb_out_hi), dim=self.tb_dim
+        ).data
         mid_time = wgts[self.time_coord_name].groupby(time_dot_year).mean()
         ds_resample_mean[self.time_coord_name].data = mid_time.data
         return self.restore_dataset(ds_resample_mean)
@@ -655,7 +665,6 @@ def compute_ann_mean(dset, weights=None):
                     The computed annual mean data
 
     """
-
     return dset.esmlab.compute_ann_mean(weights=weights)
 
 
