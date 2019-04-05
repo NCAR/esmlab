@@ -34,4 +34,4 @@ def dset():
     ds.time.attrs['units'] = 'days since 0001-01-01 00:00:00'
     ds.time.attrs['calendar'] = 'noleap'
     ds.time.attrs['bounds'] = 'time_bound'
-    return ds
+    return ds.copy(True)

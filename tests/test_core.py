@@ -18,6 +18,7 @@ functions = [compute_mon_climatology, compute_mon_anomaly, compute_ann_mean]
 decoded = [True, False]
 dsets = ['tiny', 'cesm_pop_daily', 'cesm_cice_daily']
 params = list(itertools.product(dsets, decoded, functions))
+rasm = xr.tutorial.open_dataset('rasm', decode_times=True)
 
 
 @pytest.mark.parametrize('ds, decoded, function', params)
@@ -152,7 +153,16 @@ def test_uncompute_time_var(dset, time_coord_name='time'):
     assert np.issubdtype(dset_with_uncomputed_time[time_coord_name].dtype, np.number)
 
 
-def test_sel_time(dset):
+@pytest.mark.parametrize(
+    'x, indexer, time_len, year_offset', [(rasm, slice('1980-11', '1981-01'), 3, None)]
+)
+def test_sel_time(x, indexer, time_len, year_offset):
+    y = x.esmlab.sel_time(indexer_val=indexer, year_offset=year_offset)
+    assert len(y.time) == time_len
+
+
+# For some strange reason, this case fails when using pytest parametrization
+def test_sel_time_2(dset):
     dset = dset.esmlab.sel_time(indexer_val=slice('1850-01-01', '1850-12-31'), year_offset=1850)
     assert len(dset.time) == 12
 
