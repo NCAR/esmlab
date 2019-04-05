@@ -25,10 +25,10 @@ class EsmlabAccessor(object):
         self.time_bound = None
         self.static_variables = []
         self.variables = []
-        self._set_time()
-        self._get_variables()
+        self.set_time()
+        self.get_variables()
         self.compute_time()
-        self._get_original_metadata()
+        self.get_original_metadata()
 
     @property
     def time_attrs(self):
@@ -76,29 +76,28 @@ class EsmlabAccessor(object):
         z.update(key_attrs)
         return z
 
-    def _set_time(self):
-        """store the original time and time_bound data from the dataset;
-           ensure that time_bound, if present, is not decoded.
+    def compute_time(self):
+        """Compute the mid-point of the time bounds.
         """
-        self._infer_time_coord_name()
-        self.time = self._ds[self.time_coord_name].copy()
-        self.time_orig_decoded = self.isdecoded(self.time)
 
-        self._infer_time_bound_var()
-        if self.tb_name is None:
-            self.time_bound = None
+        ds = self._ds.copy(deep=True)
+
+        if self.time_bound is not None:
+            groupby_coord = self.get_time_decoded(midpoint=True)
 
         else:
-            self.time_bound = self._ds[self.tb_name].copy()
-            if self.isdecoded(self._ds[self.tb_name]):
-                tb_data = cftime.date2num(
-                    self._ds[self.tb_name],
-                    units=self.time_attrs['units'],
-                    calendar=self.time_attrs['calendar'],
-                )
-                self.time_bound.data = tb_data
+            groupby_coord = self.get_time_decoded(midpoint=False)
 
-    def _compute_time_bound_diff(self, ds):
+        ds[self.time_coord_name].data = groupby_coord.data
+
+        if self.time_bound is not None:
+            ds[self.tb_name].data = self.time_bound.data
+            self.time_bound[self.time_coord_name].data = groupby_coord.data
+        self.time_bound_diff = self.compute_time_bound_diff(ds)
+
+        self._ds_time_computed = ds
+
+    def compute_time_bound_diff(self, ds):
         """Compute the difference between time bounds.
         """
         time_bound_diff = xr.ones_like(ds[self.time_coord_name], dtype=np.float64)
@@ -112,30 +111,45 @@ class EsmlabAccessor(object):
 
         return time_bound_diff
 
-    def _infer_time_bound_var(self):
-        """Infer time_bound variable in a dataset.
+    def compute_time_var(self, midpoint=True, year_offset=None):
+        """Compute the time coordinate of a dataset.
+
+        Parameters
+        ----------
+        midpoint : bool, optional [default=True]
+                Return time at the midpoints of the `time:bounds`
+        year_offset : numeric, optional
+        Integer year by which to offset the time axis.
+
+        Returns
+        -------
+        ds : `xarray.Dataset`
+        The dataset with time coordinate modified.
         """
-        self.tb_name = self.time_attrs['bounds']
-        self.tb_dim = None
+        self.year_offset = year_offset
+        ds = self._ds_time_computed.copy(True)
+        ds[self.time_coord_name] = self.get_time_decoded(midpoint)
+        return ds
 
-        if self.tb_name:
-            self.tb_dim = self._ds[self.tb_name].dims[1]
+    @staticmethod
+    def decode_arbitrary_time(num_time_var, units, calendar):
+        """Decode an arbitrary time var of type number
+        """
+        # Check if num_time_var is already decoded:
+        if not issubclass(num_time_var.dtype.type, np.number):
+            raise ValueError('cannot decode non-numeric time')
+        return cftime.num2date(num_time_var, units=units, calendar=calendar)
 
-    def isdecoded(self, obj):
-        return obj.dtype == np.dtype('O')
-
-    def get_time_undecoded(self):
-        time = self.time.copy()
-        if not self.isdecoded(time):
-            return time
-
-        if not self.time_attrs['units']:
-            raise ValueError('Cannot undecode time')
-
-        time.data = cftime.date2num(
-            time, units=self.time_attrs['units'], calendar=self.time_attrs['calendar']
-        )
-        return time
+    def get_original_metadata(self):
+        self._attrs = {v: self._ds[v].attrs for v in self.variables}
+        self._encoding = {
+            v: {
+                key: val
+                for key, val in self._ds[v].encoding.items()
+                if key in ['dtype', '_FillValue', 'missing_value']
+            }
+            for v in self.variables
+        }
 
     def get_time_decoded(self, midpoint=True):
         """Return time decoded.
@@ -176,16 +190,43 @@ class EsmlabAccessor(object):
         )
         return time_out
 
-    @staticmethod
-    def decode_arbitrary_time(num_time_var, units, calendar):
-        """Decode an arbitrary time var of type number
-        """
-        # Check if num_time_var is already decoded:
-        if not issubclass(num_time_var.dtype.type, np.number):
-            raise ValueError('cannot decode non-numeric time')
-        return cftime.num2date(num_time_var, units=units, calendar=calendar)
+    def get_time_undecoded(self):
+        time = self.time.copy()
+        if not self.isdecoded(time):
+            return time
 
-    def _infer_time_coord_name(self):
+        if not self.time_attrs['units']:
+            raise ValueError('Cannot undecode time')
+
+        time.data = cftime.date2num(
+            time, units=self.time_attrs['units'], calendar=self.time_attrs['calendar']
+        )
+        return time
+
+    def get_variables(self):
+        if not self.static_variables:
+            self.static_variables = [
+                v for v in self._ds.variables if self.time_coord_name not in self._ds[v].dims
+            ]
+
+        if not self.variables:
+            self.variables = [
+                v
+                for v in self._ds.variables
+                if self.time_coord_name in self._ds[v].dims
+                and v not in [self.time_coord_name, self.tb_name]
+            ]
+
+    def infer_time_bound_var(self):
+        """Infer time_bound variable in a dataset.
+        """
+        self.tb_name = self.time_attrs['bounds']
+        self.tb_dim = None
+
+        if self.tb_name:
+            self.tb_dim = self._ds[self.tb_name].dims[1]
+
+    def infer_time_coord_name(self):
         """Infer name for time coordinate in a dataset
         """
         if 'time' in self._ds.variables:
@@ -201,134 +242,8 @@ class EsmlabAccessor(object):
                     % unlimited_dims
                 )
 
-    def compute_time(self):
-        """Compute the mid-point of the time bounds.
-        """
-
-        ds = self._ds.copy(deep=True)
-
-        if self.time_bound is not None:
-            groupby_coord = self.get_time_decoded(midpoint=True)
-
-        else:
-            groupby_coord = self.get_time_decoded(midpoint=False)
-
-        ds[self.time_coord_name].data = groupby_coord.data
-
-        if self.time_bound is not None:
-            ds[self.tb_name].data = self.time_bound.data
-            self.time_bound[self.time_coord_name].data = groupby_coord.data
-        self.time_bound_diff = self._compute_time_bound_diff(ds)
-
-        self._ds_time_computed = ds
-
-    def _get_variables(self):
-        if not self.static_variables:
-            self.static_variables = [
-                v for v in self._ds.variables if self.time_coord_name not in self._ds[v].dims
-            ]
-
-        if not self.variables:
-            self.variables = [
-                v
-                for v in self._ds.variables
-                if self.time_coord_name in self._ds[v].dims
-                and v not in [self.time_coord_name, self.tb_name]
-            ]
-
-    def time_year_to_midyeardate(self):
-        """Set the time coordinate to the mid-point of the year.
-        """
-        ds = self._ds_time_computed.copy(True)
-        ds[self.time_coord_name].data = np.array(
-            [cftime.datetime(entry.year, 7, 2) for entry in ds[self.time_coord_name].data]
-        )
-        return ds
-
-    def compute_time_var(self, midpoint=True, year_offset=None):
-        """Compute the time coordinate of a dataset.
-
-        Parameters
-        ----------
-        midpoint : bool, optional [default=True]
-                Return time at the midpoints of the `time:bounds`
-        year_offset : numeric, optional
-        Integer year by which to offset the time axis.
-
-        Returns
-        -------
-        ds : `xarray.Dataset`
-        The dataset with time coordinate modified.
-        """
-        self.year_offset = year_offset
-        ds = self._ds_time_computed.copy(True)
-        ds[self.time_coord_name] = self.get_time_decoded(midpoint)
-        return ds
-
-    def uncompute_time_var(self):
-        """Return time coordinate from object to float.
-        Returns
-        -------
-        ds : `xarray.Dataset`
-        The dataset with time coordinate modified.
-        """
-        ds = self._ds_time_computed.copy(True)
-        ds[self.time_coord_name] = self.get_time_undecoded()
-        return ds
-
-    def sel_time(self, indexer_val, year_offset=None):
-        """Return dataset truncated to specified time range.
-
-        Parameters
-        ----------
-
-        indexer_val : scalar, slice, or array_like
-            value passed to ds.isel(**{time_coord_name: indexer_val})
-        year_offset : numeric, optional
-            Integer year by which to offset the time axis.
-
-        Returns
-        -------
-        ds : `xarray.Dataset`
-        The dataset with time coordinate truncated.
-        """
-        self.year_offset = year_offset
-        self.compute_time()
-        ds = self._ds_time_computed.copy(True)
-        ds = ds.sel(**{self.time_coord_name: indexer_val})
-        return ds
-
-    def _get_original_metadata(self):
-        self._attrs = {v: self._ds[v].attrs for v in self.variables}
-        self._encoding = {
-            v: {
-                key: val
-                for key, val in self._ds[v].encoding.items()
-                if key in ['dtype', '_FillValue', 'missing_value']
-            }
-            for v in self.variables
-        }
-
-    def update_metadata(self, ds, new_attrs={}, new_encoding={}):
-
-        attrs = self._attrs.copy()
-        attrs.update(new_attrs)
-        encoding = self._encoding.copy()
-        encoding.update(new_encoding)
-
-        for v in self.variables:
-            try:
-                ds[v].attrs = attrs[v]
-
-                if v in encoding:
-                    if ds[v].dtype == 'int64':  # int64 breaks some other tools
-                        encoding[v]['dtype'] = 'int32'
-
-                    ds[v].encoding = encoding[v]
-            except Exception:
-                continue
-
-        return ds
+    def isdecoded(self, obj):
+        return obj.dtype == np.dtype('O')
 
     def restore_dataset(self, ds, attrs={}, encoding={}):
         """Return the original time variable to decoded or undecoded state.
@@ -363,6 +278,91 @@ class EsmlabAccessor(object):
             ds[self.tb_name].attrs = self.time_bound_attrs
 
         return self.update_metadata(ds, new_attrs=attrs, new_encoding=encoding)
+
+    def sel_time(self, indexer_val, year_offset=None):
+        """Return dataset truncated to specified time range.
+
+        Parameters
+        ----------
+
+        indexer_val : scalar, slice, or array_like
+            value passed to ds.isel(**{time_coord_name: indexer_val})
+        year_offset : numeric, optional
+            Integer year by which to offset the time axis.
+
+        Returns
+        -------
+        ds : `xarray.Dataset`
+        The dataset with time coordinate truncated.
+        """
+        self.year_offset = year_offset
+        self.compute_time()
+        ds = self._ds_time_computed.copy(True)
+        ds = ds.sel(**{self.time_coord_name: indexer_val})
+        return ds
+
+    def set_time(self):
+        """store the original time and time_bound data from the dataset;
+           ensure that time_bound, if present, is not decoded.
+        """
+        self.infer_time_coord_name()
+        self.time = self._ds[self.time_coord_name].copy()
+        self.time_orig_decoded = self.isdecoded(self.time)
+
+        self.infer_time_bound_var()
+        if self.tb_name is None:
+            self.time_bound = None
+
+        else:
+            self.time_bound = self._ds[self.tb_name].copy()
+            if self.isdecoded(self._ds[self.tb_name]):
+                tb_data = cftime.date2num(
+                    self._ds[self.tb_name],
+                    units=self.time_attrs['units'],
+                    calendar=self.time_attrs['calendar'],
+                )
+                self.time_bound.data = tb_data
+
+    def time_year_to_midyeardate(self):
+        """Set the time coordinate to the mid-point of the year.
+        """
+        ds = self._ds_time_computed.copy(True)
+        ds[self.time_coord_name].data = np.array(
+            [cftime.datetime(entry.year, 7, 2) for entry in ds[self.time_coord_name].data]
+        )
+        return ds
+
+    def uncompute_time_var(self):
+        """Return time coordinate from object to float.
+        Returns
+        -------
+        ds : `xarray.Dataset`
+        The dataset with time coordinate modified.
+        """
+        ds = self._ds_time_computed.copy(True)
+        ds[self.time_coord_name] = self.get_time_undecoded()
+        return ds
+
+    def update_metadata(self, ds, new_attrs={}, new_encoding={}):
+
+        attrs = self._attrs.copy()
+        attrs.update(new_attrs)
+        encoding = self._encoding.copy()
+        encoding.update(new_encoding)
+
+        for v in self.variables:
+            try:
+                ds[v].attrs = attrs[v]
+
+                if v in encoding:
+                    if ds[v].dtype == 'int64':  # int64 breaks some other tools
+                        encoding[v]['dtype'] = 'int32'
+
+                    ds[v].encoding = encoding[v]
+            except Exception:
+                continue
+
+        return ds
 
     @esmlab_xr_set_options(arithmetic_join='exact')
     def compute_mon_climatology(self):
