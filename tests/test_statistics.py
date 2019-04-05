@@ -39,7 +39,7 @@ test_data_da = [
 test_data_ds = [
     (ds, ['x', 'y'], np.ones(9).reshape(3, 3)),
     (ds, ['x'], [1, 1, 1]),
-    (ds, ['x', 'y', 'z'], None),
+    (ds, ['x', 'y'], None),
 ]
 
 
@@ -64,7 +64,7 @@ def test_weighted_mean_da(data, dim, weights, axis):
 
 
 @pytest.mark.parametrize('data,dim, weights', test_data_ds)
-def test_weighted_mean_ds(data, dim, weights):
+def test_weighted_mean(data, dim, weights):
 
     w_mean = weighted_mean(data, dim, weights)
     np.testing.assert_allclose(w_mean['variable_x'], data['variable_x'].mean(dim))

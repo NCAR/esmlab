@@ -98,8 +98,12 @@ def test_ann_mean_values(dset):
     )
 
 
-def test_ann_mean_values_missing(dset):
-    weights = np.ones(24)
+@pytest.mark.parametrize(
+    'ds, weights',
+    [('tiny', np.ones(24)), ('tiny', xr.DataArray(np.ones(24))), ('tiny', np.ones(24).tolist())],
+)
+def test_ann_mean_values_missing(ds, weights):
+    dset = open_dataset(ds, decode_times=False, decode_coords=False)
     dset.variable_1.values[0:3, :, :] = np.nan
     computed_dset = compute_ann_mean(dset, weights=weights)
     assert isinstance(computed_dset, xr.Dataset)
@@ -172,9 +176,17 @@ def test_accessor_failure():
         [1, 2],
         dims=['time'],
         coords={'time': pd.date_range(start='2000', freq='1D', periods=2)},
-        attrs={'calendar': 'standard'},
+        attrs={'calendar': 'standard', 'units': 'days since 2001-01-01 00:00:00'},
         name='rand',
     ).to_dataset()
 
     with pytest.raises(RuntimeError):
         data.esmlab.time_attrs
+
+    data['time'] = xr.cftime_range(start='2000', freq='1D', periods=2)
+
+    with pytest.raises(ValueError):
+        data.esmlab.get_time_decoded()
+
+    with pytest.raises(ValueError):
+        data.esmlab.get_time_undecoded()

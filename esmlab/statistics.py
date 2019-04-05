@@ -54,31 +54,6 @@ def weighted_sum_da(da, dim=None, weights=None):
         return (da * weights).sum(dim)
 
 
-def weighted_sum_ds(ds, dim=None, weights=None):
-    """ Compute weighted sum for Dataset
-
-    Parameters
-    ----------
-    da : Dataset
-        Dataset for which to compute `weighted sum`
-    dim : str or sequence of str, optional
-        Dimension(s) over which to apply sum.
-    weights : DataArray
-        weights to apply. Shape must be broadcastable to shape of data.
-
-    Returns
-    -------
-    reduced : Dataset
-        New Dataset with sum applied to its data and the indicated
-        dimension(s) removed.
-
-    """
-    if weights is None:
-        return ds.sum(dim)
-    else:
-        return ds.apply(weighted_sum_da, dim=dim, weights=weights)
-
-
 @esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
 def weighted_sum(data, dim=None, weights=None):
     """ Compute weighted sum for xarray objects
@@ -101,7 +76,7 @@ def weighted_sum(data, dim=None, weights=None):
     if isinstance(data, xr.DataArray):
         return weighted_sum_da(data, dim, weights)
     elif isinstance(data, xr.Dataset):
-        return weighted_sum_ds(data, dim, weights)
+        return data.apply(weighted_sum_da, dim=dim, weights=weights)
     else:
         raise ValueError('Data must be an xarray Dataset or DataArray')
 
@@ -128,34 +103,12 @@ def weighted_mean_da(da, dim=None, weights=None):
     if weights is None:
         return da.mean(dim)
 
-    else:
+    elif all(d in da.dims for d in dim):
         weights, total_weights = validate_weights(da, dim, weights)
         return (da * weights).sum(dim) / total_weights
 
-
-def weighted_mean_ds(ds, dim=None, weights=None):
-    """ Compute weighted mean for Dataset
-
-    Parameters
-    ----------
-    da : Dataset
-        Dataset for which to compute `weighted mean`
-    dim : str or sequence of str, optional
-        Dimension(s) over which to apply mean.
-    weights : DataArray
-        weights to apply. Shape must be broadcastable to shape of data.
-
-    Returns
-    -------
-    reduced : Dataset
-        New Dataset with mean applied to its data and the indicated
-        dimension(s) removed.
-
-    """
-    if weights is None:
-        return ds.mean(dim)
     else:
-        return ds.apply(weighted_mean_da, dim=dim, weights=weights)
+        return da
 
 
 @esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
@@ -180,7 +133,8 @@ def weighted_mean(data, dim=None, weights=None):
     if isinstance(data, xr.DataArray):
         return weighted_mean_da(data, dim, weights)
     elif isinstance(data, xr.Dataset):
-        return weighted_mean_ds(data, dim, weights)
+        return data.apply(weighted_mean_da, dim=dim, weights=weights)
+
     else:
         raise ValueError('Data must be an xarray Dataset or DataArray')
 
@@ -209,36 +163,14 @@ def weighted_std_da(da, dim=None, weights=None, ddof=0):
     if weights is None:
         return da.std(dim)
 
-    else:
+    elif all(d in da.dims for d in dim):
         weights, total_weights = validate_weights(da, dim, weights)
         da_mean = weighted_mean_da(da, dim, weights)
         std = np.sqrt((weights * (da - da_mean) ** 2).sum(dim) / (total_weights - ddof))
         return std
 
-
-def weighted_std_ds(ds, dim=None, weights=None):
-    """ Compute weighted standard deviation for Dataset
-
-    Parameters
-    ----------
-    da : Dataset
-        Dataset for which to compute `weighted standard deviation`
-    dim : str or sequence of str, optional
-        Dimension(s) over which to apply standard deviation.
-    weights : DataArray
-        weights to apply. Shape must be broadcastable to shape of data.
-
-    Returns
-    -------
-    reduced : Dataset
-        New Dataset with standard deviation applied to its data and the indicated
-        dimension(s) removed.
-
-    """
-    if weights is None:
-        return ds.std(dim)
     else:
-        return ds.apply(weighted_std_da, dim=dim, weights=weights)
+        return da
 
 
 @esmlab_xr_set_options(arithmetic_join='exact', keep_attrs=True)
@@ -263,7 +195,7 @@ def weighted_std(data, dim=None, weights=None):
     if isinstance(data, xr.DataArray):
         return weighted_std_da(data, dim, weights)
     elif isinstance(data, xr.Dataset):
-        return weighted_std_ds(data, dim, weights)
+        return data.apply(weighted_std_da, dim=dim, weights=weights)
     else:
         raise ValueError('Data must be an xarray Dataset or DataArray')
 
