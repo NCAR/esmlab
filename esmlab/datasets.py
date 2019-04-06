@@ -3,8 +3,7 @@
 * building tutorials in the documentation.
 """
 
-from __future__ import absolute_import, division, print_function
-
+import hashlib
 import os
 from urllib.request import urlretrieve
 
@@ -13,6 +12,13 @@ import xarray as xr
 from esmlab import config
 
 _default_cache_dir = config.get('esmlab.sample_data_dir')
+
+
+def file_md5_checksum(fname):
+    hash_md5 = hashlib.md5()
+    with open(fname, 'rb') as f:
+        hash_md5.update(f.read())
+    return hash_md5.hexdigest()
 
 
 def open_dataset(
@@ -60,7 +66,7 @@ def open_dataset(
         url = '/'.join((github_url, 'raw', branch, md5name))
         urlretrieve(url, md5file)
 
-        localmd5 = xr.tutorial.file_md5_checksum(localfile)
+        localmd5 = file_md5_checksum(localfile)
         with open(md5file, 'r') as f:
             remotemd5 = f.read()
 

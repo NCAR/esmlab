@@ -5,7 +5,10 @@ import os
 
 import xarray as xr
 
+from esmlab import config
 from esmlab.datasets import open_dataset
+
+_default_cache_dir = config.get('esmlab.sample_data_dir')
 
 
 def test_open_dataset():
@@ -16,4 +19,5 @@ def test_open_dataset():
 def test_open_dataset_cache():
     ds = open_dataset('ncep_forecast_tseries', cache=False)
     assert isinstance(ds, xr.Dataset)
-    assert not os.path.exists(os.path.abspath('~/.esmlab_data/ncep_forecast_tseries.nc'))
+    filepath = _default_cache_dir + '/ncep_forecast_tseries.nc'
+    assert not os.path.exists(os.path.abspath(filepath))

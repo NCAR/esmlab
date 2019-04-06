@@ -57,13 +57,21 @@ def wavg(x, weights, col_names):
     return pd.Series(ds, index=x.columns)
 
 
+def test_weights_raise_error():
+    w = [1, 2, 3, 4, 5]
+    arr = xr.DataArray(range(5))
+    with pytest.raises(ValueError):
+        esmlab.statistics.validate_weights(da=arr, dim=None, weights=w)
+
+
 @pytest.mark.parametrize(
     'dim, level, wgts_name', [(['time'], ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
 )
 def test_weighted_sum(dim, level, wgts_name):
     df = dset.to_dataframe()
     df_w = wgts.to_dataframe()
-    res = esmlab.weighted_sum(dset, dim=dim, weights=wgts[wgts_name]).to_dataframe()
+    w = wgts[wgts_name]
+    res = esmlab.weighted_sum(dset, dim=dim, weights=w).to_dataframe()
     expected = df.multiply(df_w[wgts_name], axis='index').sum(level=level)
     assert_frame_equal(res.sort_index(), expected.sort_index())
 
