@@ -10,6 +10,7 @@ Features
 
 - Enable computing significance metrics (p-value) for ``weighted_corr`` (:pr:`90`) `Riley Brady`_
 - Drop support for Python 2 (:pr:`109`) `Anderson Banihirwe`_
+- Add ``.esmlab`` accessor allowing users to access functions such as climatology with ``dset.esmlab.climatology()`` syntax (:pr:`109`) `Anderson Banihirwe`_
 - Add ``compute_mon_mean`` function to compute monthly averages (:pr:`110`) `Alper Altuntas`_
 
 
