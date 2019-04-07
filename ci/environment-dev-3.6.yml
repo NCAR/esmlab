@@ -2,6 +2,7 @@ name: esmlab-dev
 channels:
   - conda-forge
 dependencies:
+  - bottleneck
   - codecov
   - dask
   - distributed
@@ -11,12 +12,15 @@ dependencies:
   - matplotlib
   - netcdf4
   - numpy
+  - pip
   - pytest
   - pytest-cov
   - python=3.6
   - scipy
+  - xarray>=0.12
   - xesmf
   - zarr
-  - xarray>=0.12
   - pip:
     - pytest-lazy-fixture
+    - pytest-xdist
+    - git+https://github.com/NCAR/esmlab-regrid.git

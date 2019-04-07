@@ -1,1 +1,2 @@
-cache_dir: "~/.esmlab/data"
+esmlab:
+  sample_data_dir: "~/.esmlab/sample_data"

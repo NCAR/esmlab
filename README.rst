@@ -1,4 +1,4 @@
-Esmlab (Earth System Model Lab)
+ESMLab: Earth System Model Lab
 ================================
 
 .. image:: https://img.shields.io/circleci/project/github/NCAR/esmlab/master.svg?style=for-the-badge&logo=circleci

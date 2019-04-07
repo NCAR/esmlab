@@ -2,6 +2,7 @@ name: esmlab-dev
 channels:
   - conda-forge
 dependencies:
+  - bottleneck
   - codecov
   - dask
   - distributed
@@ -18,3 +19,4 @@ dependencies:
   - pip:
     - pytest-lazy-fixture
     - contextlib2
+    - pytest-xdist

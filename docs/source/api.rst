@@ -1,11 +1,26 @@
-API reference
+API Reference
 =============
+
+This page provides an auto-generated summary of esmlab’s API.
+For more details and examples, refer to the relevant chapters in the main part of the documentation.
 
 
 .. currentmodule:: esmlab
 
+Utilities
+~~~~~~~~~~~
+
 .. autosummary::
    datasets.open_dataset
+
+Configuration
+~~~~~~~~~~~~~~~
+
+.. autosummary::
+   esmlab.config.get
+   esmlab.config.set
+   esmlab.config.collect
+   esmlab.config.refresh
 
 Statistics functions
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -18,23 +33,25 @@ Statistics functions
    statistics.weighted_cov
    statistics.weighted_corr
 
-Climatology functions
-~~~~~~~~~~~~~~~~~~~~~~~
+Climatologies
+~~~~~~~~~~~~~~
 
 .. autosummary::
-   climatology.compute_mon_climatology
-   climatology.compute_mon_anomaly
-   climatology.compute_ann_mean
-   climatology.compute_mon_mean
+   climatology
 
 
-Utilities
-~~~~~~~~~~~
+Anomalies
+~~~~~~~~~
 
 .. autosummary::
-   utils.time.compute_time_var
-   utils.time.uncompute_time_var
-   utils.time.sel_time
+   anomaly
+
+
+Resample
+~~~~~~~~~
+
+.. autosummary::
+   resample
 
 
 
@@ -43,8 +60,13 @@ Utilities
 
 
 
+.. currentmodule:: esmlab
 
-.. currentmodule:: esmlab.statistics
+.. autofunction:: esmlab.config.get
+.. autofunction:: esmlab.config.set
+.. autofunction:: esmlab.config.collect
+.. autofunction:: esmlab.config.refresh
+
 
 .. autofunction:: weighted_sum
 .. autofunction:: weighted_mean
@@ -53,17 +75,8 @@ Utilities
 .. autofunction:: weighted_cov
 .. autofunction:: weighted_corr
 
-.. currentmodule:: esmlab.climatology
+.. currentmodule:: esmlab
 
-.. autofunction:: compute_mon_climatology
-.. autofunction:: compute_mon_anomaly
-.. autofunction:: compute_ann_mean
-.. autofunction:: compute_mon_mean
-
-
-
-.. currentmodule:: esmlab.utils.time
-
-.. autofunction:: compute_time_var
-.. autofunction:: uncompute_time_var
-.. autofunction:: sel_time
+.. autofunction:: climatology
+.. autofunction:: anomaly
+.. autofunction:: resample
