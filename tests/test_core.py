@@ -59,6 +59,28 @@ def test_esmlab_accessor():
     )
     assert res[0] == cftime.DatetimeNoLeap(2000, 1, 31, 0, 0, 0, 0, 0, 31)
 
+    data = xr.DataArray(
+        [1, 2],
+        dims=['time'],
+        coords={'time': pd.date_range(start='2000', freq='1D', periods=2)},
+        attrs={'calendar': 'standard', 'units': 'days since 2001-01-01 00:00:00'},
+        name='rand',
+    ).to_dataset()
+
+    data['time'] = xr.cftime_range(start='2000', freq='1D', periods=2)
+
+    with pytest.raises(ValueError):
+        data.esmlab.set_time().get_time_decoded()
+
+    with pytest.raises(ValueError):
+        data.esmlab.set_time().get_time_undecoded()
+
+    data = xr.DataArray(
+        [[1, 2], [7, 8]], dims=['x', 'y'], coords={'x': [1, 2], 'y': [2, 3]}, name='rand'
+    ).to_dataset()
+    with pytest.raises(ValueError):
+        data.esmlab.set_time('time-bound-coord')
+
 
 def test_time_bound_var(dset, time_coord_name='time'):
     esm = dset.esmlab.set_time(time_coord_name=time_coord_name)
@@ -105,24 +127,6 @@ def test_sel_time_(dset):
     esm = dset.esmlab.set_time()
     dset = esm.sel_time(indexer_val=slice('1850-01-01', '1850-12-31'), year_offset=1850)
     assert len(dset.time) == 12
-
-
-def test_accessor_failure():
-    data = xr.DataArray(
-        [1, 2],
-        dims=['time'],
-        coords={'time': pd.date_range(start='2000', freq='1D', periods=2)},
-        attrs={'calendar': 'standard', 'units': 'days since 2001-01-01 00:00:00'},
-        name='rand',
-    ).to_dataset()
-
-    data['time'] = xr.cftime_range(start='2000', freq='1D', periods=2)
-
-    with pytest.raises(ValueError):
-        data.esmlab.set_time().get_time_decoded()
-
-    with pytest.raises(ValueError):
-        data.esmlab.set_time().get_time_undecoded()
 
 
 @pytest.mark.parametrize(
@@ -204,8 +208,7 @@ def test_mon_climatology_drop_time_bounds(
 
 
 def test_anomaly_with_monthly_clim(dset):
-    computed_dset = esmlab.anomaly(dset, freq='mon')
-    assert isinstance(computed_dset, xr.Dataset)
+    computed_dset = esmlab.anomaly(dset, clim_freq='mon')
     a = [-0.5] * 48
     b = [0.5] * 48
     a.extend(b)
@@ -217,6 +220,11 @@ def test_anomaly_with_monthly_clim(dset):
         assert key in computed_dset.time.attrs
         assert value == computed_dset.time.attrs[key]
 
+    computed_dset = esmlab.anomaly(
+        dset, clim_freq='mon', slice_mon_clim_time=slice('0001-01-16', None)
+    )
+    np.testing.assert_equal(computed_dset.variable_1.values.ravel(), expected)
+
 
 def test_resample_ann_mean(dset):
     weights = np.ones(24)
@@ -227,6 +235,9 @@ def test_resample_ann_mean(dset):
     np.testing.assert_allclose(
         computed_dset.variable_1.values.ravel().astype(np.float32), expected, rtol=1e-6
     )
+
+    computed_dset = esmlab.resample(dset, freq='ann', weights=None)
+    assert isinstance(computed_dset, xr.Dataset)
 
 
 @pytest.mark.parametrize(
@@ -250,3 +261,14 @@ def test_resample_mon_mean(dset):
     res = computed_dset.variable_1.data
     expected = np.full(shape=(12, 2, 2), fill_value=0.5, dtype=np.float32)
     np.testing.assert_allclose(res, expected)
+
+
+def test_unsupported_args(dset):
+    with pytest.raises(ValueError):
+        esmlab.resample(dset, freq='hr')
+
+    with pytest.raises(ValueError):
+        esmlab.climatology(dset, freq='hr')
+
+    with pytest.raises(ValueError):
+        esmlab.anomaly(dset, clim_freq='ann')

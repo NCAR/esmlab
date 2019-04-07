@@ -224,20 +224,20 @@ class EsmlabAccessor(object):
     def infer_time_coord_name(self, time_coord_name):
         """Infer name for time coordinate in a dataset
         """
-        if time_coord_name:
+        if time_coord_name in self._ds.variables:
             self.time_coord_name = time_coord_name
 
-        if 'time' in self._ds.variables:
+        elif 'time' in self._ds.variables:
             self.time_coord_name = 'time'
 
         else:
             unlimited_dims = self._ds.encoding.get('unlimited_dims', None)
-            if len(unlimited_dims) == 1:
+            if unlimited_dims and len(unlimited_dims) == 1:
                 self.time_coord_name = list(unlimited_dims)[0]
             else:
                 raise ValueError(
-                    'Cannot infer `time_coord_name` from multiple unlimited dimensions: %s \n\t\t ***** Please specify time_coord_name to use. *****'
-                    % unlimited_dims
+                    'Cannot infer `time_coord_name` for the given dataset.'
+                    '\n\t\t ***** Please specify time_coord_name to use with `dset.esmlab.set_time()`. *****'
                 )
 
     def isdecoded(self, obj):
@@ -647,7 +647,7 @@ def climatology(dset, freq, time_coord_name=None):
         return ds
 
 
-def anomaly(dset, freq, slice_mon_clim_time=None, time_coord_name=None):
+def anomaly(dset, clim_freq, slice_mon_clim_time=None, time_coord_name=None):
     """Computes anomalies for a specified time frequency
 
     Parameters
@@ -655,10 +655,10 @@ def anomaly(dset, freq, slice_mon_clim_time=None, time_coord_name=None):
     dset : xarray.Dataset
            The data on which to operate
 
-    freq : str
-        Frequency alias. Accepted alias:
+    clim_freq : str
+        Climatology frequency alias. Accepted alias:
 
-        - ``mon``: for monthly anomalies
+        - ``mon``: for monthly climatologies
 
     slice_mon_clim_time : slice, optional
                           a slice object passed to
@@ -676,13 +676,13 @@ def anomaly(dset, freq, slice_mon_clim_time=None, time_coord_name=None):
     """
 
     accepted_freq = {'mon'}
-    if freq not in accepted_freq:
-        raise ValueError(f'{freq} is not among supported frequency aliases={accepted_freq}')
+    if clim_freq not in accepted_freq:
+        raise ValueError(f'{clim_freq} is not among supported frequency aliases={accepted_freq}')
     else:
         ds = dset.esmlab.set_time(time_coord_name=time_coord_name).compute_mon_anomaly(
             slice_mon_clim_time=slice_mon_clim_time
         )
-        new_history = f'\n{datetime.now()} esmlab.anomaly(<DATASET>, freq="{freq}", slice_mon_clim_time="{slice_mon_clim_time}")'
+        new_history = f'\n{datetime.now()} esmlab.anomaly(<DATASET>, clim_freq="{clim_freq}", slice_mon_clim_time="{slice_mon_clim_time}")'
         ds.attrs['history'] = new_history
         return ds
 
