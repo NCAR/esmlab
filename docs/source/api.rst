@@ -13,6 +13,15 @@ Utilities
 .. autosummary::
    datasets.open_dataset
 
+Configuration
+~~~~~~~~~~~~~~~
+
+.. autosummary::
+   esmlab.config.get
+   esmlab.config.set
+   esmlab.config.collect
+   esmlab.config.refresh
+
 Statistics functions
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -24,21 +33,26 @@ Statistics functions
    statistics.weighted_cov
    statistics.weighted_corr
 
-Functions that computes climatologies
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Climatologies
+~~~~~~~~~~~~~~
 
 .. autosummary::
-   compute_mon_climatology
-   compute_mon_anomaly
+   climatology
 
 
-
-Functions that computes averages
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Anomalies
+~~~~~~~~~
 
 .. autosummary::
-   compute_mon_mean
-   compute_ann_mean
+   anomaly
+
+
+Resample
+~~~~~~~~~
+
+.. autosummary::
+   resample
+
 
 
 .. currentmodule:: esmlab.datasets
@@ -46,7 +60,13 @@ Functions that computes averages
 
 
 
-.. currentmodule:: esmlab.statistics
+.. currentmodule:: esmlab
+
+.. autofunction:: esmlab.config.get
+.. autofunction:: esmlab.config.set
+.. autofunction:: esmlab.config.collect
+.. autofunction:: esmlab.config.refresh
+
 
 .. autofunction:: weighted_sum
 .. autofunction:: weighted_mean
@@ -57,7 +77,6 @@ Functions that computes averages
 
 .. currentmodule:: esmlab
 
-.. autofunction:: compute_mon_climatology
-.. autofunction:: compute_mon_anomaly
-.. autofunction:: compute_mon_mean
-.. autofunction:: compute_ann_mean
+.. autofunction:: climatology
+.. autofunction:: anomaly
+.. autofunction:: resample

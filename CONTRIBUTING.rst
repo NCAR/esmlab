@@ -2,6 +2,9 @@
 Contribution Guide
 =====================
 
+Interested in helping build Esmlab? Have code from your research that
+you believe others will find useful?  Have a few minutes to tackle an issue?
+
 Contributions are highly welcomed and appreciated.  Every little help counts,
 so do not hesitate!
 
@@ -22,7 +25,6 @@ Feel free to suggest improvements or changes in the workflow.
 Feature requests and feedback
 -----------------------------
 
-Do you like esmlab?  Share some love on Twitter or in your blog posts!
 
 We'd also like to hear about your propositions and suggestions.  Feel free to
 `submit them as issues <https://github.com/NCAR/esmlab>`_ and:
@@ -64,7 +66,7 @@ Talk to developers to find out how you can fix specific bugs.
 Write documentation
 -------------------
 
-esmlab could always use more documentation.  What exactly is needed?
+Esmlab could always use more documentation.  What exactly is needed?
 
 * More complementary documentation.  Have you perhaps found something unclear?
 * Docstrings.  There can never be too many of them.
@@ -97,16 +99,30 @@ Preparing Pull Requests
    fine to use ``esmlab`` as your fork repository name because it will live
    under your user.
 
-#. Clone your fork locally using `git <https://git-scm.com/>`_ and create a branch::
+#. Clone your fork locally using `git <https://git-scm.com/>`_, connect your repository
+   to the upstream (main project), and create a branch::
 
     $ git clone git@github.com:YOUR_GITHUB_USERNAME/esmlab.git
     $ cd esmlab
+    $ git remote add upstream git@github.com:NCAR/esmlab.git
+
     # now, to fix a bug or add feature create your own branch off "master":
 
     $ git checkout -b your-bugfix-feature-branch-name master
 
    If you need some help with Git, follow this quick start
    guide: https://git.wiki.kernel.org/index.php/QuickStart
+
+#. Install dependencies into a new conda environment::
+
+    $ conda env update -f ci/environment-dev-3.7.yml
+    $ conda activate esmlab-dev
+
+#. Make an editable install of esmlab by running::
+
+    $ pip install -e .
+
+
 
 #. Install `pre-commit <https://pre-commit.com>`_ and its hook on the esmlab repo::
 
@@ -118,16 +134,15 @@ Preparing Pull Requests
    https://pre-commit.com/ is a framework for managing and maintaining multi-language pre-commit hooks
    to ensure code-style and code formatting is consistent.
 
-#. Install dependencies into a new conda environment::
-
-    $ conda env update -f ci/environment-dev-3.7.yml
+    Now you have an environment called ``esmlab-dev`` that you can work in.
+    You’ll need to make sure to activate that environment next time you want
+    to use it after closing the terminal or your system.
 
 
 #. Run all the tests
 
    Now running tests is as simple as issuing this command::
 
-    $ conda activate esmlab-dev
     $ pytest --junitxml=test-reports/junit.xml --cov=./
 
 

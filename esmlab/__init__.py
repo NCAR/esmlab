@@ -7,13 +7,7 @@ import sys
 from . import config, datasets
 from ._version import get_versions
 from .common_utils import esmlab_xr_set_options
-from .core import (
-    EsmlabAccessor,
-    compute_ann_mean,
-    compute_mon_anomaly,
-    compute_mon_climatology,
-    compute_mon_mean,
-)
+from .core import EsmlabAccessor, anomaly, climatology, resample
 from .statistics import (
     weighted_corr,
     weighted_cov,

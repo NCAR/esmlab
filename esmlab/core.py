@@ -141,14 +141,14 @@ class EsmlabAccessor(object):
         return cftime.num2date(num_time_var, units=units, calendar=calendar)
 
     def get_original_metadata(self):
-        self._attrs = {v: self._ds[v].attrs for v in self.variables}
+        self._attrs = {v: self._ds[v].attrs for v in self._ds.variables}
         self._encoding = {
             v: {
                 key: val
                 for key, val in self._ds[v].encoding.items()
                 if key in ['dtype', '_FillValue', 'missing_value']
             }
-            for v in self.variables
+            for v in self._ds.variables
         }
 
     def get_time_decoded(self, midpoint=True):
@@ -181,7 +181,6 @@ class EsmlabAccessor(object):
                 units=self.time_attrs['units'],
                 calendar=self.time_attrs['calendar'],
             )
-
         time_out = self.time.copy()
         time_out.data = xr.CFTimeIndex(
             cftime.num2date(
@@ -243,7 +242,7 @@ class EsmlabAccessor(object):
                 )
 
     def isdecoded(self, obj):
-        return obj.dtype == np.dtype('O')
+        return obj.dtype.type in {np.str_, np.object_, np.datetime64}
 
     def restore_dataset(self, ds, attrs={}, encoding={}):
         """Return the original time variable to decoded or undecoded state.
@@ -276,7 +275,6 @@ class EsmlabAccessor(object):
         if self.time_bound is not None:
 
             ds[self.tb_name].attrs = self.time_bound_attrs
-
         return self.update_metadata(ds, new_attrs=attrs, new_encoding=encoding)
 
     def sel_time(self, indexer_val, year_offset=None):
@@ -350,7 +348,7 @@ class EsmlabAccessor(object):
         encoding = self._encoding.copy()
         encoding.update(new_encoding)
 
-        for v in self.variables:
+        for v in ds.variables:
             try:
                 ds[v].attrs = attrs[v]
 
@@ -361,7 +359,6 @@ class EsmlabAccessor(object):
                     ds[v].encoding = encoding[v]
             except Exception:
                 continue
-
         return ds
 
     @esmlab_xr_set_options(arithmetic_join='exact')
@@ -389,6 +386,7 @@ class EsmlabAccessor(object):
                 computed_dset[self.tb_name].mean(self.tb_dim).data
             )
             encoding[self.tb_name] = {'dtype': 'float', '_FillValue': None}
+
         return self.restore_dataset(computed_dset, attrs=attrs, encoding=encoding)
 
     @esmlab_xr_set_options(arithmetic_join='exact')
@@ -606,31 +604,53 @@ class EsmlabAccessor(object):
         return self.restore_dataset(computed_dset, attrs=attrs, encoding=encoding)
 
 
-def compute_mon_climatology(dset):
-    """Calculates monthly climatology
+def climatology(dset, freq):
+    """Computes climatologies for a specified time frequency
 
     Parameters
     ----------
     dset : xarray.Dataset
            The data on which to operate
+
+    freq : str
+        Frequency alias. Accepted alias:
+
+        - ``mon``: for monthly climatologies
+
 
     Returns
     -------
     computed_dset : xarray.Dataset
-                    The computed monthly climatology data
+                    The computed climatology data
 
     """
 
-    return dset.esmlab.compute_mon_climatology()
+    accepted_freq = {'mon'}
+    if freq not in accepted_freq:
+        raise ValueError(f'{freq} is not among supported frequency aliases={accepted_freq}')
+
+    else:
+        ds = dset.esmlab.compute_mon_climatology()
+        new_history = f'\n{datetime.now()} esmlab.climatology(<DATASET>, freq="{freq}")'
+        if 'history' in ds.attrs:
+            ds.attrs['history'] += new_history
+        else:
+            ds.attrs['history'] = new_history
+        return ds
 
 
-def compute_mon_anomaly(dset, slice_mon_clim_time=None):
-    """Calculates monthly anomaly
+def anomaly(dset, freq, slice_mon_clim_time=None):
+    """Computes anomalies for a specified time frequency
 
     Parameters
     ----------
     dset : xarray.Dataset
            The data on which to operate
+
+    freq : str
+        Frequency alias. Accepted alias:
+
+        - ``mon``: for monthly anomalies
 
     slice_mon_clim_time : slice, optional
                           a slice object passed to
@@ -640,50 +660,62 @@ def compute_mon_anomaly(dset, slice_mon_clim_time=None):
     Returns
     -------
     computed_dset : xarray.Dataset
-                    The computed monthly anomaly data
+                    The computed anomaly data
 
     """
 
-    return dset.esmlab.compute_mon_anomaly(slice_mon_clim_time=slice_mon_clim_time)
+    accepted_freq = {'mon'}
+    if freq not in accepted_freq:
+        raise ValueError(f'{freq} is not among supported frequency aliases={accepted_freq}')
+    else:
+        ds = dset.esmlab.compute_mon_anomaly(slice_mon_clim_time=slice_mon_clim_time)
+        new_history = f'\n{datetime.now()} esmlab.anomaly(<DATASET>, freq="{freq}", slice_mon_clim_time="{slice_mon_clim_time}")'
+        if 'history' in ds.attrs:
+            ds.attrs['history'] += new_history
+        else:
+            ds.attrs['history'] = new_history
+        return ds
 
 
-def compute_ann_mean(dset, weights=None):
-    """Calculates annual means
+def resample(dset, freq, weights=None):
+    """ Resamples given dataset and computes the mean for specified sampling time frequecy
 
     Parameters
     ----------
     dset : xarray.Dataset
-           The data on which to operate
+        The data on which to operate
+
+    freq : str
+        Time frequency alias. Accepted aliases:
+
+        - ``mon``: for monthly mean
+        - ``ann``: for annual mean
 
     weights : array_like, optional
-              weights to use for each time period.
-              If None and dataset doesn't have `time_bound` variable,
-              every time period has equal weight of 1.
+            weights to use for each time period. This argument is supported for annual mean only!
+            If None and dataset doesn't have `time_bound` variable,
+            every time period has equal weight of 1.
 
     Returns
     -------
     computed_dset : xarray.Dataset
-                    The computed annual mean data
+                    The resampled data with computed mean
 
     """
-    return dset.esmlab.compute_ann_mean(weights=weights)
+    accepted_freq = {'mon', 'ann'}
+    if freq not in accepted_freq:
+        raise ValueError(f'{freq} is not among supported frequency aliases={accepted_freq}')
 
+    if freq == 'mon':
+        ds = dset.esmlab.compute_mon_mean()
 
-def compute_mon_mean(dset):
-    """ Calculates monthly averages of a dataset
+    else:
+        ds = dset.esmlab.compute_ann_mean(weights=weights)
 
-    Parameters
-    ----------
+    new_history = f'\n{datetime.now()} esmlab.resample(<DATASET>, freq="{freq}")'
+    if 'history' in ds.attrs:
+        ds.attrs['history'] += new_history
+    else:
+        ds.attrs['history'] = new_history
 
-    dset : xarray.Dataset
-           The data on which to operate
-
-
-    Returns
-    -------
-    computed_dset : xarray.Dataset
-                    The computed monthly averages
-
-    """
-
-    return dset.esmlab.compute_mon_mean()
+    return ds
