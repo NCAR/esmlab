@@ -8,11 +8,11 @@ Esmlab v2019.4. (2019-04)
 Features
 --------
 
-- Enable computing significance metrics (p-value) for ``weighted_corr`` (:pr:`90`) `Riley Brady`_
-- Drop support for Python 2 (:pr:`109`) `Anderson Banihirwe`_
-- Nomenclature change: ``compute_mon_climatology``, ``compute_mon_anomaly``, ``compute_ann_mean`` functions are now accessible under ``climatology``, ``anomaly``, and ``resample`` (:pr:`109`) `Anderson Banihirwe`_
-- Add ``.esmlab`` accessor allowing users to access functions such as climatology with ``dset.esmlab.set_time().climatology()`` syntax (:pr:`109`) `Anderson Banihirwe`_
-- Add ``compute_mon_mean`` function to compute monthly averages (:pr:`110`) `Alper Altuntas`_
+- Enable computing significance metrics (p-value) for ``weighted_corr``. (:pr:`90`) `Riley Brady`_
+- Drop support for Python 2. (:pr:`109`) `Anderson Banihirwe`_
+- Nomenclature change: ``compute_mon_climatology``, ``compute_mon_anomaly``, ``compute_ann_mean`` functions are now renamed to ``climatology``, ``anomaly``, and ``resample``. (:pr:`109`) `Anderson Banihirwe`_
+- Add ``.esmlab`` accessor allowing users to access functions such as climatology with ``dset.esmlab.set_time().climatology()`` syntax. (:pr:`109`) `Anderson Banihirwe`_
+- Add ``compute_mon_mean`` function to compute monthly averages.  (:pr:`110`) `Alper Altuntas`_
 
 
 
