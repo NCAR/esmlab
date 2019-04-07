@@ -25,10 +25,6 @@ class EsmlabAccessor(object):
         self.time_bound = None
         self.static_variables = []
         self.variables = []
-        self.set_time()
-        self.get_variables()
-        self.compute_time()
-        self.get_original_metadata()
 
     @property
     def time_attrs(self):
@@ -225,9 +221,12 @@ class EsmlabAccessor(object):
         if self.tb_name:
             self.tb_dim = self._ds[self.tb_name].dims[1]
 
-    def infer_time_coord_name(self):
+    def infer_time_coord_name(self, time_coord_name):
         """Infer name for time coordinate in a dataset
         """
+        if time_coord_name:
+            self.time_coord_name = time_coord_name
+
         if 'time' in self._ds.variables:
             self.time_coord_name = 'time'
 
@@ -299,11 +298,13 @@ class EsmlabAccessor(object):
         ds = ds.sel(**{self.time_coord_name: indexer_val})
         return ds
 
-    def set_time(self):
+    def set_time(self, time_coord_name=None, year_offset=None):
         """store the original time and time_bound data from the dataset;
            ensure that time_bound, if present, is not decoded.
         """
-        self.infer_time_coord_name()
+
+        self.infer_time_coord_name(time_coord_name)
+        self.year_offset = year_offset
         self.time = self._ds[self.time_coord_name].copy()
         self.time_orig_decoded = self.isdecoded(self.time)
 
@@ -320,6 +321,13 @@ class EsmlabAccessor(object):
                     calendar=self.time_attrs['calendar'],
                 )
                 self.time_bound.data = tb_data
+        self.setup()
+        return self
+
+    def setup(self):
+        self.get_variables()
+        self.compute_time()
+        self.get_original_metadata()
 
     def time_year_to_midyeardate(self):
         """Set the time coordinate to the mid-point of the year.
@@ -604,7 +612,7 @@ class EsmlabAccessor(object):
         return self.restore_dataset(computed_dset, attrs=attrs, encoding=encoding)
 
 
-def climatology(dset, freq):
+def climatology(dset, freq, time_coord_name=None):
     """Computes climatologies for a specified time frequency
 
     Parameters
@@ -616,6 +624,9 @@ def climatology(dset, freq):
         Frequency alias. Accepted alias:
 
         - ``mon``: for monthly climatologies
+
+    time_coord_name : str
+            Name for time coordinate to use
 
 
     Returns
@@ -630,16 +641,13 @@ def climatology(dset, freq):
         raise ValueError(f'{freq} is not among supported frequency aliases={accepted_freq}')
 
     else:
-        ds = dset.esmlab.compute_mon_climatology()
+        ds = dset.esmlab.set_time(time_coord_name=time_coord_name).compute_mon_climatology()
         new_history = f'\n{datetime.now()} esmlab.climatology(<DATASET>, freq="{freq}")'
-        if 'history' in ds.attrs:
-            ds.attrs['history'] += new_history
-        else:
-            ds.attrs['history'] = new_history
+        ds.attrs['history'] = new_history
         return ds
 
 
-def anomaly(dset, freq, slice_mon_clim_time=None):
+def anomaly(dset, freq, slice_mon_clim_time=None, time_coord_name=None):
     """Computes anomalies for a specified time frequency
 
     Parameters
@@ -656,6 +664,9 @@ def anomaly(dset, freq, slice_mon_clim_time=None):
                           a slice object passed to
                           `dset.isel(time=slice_mon_clim_time)` for subseting
                           the time-period overwhich the climatology is computed
+    time_coord_name : str
+            Name for time coordinate to use
+
 
     Returns
     -------
@@ -668,16 +679,15 @@ def anomaly(dset, freq, slice_mon_clim_time=None):
     if freq not in accepted_freq:
         raise ValueError(f'{freq} is not among supported frequency aliases={accepted_freq}')
     else:
-        ds = dset.esmlab.compute_mon_anomaly(slice_mon_clim_time=slice_mon_clim_time)
+        ds = dset.esmlab.set_time(time_coord_name=time_coord_name).compute_mon_anomaly(
+            slice_mon_clim_time=slice_mon_clim_time
+        )
         new_history = f'\n{datetime.now()} esmlab.anomaly(<DATASET>, freq="{freq}", slice_mon_clim_time="{slice_mon_clim_time}")'
-        if 'history' in ds.attrs:
-            ds.attrs['history'] += new_history
-        else:
-            ds.attrs['history'] = new_history
+        ds.attrs['history'] = new_history
         return ds
 
 
-def resample(dset, freq, weights=None):
+def resample(dset, freq, weights=None, time_coord_name=None):
     """ Resamples given dataset and computes the mean for specified sampling time frequecy
 
     Parameters
@@ -695,6 +705,8 @@ def resample(dset, freq, weights=None):
             weights to use for each time period. This argument is supported for annual mean only!
             If None and dataset doesn't have `time_bound` variable,
             every time period has equal weight of 1.
+    time_coord_name : str
+            Name for time coordinate to use
 
     Returns
     -------
@@ -707,15 +719,12 @@ def resample(dset, freq, weights=None):
         raise ValueError(f'{freq} is not among supported frequency aliases={accepted_freq}')
 
     if freq == 'mon':
-        ds = dset.esmlab.compute_mon_mean()
+        ds = dset.esmlab.set_time(time_coord_name=time_coord_name).compute_mon_mean()
 
     else:
-        ds = dset.esmlab.compute_ann_mean(weights=weights)
+        ds = dset.esmlab.set_time(time_coord_name=time_coord_name).compute_ann_mean(weights=weights)
 
     new_history = f'\n{datetime.now()} esmlab.resample(<DATASET>, freq="{freq}")'
-    if 'history' in ds.attrs:
-        ds.attrs['history'] += new_history
-    else:
-        ds.attrs['history'] = new_history
+    ds.attrs['history'] = new_history
 
     return ds
