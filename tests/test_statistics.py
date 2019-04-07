@@ -1,128 +1,201 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 
+import datetime
+
 import numpy as np
+import pandas as pd
 import pytest
 import xarray as xr
+from pandas.testing import assert_frame_equal
 
-from esmlab import statistics
+import esmlab
 
-data1 = np.arange(27, dtype='float32').reshape(3, 3, 3)
-data2 = np.arange(9, dtype='float32').reshape(3, 3)
-data2[1, 2:3] = np.nan
-data1[0, 2] = np.nan
-data1[2, 1:3] = np.nan
-da1 = xr.DataArray(data1, dims=['x', 'y', 'z'])
-da2 = xr.DataArray(data2, dims=['x', 'y'])
-da3 = xr.DataArray(np.random.rand(3, 3, 3, 3).astype('float32'), dims=['time', 'x', 'y', 'z'])
-ds = xr.Dataset({'variable_x': (['x', 'y', 'z'], da1), 'variable_y': (['x', 'y'], da2)})
-weights1 = xr.DataArray(
-    np.arange(27, 0, -1, dtype='float32').reshape(3, 3, 3), dims=['x', 'y', 'z']
+data1 = np.arange(30, dtype='float32').reshape(6, 5)
+data1 = np.where(data1 < 4, np.nan, data1)
+data2 = np.linspace(start=0, stop=100, num=30, dtype='float32').reshape(6, 5)
+wgts1 = np.arange(30, 0, -1).reshape(6, 5)
+wgts2 = np.arange(6, 0, -1)
+wgts3 = np.linspace(start=12, stop=14, num=5, dtype='int32')
+time = pd.date_range(start='2000', freq='1D', periods=6)
+state = ['CO', 'CA', 'NH', 'MA', 'WA']
+
+da1 = xr.DataArray(
+    data1,
+    dims=['time', 'state'],
+    coords={'time': time, 'state': state},
+    name='da1',
+    attrs={'units': 'ampere'},
 )
-weights2 = xr.DataArray(
-    np.arange(81, 0, -1, dtype='float32').reshape(3, 3, 3, 3), dims=['time', 'x', 'y', 'z']
+da2 = xr.DataArray(data2, dims=['time', 'state'], coords={'time': time, 'state': state}, name='da2')
+dset = xr.Dataset(
+    data_vars={'da1': da1, 'da2': da2},
+    attrs={'year_recorded': datetime.datetime.now().year, 'creator': 'foo', 'reviewer': 'bar'},
 )
-test_data_da = [
-    (da1, ['x', 'y', 'z'], weights1, (0, 1, 2)),
-    (da1, None, None, None),
-    (da2, ['x', 'y'], None, (0, 1)),
-    (da3, ['time', 'z'], weights2, (0, 3)),
-]
-
-test_data_ds = [(ds, ['x', 'y']), (ds, None)]
 
 
-@pytest.mark.parametrize('data,dim,weights,axis', test_data_da)
-def test_weighted_sum_da(data, dim, weights, axis):
-    w_sum = statistics.weighted_sum(data, dim)
-    np.testing.assert_allclose(w_sum, data.sum(dim))
-    assert data.attrs == w_sum.attrs
-    assert data.encoding == w_sum.encoding
+wgts = xr.Dataset(
+    data_vars={
+        't_s_wgts': xr.DataArray(wgts1, dims=['time', 'state']),
+        't_wgts': xr.DataArray(wgts2, dims=['time']),
+        's_wgts': xr.DataArray(wgts3, dims=['state']),
+    },
+    coords={'time': time, 'state': state},
+)
 
 
-@pytest.mark.parametrize('data,dim', test_data_ds)
-def test_weighted_sum_ds(data, dim):
-    w_sum = statistics.weighted_sum(ds, dim)
-    np.testing.assert_allclose(w_sum['variable_x'], ds['variable_x'].sum(dim))
+def wavg(x, weights, col_names):
+    def _np_ma_avg(data, weights):
+        ma = np.ma.MaskedArray(data, mask=np.isnan(data))
+        np_w_mean = np.ma.average(ma, axis=0, weights=weights)
+        return np_w_mean
+
+    ds = []
+    for col in col_names:
+        ds.append(_np_ma_avg(x[col], weights))
+
+    return pd.Series(ds, index=x.columns)
 
 
-@pytest.mark.parametrize('data,dim,weights,axis', test_data_da)
-def test_weighted_mean_da(data, dim, weights, axis):
-    ma = np.ma.MaskedArray(data, mask=np.isnan(data))
-    np_w_mean = np.ma.average(ma, axis=axis, weights=weights)
-
-    w_mean = statistics.weighted_mean(data, dim, weights)
-
-    np.testing.assert_allclose(w_mean, np_w_mean)
-    assert data.attrs == w_mean.attrs
-    assert data.encoding == w_mean.encoding
+def test_weights_raise_error():
+    w = [1, 2, 3, 4, 5]
+    arr = xr.DataArray(range(5))
+    with pytest.raises(ValueError):
+        esmlab.statistics.validate_weights(da=arr, dim=None, weights=w)
 
 
-@pytest.mark.parametrize('data,dim', test_data_ds)
-def test_weighted_mean_ds(data, dim):
-
-    w_mean = statistics.weighted_mean(data, dim)
-    np.testing.assert_allclose(w_mean['variable_x'], ds['variable_x'].mean(dim))
-
-
-@pytest.mark.parametrize('data,dim,weights,axis', test_data_da)
-def test_weighted_std_da(data, dim, weights, axis):
-    w_std = statistics.weighted_std(data, dim)
-    np.testing.assert_allclose(w_std, data.std(dim))
-    assert data.attrs == w_std.attrs
-    assert data.encoding == w_std.encoding
+@pytest.mark.parametrize(
+    'dim, level, wgts_name', [(['time'], ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
+)
+def test_weighted_sum(dim, level, wgts_name):
+    df = dset.to_dataframe()
+    df_w = wgts.to_dataframe()
+    w = wgts[wgts_name]
+    res = esmlab.weighted_sum(dset, dim=dim, weights=w).to_dataframe()
+    expected = df.multiply(df_w[wgts_name], axis='index').sum(level=level)
+    assert_frame_equal(res.sort_index(), expected.sort_index())
 
 
-@pytest.mark.parametrize('data,dim', test_data_ds)
-def test_weighted_std_ds(data, dim):
-    w_std = statistics.weighted_std(data, dim)
-    np.testing.assert_allclose(w_std['variable_x'], ds['variable_x'].std(dim))
+@pytest.mark.parametrize(
+    'dim, level, wgts_name', [(['time'], ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
+)
+def test_weighted_mean(dim, level, wgts_name):
+    res = esmlab.weighted_mean(dset, dim=dim, weights=wgts[wgts_name]).to_dataframe()
+    df = dset.to_dataframe()
+    expected = df.groupby(level=level).apply(
+        wavg, weights=wgts[wgts_name].data, col_names=['da1', 'da2']
+    )
+    assert_frame_equal(res.sort_index(), expected.sort_index())
 
 
-def test_weighted_rmsd_da():
-    dim = ['x', 'y']
-    valid = da1.notnull() & da2.notnull()
-    N = valid.sum(dim)
-    rmsd = np.sqrt(((da1 - da2) ** 2).sum(dim) / N)
-    w_rmsd = statistics.weighted_rmsd(da1, da2, dim)
-    np.testing.assert_allclose(rmsd, w_rmsd)
+@pytest.mark.parametrize(
+    'dim, level, wgts_name', [(['time'], ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
+)
+def test_weighted_std(dim, level, wgts_name):
+    res = esmlab.weighted_std(dset, dim=dim, weights=wgts[wgts_name]).to_dataframe()
+    df = dset.to_dataframe()
+    df_w = wgts.to_dataframe()
+    df_w_mean = df.groupby(level=level).apply(
+        wavg, weights=wgts[wgts_name].data, col_names=['da1', 'da2']
+    )
+    temp_df = (df - df_w_mean) ** 2
+    temp_df = temp_df.multiply(df_w[wgts_name], axis='index').sum(level=level)
+    total_weights_da1 = df_w[df['da1'].notnull()][wgts_name].sum(level=level)
+    total_weights_da2 = df_w[df['da2'].notnull()][wgts_name].sum(level=level)
+    expected = pd.DataFrame(columns=res.columns)
+    expected['da1'] = np.sqrt(temp_df['da1'] / total_weights_da1)
+    expected['da2'] = np.sqrt(temp_df['da2'] / total_weights_da2)
+    assert_frame_equal(res.sort_index(), expected.sort_index())
 
 
-def test_weighted_rmsd_ds():
-    rmsd = statistics.weighted_rmsd(ds, ds).to_array().values
-    np.testing.assert_allclose(rmsd, np.array([0.0, 0.0]))
+@pytest.mark.parametrize(
+    'dim, level, wgts_name', [(['time'], ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
+)
+def test_weighted_rmsd(dim, level, wgts_name):
+    res = esmlab.weighted_rmsd(
+        x=dset['da1'], y=dset['da2'], dim=dim, weights=wgts[wgts_name]
+    ).to_dataframe('rmsd')
+    df = dset.to_dataframe()
+    dev = (df['da1'] - df['da2']) ** 2
+    dev = dev.to_frame(name='rmsd')
+    dev_mean = dev.groupby(level=level).apply(
+        wavg, weights=wgts[wgts_name].data, col_names=['rmsd']
+    )
+    expected = np.sqrt(dev_mean)
+    assert_frame_equal(res.sort_index(), expected.sort_index())
 
 
-def test_weighted_cov():
-    dim = ['x', 'y']
-    valid = da1.notnull() & da2.notnull()
-    N = valid.sum(dim)
-    da1_dev = da1 - da1.mean(dim)
-    da2_dev = da2 - da2.mean(dim)
-    cov = (da1_dev * da2_dev).sum(dim) / N
+@pytest.mark.parametrize(
+    'dim, level, wgts_name', [(['time'], ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
+)
+def test_weighted_cov(dim, level, wgts_name):
+    res = esmlab.weighted_cov(
+        x=dset['da1'], y=dset['da2'], dim=dim, weights=wgts[wgts_name]
+    ).to_dataframe('cov')
+    df = dset.to_dataframe()
+    means = df.groupby(level=level).apply(
+        wavg, weights=wgts[wgts_name].data, col_names=['da1', 'da2']
+    )
+    dev_da1 = df['da1'] - means['da1']
+    dev_da2 = df['da2'] - means['da2']
+    dev_da1_da2 = (dev_da1 * dev_da2).to_frame('cov')
+    expected = dev_da1_da2.groupby(level=level).apply(
+        wavg, weights=wgts[wgts_name].data, col_names=['cov']
+    )
+    assert_frame_equal(res.sort_index(), expected.sort_index())
 
-    w_cov = statistics.weighted_cov(da1, da2, dim)
-    np.testing.assert_allclose(cov, w_cov)
 
+@pytest.mark.parametrize(
+    'dim, level, wgts_name', [(['time'], ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
+)
+def test_weighted_corr(dim, level, wgts_name):
+    res = esmlab.weighted_corr(
+        x=dset['da1'], y=dset['da2'], dim=dim, weights=wgts[wgts_name]
+    ).to_dataframe()
+    df = dset.to_dataframe()
+    valid = df['da1'].notnull() & df['da2'].notnull()
 
-def test_weighted_corr():
-    dim = ['x', 'y']
-    valid = da1.notnull() & da2.notnull()
-    da1_ = da1.where(valid)
-    da2_ = da2.where(valid)
-    N = valid.sum(dim)
-    da1_dev = da1_ - da1_.mean(dim)
-    da2_dev = da2_ - da2_.mean(dim)
-    cov = (da1_dev * da2_dev).sum(dim) / N
-    covx = (da1_dev ** 2).sum(dim) / N
-    covy = (da2_dev ** 2).sum(dim) / N
-    corr = cov / np.sqrt(covx * covy)
+    means = (
+        df.where(valid)
+        .groupby(level=level)
+        .apply(wavg, weights=wgts[wgts_name].data, col_names=['da1', 'da2'])
+    )
+    dev_da1 = df.where(valid)['da1'] - means['da1']
+    dev_da2 = df.where(valid)['da2'] - means['da2']
+    dev_da1_da2 = (dev_da1 * dev_da2).to_frame('cov')
+    cov_da1_da2 = dev_da1_da2.groupby(level=level).apply(
+        wavg, weights=wgts[wgts_name].data, col_names=['cov']
+    )
 
-    w_corr = statistics.weighted_corr(da1, da2, dim, weights=None, return_p=False)
-    np.testing.assert_allclose(corr, w_corr)
+    cov_da1 = (
+        (dev_da1 ** 2)
+        .to_frame('cov')
+        .groupby(level=level)
+        .apply(wavg, weights=wgts[wgts_name].data, col_names=['cov'])
+    )
+    cov_da2 = (
+        (dev_da2 ** 2)
+        .to_frame('cov')
+        .groupby(level=level)
+        .apply(wavg, weights=wgts[wgts_name].data, col_names=['cov'])
+    )
+    expected = cov_da1_da2 / np.sqrt(cov_da1 * cov_da2)
+    expected.columns = ['r']
 
-    w_corr_with_p = statistics.weighted_corr(da1, da2, dim, weights=None, return_p=True)
-    assert isinstance(w_corr_with_p['p'], xr.DataArray)
+    from scipy import special
+
+    diff = len(expected) - 2
+    t_squared = expected ** 2 * (diff / ((1.0 - expected) * (1.0 + expected)))
+    pval = special.betainc(0.5 * diff, 0.5, np.fmin(diff / (diff + t_squared), 1.0))
+    expected['p'] = pval
+    assert_frame_equal(res.sort_index(), expected.sort_index())
+
+    # Return p = False
+    res = esmlab.weighted_corr(
+        x=dset['da1'], y=dset['da2'], dim=dim, weights=wgts[wgts_name], return_p=False
+    ).to_dataframe('r')
+
+    assert_frame_equal(res.sort_index(), expected[['r']].sort_index())
 
 
 def test_weighted_sum_float32():
@@ -133,6 +206,42 @@ def test_weighted_sum_float32():
         tmp_data = ds['TLAT']
         tmp_data.values = np.where(np.greater_equal(ds['KMT'].values, 1), ds['TLAT'], np.nan)
         tmp_data = tmp_data.astype(np.float32)
-    w_sum = statistics.weighted_sum(tmp_data, dim=None, weights=weights)
+    w_sum = esmlab.weighted_sum(tmp_data, dim=None, weights=weights)
     assert tmp_data.attrs == w_sum.attrs
     assert tmp_data.encoding == w_sum.encoding
+
+
+@pytest.mark.parametrize(
+    'function',
+    [
+        esmlab.weighted_mean,
+        esmlab.weighted_sum,
+        esmlab.weighted_std,
+        esmlab.weighted_corr,
+        esmlab.weighted_cov,
+        esmlab.weighted_rmsd,
+    ],
+)
+def test_function_bad_input(function):
+    with pytest.raises(ValueError):
+        if function in {esmlab.weighted_corr, esmlab.weighted_cov, esmlab.weighted_rmsd}:
+            function(x=[1, 2], y=[2, 3])
+
+        else:
+            function([1, 2, 2])
+
+
+@pytest.mark.parametrize(
+    'function', [esmlab.weighted_sum, esmlab.weighted_mean, esmlab.weighted_std]
+)
+def test_function_with_datarray_input(function):
+    res = function(dset['da1'])
+    assert isinstance(res, xr.DataArray)
+
+
+@pytest.mark.parametrize('function', [esmlab.weighted_mean, esmlab.weighted_std])
+def test_dimension_mismatch(function):
+    darr = xr.DataArray([[1, 2], [3, 4]], dims=['x', 'y'])
+    w = xr.zeros_like(darr)
+    res = function(darr, dim=['x', 'z'], weights=w)
+    xr.testing.assert_equal(res, darr)

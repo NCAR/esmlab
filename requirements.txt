@@ -1,6 +1,10 @@
-xarray>=0.11.2
-netcdf4
+bottleneck
 cftime
+dask
+esmlab-regrid
 esmpy
-xesmf
+netcdf4
+pyyaml
 scipy
+xarray>=0.11.2
+xesmf

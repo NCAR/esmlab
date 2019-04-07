@@ -4,7 +4,6 @@ workflows:
   version: 2
   default:
     jobs:
-      - "python-2.7"
       - "python-3.6"
       - "python-3.7"
       - "docs-build"
@@ -31,13 +30,6 @@ default-job: &default-job
 
 
 jobs:
-  "python-2.7":
-    <<: *default-job
-    environment:
-      PYTHON: "2.7"
-      ENV_NAME: "esmlab-dev"
-      TEST_SCRIPT: "run-checks.sh"
-
   "python-3.6":
     <<: *default-job
     environment:
