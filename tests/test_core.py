@@ -3,190 +3,88 @@ from __future__ import absolute_import, division, print_function
 
 import itertools
 import os
+from collections import OrderedDict
 
 import cftime
 import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
+from pandas.testing import assert_frame_equal
 
 import esmlab
-from esmlab import compute_ann_mean, compute_mon_anomaly, compute_mon_climatology, compute_mon_mean
 from esmlab.datasets import open_dataset
 
-functions = [compute_mon_climatology, compute_mon_anomaly, compute_ann_mean]
-decoded = [True, False]
-dsets = ['tiny', 'cesm_pop_daily', 'cesm_cice_daily']
-params = list(itertools.product(dsets, decoded, functions))
-rasm = xr.tutorial.open_dataset('rasm', decode_times=True)
+
+def assert_both_frames_equal(x, y):
+    np.testing.assert_allclose(x, y, rtol=1e-07, atol=1e-1)
 
 
-@pytest.mark.parametrize('ds, decoded, function', params)
-def test_compute_climatology(ds, decoded, function):
-    dset = open_dataset(ds, decode_times=decoded)
-    computed_dset = function(dset)
-    assert isinstance(computed_dset, xr.Dataset)
-    assert computed_dset.time.dtype == dset.time.dtype
-    for key, value in dset.time.attrs.items():
-        assert key in computed_dset.time.attrs
-        assert value == computed_dset.time.attrs[key]
-
-
-@pytest.mark.parametrize('ds, decoded, function', params)
-def test_compute_climatology_drop_time_bound(ds, decoded, function):
-    dset = open_dataset(ds, decode_times=decoded)
-    dset_time_bound = dset.time.attrs['bounds']
-    dset = dset.drop(dset_time_bound)
-    del dset.time.attrs['bounds']
-
-    computed_dset = function(dset)
-    assert isinstance(computed_dset, xr.Dataset)
-    assert computed_dset.time.dtype == dset.time.dtype
-    if function == compute_mon_anomaly:
-        assert (dset.time.values == computed_dset.time.values).all()
-    for key, value in dset.time.attrs.items():
-        assert key in computed_dset.time.attrs
-        assert value == computed_dset.time.attrs[key]
-
-
-@pytest.mark.parametrize('ds', ['tiny', 'cesm_cice_daily'])
-def test_compute_climatology_daisy_chain(ds):
-    dset = open_dataset(ds, decode_times=False)
-
-    computed_dset = compute_mon_climatology(dset)
-    assert isinstance(computed_dset, xr.Dataset)
-
-    computed_dset2 = compute_mon_anomaly(computed_dset)
-    assert isinstance(computed_dset2, xr.Dataset)
-
-    computed_dset3 = compute_ann_mean(computed_dset)
-    assert isinstance(computed_dset3, xr.Dataset)
-
-    computed_dset3 = compute_ann_mean(computed_dset2)
-    assert isinstance(computed_dset3, xr.Dataset)
-
-
-def test_mon_climatology_values(dset):
-    computed_dset = compute_mon_climatology(dset)
-    np.testing.assert_allclose(computed_dset.variable_1.values, 0.5)
-    assert computed_dset.time.dtype == dset.time.dtype
-
-
-def test_mon_anomaly_values(dset):
-    computed_dset = compute_mon_anomaly(dset)
-    assert isinstance(computed_dset, xr.Dataset)
-    a = [-0.5] * 48
-    b = [0.5] * 48
-    a.extend(b)
-    expected = np.array(a)
-    np.testing.assert_equal(computed_dset.variable_1.values.ravel(), expected)
-    assert computed_dset.time.dtype == dset.time.dtype
-    assert (dset.time.values == computed_dset.time.values).all()
-    for key, value in dset.time.attrs.items():
-        assert key in computed_dset.time.attrs
-        assert value == computed_dset.time.attrs[key]
-
-
-def test_ann_mean_values(dset):
-    weights = np.ones(24)
-    computed_dset = compute_ann_mean(dset, weights=weights)
-    assert isinstance(computed_dset, xr.Dataset)
-    assert computed_dset.time.dtype == dset.time.dtype
-    expected = np.array([0.0, 0.0, 0.0, 0.0, 1 / 24, 1 / 24, 1 / 24, 1 / 24], dtype=np.float32)
-    np.testing.assert_allclose(
-        computed_dset.variable_1.values.ravel().astype(np.float32), expected, rtol=1e-6
+def test_esmlab_accessor():
+    ds = xr.Dataset(
+        {
+            'temp': xr.DataArray(
+                [1, 2],
+                dims=['time'],
+                coords={'time': pd.date_range(start='2000', periods=2, freq='1D')},
+            )
+        }
     )
+    attrs = {'calendar': 'noleap', 'units': 'days since 2000-01-01 00:00:00'}
+    ds.time.attrs = attrs
+    esm = ds.esmlab
+    # Time and Time bound Attributes
+    expected = dict(esm.time_attrs)
+    attrs['bounds'] = None
+    assert expected == attrs
+    assert esm.time_bound_attrs == {}
+
+    assert esm.variables == ['temp']
+    assert esm.static_variables == []
+
+    # Time bound diff
+    expected = xr.ones_like(ds.time, dtype='float64')
+    xr.testing.assert_equal(expected, esm.time_bound_diff)
+
+    # Compute time var
+    with pytest.raises(ValueError):
+        esm.compute_time_var(midpoint=True, year_offset=2100)
+
+    # Decode arbitrary time value
+    with pytest.raises(ValueError):
+        esm.decode_arbitrary_time(ds.time.data[0], units=attrs['units'], calendar=attrs['calendar'])
+
+    res = esm.decode_arbitrary_time(
+        np.array([30]), units=attrs['units'], calendar=attrs['calendar']
+    )
+    assert res[0] == cftime.DatetimeNoLeap(2000, 1, 31, 0, 0, 0, 0, 0, 31)
 
 
 @pytest.mark.parametrize(
-    'ds, weights',
-    [('tiny', np.ones(24)), ('tiny', xr.DataArray(np.ones(24))), ('tiny', np.ones(24).tolist())],
+    'ds_name, decoded, variables',
+    [
+        ('tiny', True, ['variable_1', 'variable_2']),
+        ('tiny', False, ['variable_1', 'variable_2']),
+        ('cmip5_pr_amon_csiro', False, ['pr']),
+        ('cmip5_pr_amon_csiro', True, ['pr']),
+        ('cesm_cice_daily', False, ['aicen_d']),
+        ('cesm_pop_daily', True, ['FG_CO2_2']),
+    ],
 )
-def test_ann_mean_values_missing(ds, weights):
-    dset = open_dataset(ds, decode_times=False, decode_coords=False)
-    dset.variable_1.values[0:3, :, :] = np.nan
-    computed_dset = compute_ann_mean(dset, weights=weights)
-    assert isinstance(computed_dset, xr.Dataset)
-    assert computed_dset.time.dtype == dset.time.dtype
-    expected = np.array([0.0, 0.0, 0.0, 0.0, 1 / 21, 1 / 21, 1 / 21, 1 / 21], dtype=np.float32)
-    np.testing.assert_allclose(
-        computed_dset.variable_1.values.ravel().astype(np.float32), expected, rtol=1e-6
+def test_mon_climatology(ds_name, decoded, variables):
+    ds = esmlab.datasets.open_dataset(ds_name, decode_times=decoded)
+    esm = ds.esmlab
+    esmlab_res = esmlab.climatology(ds, freq='mon').drop(esm.static_variables).to_dataframe()
+    esmlab_res = esmlab_res.groupby('month').mean()[variables]
+
+    df = (
+        esm._ds_time_computed.drop(esm.static_variables)
+        .to_dataframe()
+        .reset_index(level=[esm.time_coord_name])
     )
+    df[esm.time_coord_name] = df[esm.time_coord_name].values.astype('datetime64[ns]')
+    pd_res = df.groupby(df[esm.time_coord_name].dt.month).mean()
+    pd_res.index.name = 'month'
+    pd_res = pd_res[variables]
 
-
-@pytest.mark.parametrize('ds', ['cesm_cam_monthly_full', 'tiny'])
-def test_mon_mean(ds):
-    dset = open_dataset(ds, decode_times=False, decode_coords=False)
-    computed_dset = compute_mon_mean(dset)
-    assert isinstance(computed_dset, xr.Dataset)
-
-
-def test_time_bound_var(dset, time_coord_name='time'):
-    results = dset.esmlab.tb_name, dset.esmlab.tb_dim
-    expected = ('time_bound', 'd2')
-    assert results == expected
-
-
-def test_time_year_to_midyeardate(dset, time_coord_name='time'):
-    assert isinstance(dset[time_coord_name].values[0], np.number)
-    dset = dset.esmlab.time_year_to_midyeardate()
-    assert isinstance(dset[time_coord_name].values[0], cftime.datetime)
-
-
-def test_get_time_attrs(dset, time_coord_name='time'):
-    expected = {
-        'units': 'days since 0001-01-01 00:00:00',
-        'calendar': 'noleap',
-        'bounds': 'time_bound',
-    }
-    results = dset.esmlab.time_attrs
-    assert results == expected
-
-
-def test_compute_time_var(dset, time_coord_name='time'):
-    idx = dset.indexes[time_coord_name]
-    assert isinstance(idx, pd.core.indexes.numeric.Index)
-    results = dset.esmlab.get_time_decoded()
-    assert isinstance(results, xr.DataArray)
-
-
-def test_uncompute_time_var(dset, time_coord_name='time'):
-    ds = dset.esmlab.compute_time_var()
-    assert ds[time_coord_name].dtype == np.dtype('O')
-    dset_with_uncomputed_time = dset.esmlab.uncompute_time_var()
-    assert np.issubdtype(dset_with_uncomputed_time[time_coord_name].dtype, np.number)
-
-
-@pytest.mark.parametrize(
-    'x, indexer, time_len, year_offset', [(rasm, slice('1980-11', '1981-01'), 3, None)]
-)
-def test_sel_time(x, indexer, time_len, year_offset):
-    y = x.esmlab.sel_time(indexer_val=indexer, year_offset=year_offset)
-    assert len(y.time) == time_len
-
-
-# For some strange reason, this case fails when using pytest parametrization
-def test_sel_time_2(dset):
-    dset = dset.esmlab.sel_time(indexer_val=slice('1850-01-01', '1850-12-31'), year_offset=1850)
-    assert len(dset.time) == 12
-
-
-def test_accessor_failure():
-    data = xr.DataArray(
-        [1, 2],
-        dims=['time'],
-        coords={'time': pd.date_range(start='2000', freq='1D', periods=2)},
-        attrs={'calendar': 'standard', 'units': 'days since 2001-01-01 00:00:00'},
-        name='rand',
-    ).to_dataset()
-
-    with pytest.raises(RuntimeError):
-        data.esmlab.time_attrs
-
-    data['time'] = xr.cftime_range(start='2000', freq='1D', periods=2)
-
-    with pytest.raises(ValueError):
-        data.esmlab.get_time_decoded()
-
-    with pytest.raises(ValueError):
-        data.esmlab.get_time_undecoded()
+    assert_both_frames_equal(esmlab_res, pd_res)
