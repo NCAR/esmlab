@@ -1,0 +1,3 @@
+,chunk_size,chunks,dataset_shape,dataset_size,duration,n,name,rate,unit
+0,176.95 MB,"(12, 30, 384, 320)","(3012, 60, 384, 320)",88.85 GB,23.648909091949463,180,Reading data,3756.9689285264167,MB/s
+1,176.95 MB,"(12, 30, 384, 320)","(3012, 60, 384, 320)",88.85 GB,48.80046629905701,180,Weighted Global mean,1820.6427804915638,MB/s

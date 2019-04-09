@@ -8,6 +8,7 @@ repos:
     -   id: check-docstring-first
     -   id: check-json
     -   id: check-added-large-files
+        args: ['--maxkb=5000']
     -   id: check-yaml
     -   id: double-quote-string-fixer
 

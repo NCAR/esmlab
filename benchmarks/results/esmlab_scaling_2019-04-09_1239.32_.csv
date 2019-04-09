@@ -1,0 +1,3 @@
+,chunk_size,chunks,cores,dataset_shape,dataset_size,duration,machine,memory,name,rate,unit,workers
+0,176.9472,"(1, 12, 30, 384, 320)",72,"(2, 3012, 60, 384, 320)",177675.711068,98.63639736175537,dav,699960.0,Reading data,1801.3199571387713,MB,12
+1,176.9472,"(1, 12, 30, 384, 320)",72,"(2, 3012, 60, 384, 320)",177675.711068,95.5417001247406,dav,699960.0,Weighted Global mean,1859.6666255260695,MB,12
