@@ -272,8 +272,25 @@ class EsmlabAccessor(object):
         ds[self.time_coord_name].attrs = self.time_attrs
         ds[self.time_coord_name].data = time_data.astype(self.time.dtype)
         if self.time_bound is not None:
+            time_bound_data = ds[self.tb_name].data
+            if not self.time_orig_decoded and self.isdecoded(time_bound_data):
+                time_bound_data = cftime.date2num(
+                    time_bound_data,
+                    units=self.time_attrs['units'],
+                    calendar=self.time_attrs['calendar'],
+                )
+
+            elif self.time_orig_decoded and not self.isdecoded(time_bound_data):
+                time_bound_data = cftime.num2date(
+                    time_bound_data,
+                    units=self.time_attrs['units'],
+                    calendar=self.time_attrs['calendar'],
+                )
+
+            ds[self.tb_name].data = time_bound_data
 
             ds[self.tb_name].attrs = self.time_bound_attrs
+
         return self.update_metadata(ds, new_attrs=attrs, new_encoding=encoding)
 
     def sel_time(self, indexer_val, year_offset=None):
