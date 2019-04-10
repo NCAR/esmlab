@@ -231,13 +231,16 @@ def test_resample_ann_mean(dset):
     computed_dset = esmlab.resample(dset, freq='ann', weights=weights)
     assert isinstance(computed_dset, xr.Dataset)
     assert computed_dset.time.dtype == dset.time.dtype
-    expected = np.array([0.0, 0.0, 0.0, 0.0, 1 / 24, 1 / 24, 1 / 24, 1 / 24], dtype=np.float32)
+    expected = np.array([0.0, 0.0, 0.0, 0.0, 1, 1, 1, 1], dtype=np.float32)
     np.testing.assert_allclose(
         computed_dset.variable_1.values.ravel().astype(np.float32), expected, rtol=1e-6
     )
 
     computed_dset = esmlab.resample(dset, freq='ann', weights=None)
     assert isinstance(computed_dset, xr.Dataset)
+
+    with pytest.raises(ValueError):
+        esmlab.resample(dset, freq='ann', weights=[1, 2])
 
 
 @pytest.mark.parametrize(
@@ -246,13 +249,13 @@ def test_resample_ann_mean(dset):
 )
 def test_resample_ann_mean_values_missing(ds, weights):
     dset = open_dataset(ds, decode_times=False, decode_coords=False)
-    dset.variable_1.values[0:3, :, :] = np.nan
+    dset.variable_2.data[0:3, :, :] = np.nan
     computed_dset = esmlab.resample(dset, freq='ann', weights=weights)
     assert isinstance(computed_dset, xr.Dataset)
     assert computed_dset.time.dtype == dset.time.dtype
-    expected = np.array([0.0, 0.0, 0.0, 0.0, 1 / 21, 1 / 21, 1 / 21, 1 / 21], dtype=np.float32)
+    expected = np.array([1.0, 1.0, 1.0, 1.0, 0, 0, 0, 0], dtype=np.float32)
     np.testing.assert_allclose(
-        computed_dset.variable_1.values.ravel().astype(np.float32), expected, rtol=1e-6
+        computed_dset.variable_2.data.ravel().astype(np.float32), expected, rtol=1e-6
     )
 
 
