@@ -441,34 +441,42 @@ class EsmlabAccessor(object):
         """ Calculates annual mean """
         time_dot_year = '.'.join([self.time_coord_name, 'year'])
 
-        if isinstance(weights, xr.DataArray):
-            data = weights.data
-
-        elif isinstance(weights, (list, np.ndarray, da.Array)):
-            data = weights
+        if isinstance(weights, (xr.DataArray, np.ndarray, da.Array, list)):
+            if len(weights) != len(self._ds_time_computed[self.time_coord_name]):
+                raise ValueError(
+                    'weights and dataset time coordinate values must be of the same length'
+                )
+            else:
+                dt = xr.ones_like(self._ds_time_computed[self.time_coord_name])
+                dt.data = weights
+                wgts = dt / dt.sum(xr.ALL_DIMS)
+                np.testing.assert_allclose(wgts.sum(xr.ALL_DIMS), 1.0)
 
         else:
-            data = self.time_bound_diff
+            dt = self.time_bound_diff
+            wgts = dt.groupby(time_dot_year) / dt.groupby(time_dot_year).sum(xr.ALL_DIMS)
+            np.testing.assert_allclose(wgts.groupby(time_dot_year).sum(xr.ALL_DIMS), 1.0)
 
-        wgts = xr.ones_like(self.time_bound_diff)
-        wgts.data = data
-        wgts = wgts.groupby(time_dot_year) / wgts.groupby(time_dot_year).sum(xr.ALL_DIMS)
         wgts = wgts.rename('weights')
-        groups = len(wgts.groupby(time_dot_year).groups)
-        rtol = 1e-6 if wgts.dtype == np.float32 else 1e-7
-        np.testing.assert_allclose(
-            wgts.groupby(time_dot_year).sum(xr.ALL_DIMS), np.ones(groups), rtol=rtol
-        )
 
-        dset = self._ds_time_computed.drop(self.static_variables) * wgts
+        dset = self._ds_time_computed.drop(self.static_variables)
 
         def weighted_mean_arr(darr, wgts=None):
             # if NaN are present, we need to use individual weights
-            total_weights = wgts.where(darr.notnull()).sum(dim=self.time_coord_name)
-            return (
-                darr.resample({self.time_coord_name: 'A'}).mean(dim=self.time_coord_name)
-                / total_weights
+            cond = darr.isnull()
+            ones = xr.where(cond, 0.0, 1.0)
+            mask = (
+                darr.resample({self.time_coord_name: 'A'}).mean(dim=self.time_coord_name).notnull()
             )
+            da_sum = (
+                (darr * wgts).resample({self.time_coord_name: 'A'}).sum(dim=self.time_coord_name)
+            )
+            ones_out = (
+                (ones * wgts).resample({self.time_coord_name: 'A'}).sum(dim=self.time_coord_name)
+            )
+            ones_out = ones_out.where(ones_out > 0.0)
+            da_weighted_mean = da_sum / ones_out
+            return da_weighted_mean.where(mask)
 
         ds_resample_mean = dset.apply(weighted_mean_arr, wgts=wgts)
 
@@ -613,7 +621,7 @@ class EsmlabAccessor(object):
 
 
 def climatology(dset, freq, time_coord_name=None):
-    """Computes climatologies for a specified time frequency
+    """Compute climatologies for a specified time frequency
 
     Parameters
     ----------
@@ -648,7 +656,7 @@ def climatology(dset, freq, time_coord_name=None):
 
 
 def anomaly(dset, clim_freq, slice_mon_clim_time=None, time_coord_name=None):
-    """Computes anomalies for a specified time frequency
+    """Compute anomalies for a specified time frequency
 
     Parameters
     ----------
@@ -688,7 +696,7 @@ def anomaly(dset, clim_freq, slice_mon_clim_time=None, time_coord_name=None):
 
 
 def resample(dset, freq, weights=None, time_coord_name=None):
-    """ Resamples given dataset and computes the mean for specified sampling time frequecy
+    """ Resample given dataset and computes the mean for specified sampling time frequecy
 
     Parameters
     ----------
@@ -698,11 +706,11 @@ def resample(dset, freq, weights=None, time_coord_name=None):
     freq : str
         Time frequency alias. Accepted aliases:
 
-        - ``mon``: for monthly mean
-        - ``ann``: for annual mean
+        - ``mon``: for monthly means
+        - ``ann``: for annual means
 
     weights : array_like, optional
-            weights to use for each time period. This argument is supported for annual mean only!
+            weights to use for each time period. This argument is supported for annual means only!
             If None and dataset doesn't have `time_bound` variable,
             every time period has equal weight of 1.
     time_coord_name : str
