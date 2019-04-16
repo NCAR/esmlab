@@ -4,8 +4,9 @@
 
 import sys
 
+from pkg_resources import DistributionNotFound, get_distribution
+
 from . import config, datasets
-from ._version import get_versions
 from .common_utils import esmlab_xr_set_options
 from .core import EsmlabAccessor, anomaly, climatology, resample
 from .statistics import (
@@ -17,5 +18,8 @@ from .statistics import (
     weighted_sum,
 )
 
-__version__ = get_versions()['version']
-del get_versions
+try:
+    __version__ = get_distribution(__name__).version
+except DistributionNotFound:
+    # package is not installed
+    pass

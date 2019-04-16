@@ -11,5 +11,3 @@ recursive-include tests/data/*.nc
 recursive-include tests/utils/*.py
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
-include versioneer.py
-include esmlab/_version.py
