@@ -1,7 +1,6 @@
 bottleneck
 cftime
 dask
-esmlab-regrid
 esmpy
 netcdf4
 pyyaml
