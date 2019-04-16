@@ -17,19 +17,19 @@ Configuration
 ~~~~~~~~~~~~~~~
 
 .. autosummary::
-   esmlab.config.get
-   esmlab.config.set
+   config.get
+   config.set
 
 Statistics functions
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autosummary::
-   weighted_sum
-   weighted_mean
-   weighted_std
-   weighted_rmsd
-   weighted_cov
-   weighted_corr
+   statistics.weighted_sum
+   statistics.weighted_mean
+   statistics.weighted_std
+   statistics.weighted_rmsd
+   statistics.weighted_cov
+   statistics.weighted_corr
 
 
 
@@ -39,21 +39,21 @@ Climatologies
 
 
 .. autosummary::
-   climatology
+   core.climatology
 
 
 Anomalies
 ~~~~~~~~~
 
 .. autosummary::
-   anomaly
+   core.anomaly
 
 
 Resample
 ~~~~~~~~~
 
 .. autosummary::
-   resample
+   core.resample
 
 
 
