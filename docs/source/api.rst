@@ -62,13 +62,14 @@ Resample
 
 
 
-.. currentmodule:: esmlab
+.. currentmodule:: esmlab.config
 
-.. autofunction:: esmlab.config.get
-.. autofunction:: esmlab.config.set
-.. autofunction:: esmlab.config.collect
-.. autofunction:: esmlab.config.refresh
+.. autofunction:: get
+.. autofunction:: set
+.. autofunction:: collect
+.. autofunction:: refresh
 
+.. currentmodule:: esmlab.statistics
 
 .. autofunction:: weighted_sum
 .. autofunction:: weighted_mean
@@ -77,7 +78,7 @@ Resample
 .. autofunction:: weighted_cov
 .. autofunction:: weighted_corr
 
-.. currentmodule:: esmlab
+.. currentmodule:: esmlab.core
 
 .. autofunction:: climatology
 .. autofunction:: anomaly
