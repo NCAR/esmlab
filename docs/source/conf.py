@@ -75,7 +75,7 @@ author = u'Earth System Informatics Team'
 # the built documents.
 #
 # The short X.Y version.
-version = esmlab.__version__
+version = esmlab.__version__.split('+')[0]
 # The full version, including alpha/beta/rc tags.
 release = esmlab.__version__
 

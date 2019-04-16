@@ -15,6 +15,11 @@ Features
 - Add ``compute_mon_mean`` function to compute monthly averages.  (:pr:`110`) `Alper Altuntas`_
 
 
+Bug Fixes
+---------
+- Fix bug that made computing annual mean with ``resample(ds, freq='ann')`` yield incorrect results. (:issue:`112`) (:pr:`115`) `Anderson Banihirwe`_
+- Fix time and time_bounds decoding incosistencies in ``resample(ds, freq='ann')`` results for ``decode_time=True``. (:issue:`111`) (:pr:`115`) `Anderson Banihirwe`_
+
 
 Esmlab v2019.3.16 (2019-03-16)
 ==============================

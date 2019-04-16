@@ -7,8 +7,6 @@ from os.path import exists
 
 from setuptools import find_packages, setup
 
-import versioneer
-
 if exists('README.rst'):
     with open('README.rst') as f:
         long_description = f.read()
@@ -49,7 +47,7 @@ setup(
     include_package_data=True,
     tests_require=test_requirements,
     url='https://github.com/NCAR/esmlab',
-    version=versioneer.get_version(),
-    cmdclass=versioneer.get_cmdclass(),
+    use_scm_version=True,
+    setup_requires=['setuptools_scm', 'setuptools>=30.3.0', 'setuptools_scm_git_archive'],
     zip_safe=False,
 )
