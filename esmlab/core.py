@@ -180,7 +180,10 @@ class EsmlabAccessor(object):
         time_out = self.time.copy()
         time_out.data = xr.CFTimeIndex(
             cftime.num2date(
-                time_data, units=self.time_attrs['units'], calendar=self.time_attrs['calendar']
+                time_data,
+                units=self.time_attrs['units'],
+                calendar=self.time_attrs['calendar'],
+                only_use_cftime_datetimes=True,
             )
         )
         return time_out
@@ -554,7 +557,12 @@ class EsmlabAccessor(object):
             date = cftime.datetime((mth_index - 1) // 12, (mth_index - 1) % 12 + 1, 1)
 
             # datetime object with the calendar encoded:
-            date_with_cal = cftime.num2date(cftime.date2num(date, units, calendar), units, calendar)
+            date_with_cal = cftime.num2date(
+                cftime.date2num(date, units, calendar),
+                units,
+                calendar,
+                only_use_cftime_datetimes=True,
+            )
             return date_with_cal
 
         if self.time_bound is None:
