@@ -15,24 +15,24 @@ dependencies:
   - isort
   - make
   - matplotlib
-  - nbsphinx
   - netcdf4
   - numpy
-  - numpydoc
+  - pandoc==1.19
   - pip
   - pytest
   - pytest-cov
   - python=3.7
-  - recommonmark
   - scipy
-  - sphinx_rtd_theme
-  - sphinx>=1.6
   - tornado
   - xarray>=0.12
   - xesmf
-  - zarr
   - pip:
+    - nbsphinx
+    - numpydoc
     - pytest-lazy-fixture
-    - sphinx_copybutton
     - pytest-xdist
+    - recommonmark
+    - sphinx_copybutton
+    - sphinx_rtd_theme
+    - sphinx==1.8
     - git+https://github.com/NCAR/esmlab-regrid.git
