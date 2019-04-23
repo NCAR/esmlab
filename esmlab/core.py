@@ -335,12 +335,16 @@ class EsmlabAccessor(object):
         else:
             self.time_bound = self._ds[self.tb_name].copy()
             if self.isdecoded(self._ds[self.tb_name]):
-                tb_data = cftime.date2num(
-                    self._ds[self.tb_name],
-                    units=self.time_attrs['units'],
-                    calendar=self.time_attrs['calendar'],
-                )
-                self.time_bound.data = tb_data
+                try:
+                    tb_data = cftime.date2num(
+                        self._ds[self.tb_name],
+                        units=self.time_attrs['units'],
+                        calendar=self.time_attrs['calendar'],
+                    )
+                    self.time_bound.data = tb_data
+                except Exception as exc:
+                    print('Please open dataset with `decode_times=False`')
+                    raise exc
         self.setup()
         return self
 
