@@ -82,6 +82,13 @@ def test_esmlab_accessor():
         data.esmlab.set_time('time-bound-coord')
 
 
+@pytest.mark.parametrize('decode_times', [False, True])
+def test_datetime_cftime(decode_times):
+    ds = esmlab.datasets.open_dataset('mpi_som_ffn_gcb2018', decode_times=decode_times)
+    res = esmlab.resample(ds, freq='ann')
+    assert isinstance(res, xr.Dataset)
+
+
 def test_time_bound_var(dset, time_coord_name='time'):
     esm = dset.esmlab.set_time(time_coord_name=time_coord_name)
     results = esm.tb_name, esm.tb_dim
