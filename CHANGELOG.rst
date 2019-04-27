@@ -2,7 +2,7 @@
 Changelog history
 ==================
 
-Esmlab v2019.4. (2019-04)
+Esmlab v2019.4.27 (2019-04-27)
 ==============================
 
 Features
@@ -19,6 +19,15 @@ Bug Fixes
 ---------
 - Fix bug that made computing annual mean with ``resample(ds, freq='ann')`` yield incorrect results. (:issue:`112`) (:pr:`115`) `Anderson Banihirwe`_
 - Fix time and time_bounds decoding incosistencies in ``resample(ds, freq='ann')`` results for ``decode_time=True``. (:issue:`111`) (:pr:`115`) `Anderson Banihirwe`_
+- Fix cftime datetime decoding/encoding (:issue:`118`) (:pr:`122`) `Anderson Banihirwe`_
+
+
+
+Trivial/Internal Changes
+-------------------------
+
+- Move regridding utilities to esmlab-regrid repo (:pr:`107`) `Anderson Banihirwe`_
+- Switch from versioneer to setuptools-scm (:pr:`120`) `Anderson Banihirwe`_
 
 
 Esmlab v2019.3.16 (2019-03-16)

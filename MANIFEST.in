@@ -3,11 +3,8 @@ recursive-include esmlab *.yaml
 include LICENSE
 include README.rst
 include requirements.txt
-include CONTRIBUTING.rst
-include HOWTORELEASE.rst
 
-recursive-include tests *.py
-recursive-include tests/data/*.nc
-recursive-include tests/utils/*.py
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
+prune tests*
+prune ci*
