@@ -41,7 +41,7 @@ setup(
     long_description=long_description,
     classifiers=CLASSIFIERS,
     name='esmlab',
-    packages=find_packages(),
+    packages=find_packages(exclude=('tests',)),
     test_suite='tests',
     include_package_data=True,
     tests_require=test_requirements,
