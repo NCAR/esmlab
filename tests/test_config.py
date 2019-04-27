@@ -219,7 +219,7 @@ def test_ensure_file(tmpdir):
     ensure_file(source=source, destination=dest, comment=False)
 
     with open(destination) as f:
-        result = yaml.load(f)
+        result = yaml.safe_load(f)
     assert result == a
 
     # don't overwrite old config files
@@ -229,7 +229,7 @@ def test_ensure_file(tmpdir):
     ensure_file(source=source, destination=dest, comment=False)
 
     with open(destination) as f:
-        result = yaml.load(f)
+        result = yaml.safe_load(f)
     assert result == a
 
     os.remove(destination)
@@ -242,7 +242,7 @@ def test_ensure_file(tmpdir):
     assert '123' in text
 
     with open(destination) as f:
-        result = yaml.load(f)
+        result = yaml.safe_load(f)
     assert not result
 
 

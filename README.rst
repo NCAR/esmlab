@@ -30,3 +30,19 @@ Tools for working with earth system multi-model analyses with xarray. See
 documentation_ for more information.
 
 .. _documentation: https://esmlab.readthedocs.io/en/latest/
+
+Installation
+------------
+
+ESMLab can be installed from PyPI with pip:
+
+.. code-block:: bash
+
+    pip install esmlab
+
+
+It is also available from `conda-forge` for conda installations:
+
+.. code-block:: bash
+
+    conda install -c conda-forge esmlab

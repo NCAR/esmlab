@@ -27,7 +27,7 @@ To install esmlab from source, clone the repository from `github
 
     git clone https://github.com/NCAR/esmlab.git
     cd esmlab
-    pip install .
+    pip install -e .
 
 You can also install directly from git master branch::
 
@@ -37,7 +37,7 @@ You can also install directly from git master branch::
 Test
 ----
 
-Test esmlab with ``pytest``::
+To run esmlab's tests with ``pytest``::
 
     git clone https://github.com/NCAR/esmlab.git
     cd esmlab
