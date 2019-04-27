@@ -1,5 +1,5 @@
 ==================
-Changelog history
+Changelog History
 ==================
 
 Esmlab v2019.4.27 (2019-04-27)
