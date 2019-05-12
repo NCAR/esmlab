@@ -2,6 +2,22 @@
 Changelog History
 ==================
 
+
+Esmlab v2019.5.15 (2019-05-15)
+==============================
+
+Features
+--------
+
+- Add utility functions for printing version information (:pr:`132`) `Anderson Banihirwe`_
+
+Bug Fixes
+---------
+
+-  Add a check for the ``dim`` argument to make sure that if it's a string,
+   it's passed to respective functions as a list of strings all the time (:pr:`131`) `Anderson Banihirwe`_
+
+
 Esmlab v2019.4.27 (2019-04-27)
 ==============================
 
