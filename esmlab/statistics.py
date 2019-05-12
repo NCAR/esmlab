@@ -75,6 +75,10 @@ def weighted_sum(data, dim=None, weights=None):
         New xarray object with weighted sum applied to its data and the indicated
         dimension(s) removed.
     """
+
+    if isinstance(dim, str):
+        dim = [dim]
+
     if isinstance(data, xr.DataArray):
         return weighted_sum_da(data, dim, weights)
     elif isinstance(data, xr.Dataset):
@@ -132,6 +136,10 @@ def weighted_mean(data, dim=None, weights=None):
         New xarray object with weighted mean applied to its data and the indicated
         dimension(s) removed.
     """
+
+    if isinstance(dim, str):
+        dim = [dim]
+
     if isinstance(data, xr.DataArray):
         return weighted_mean_da(data, dim, weights)
     elif isinstance(data, xr.Dataset):
@@ -194,6 +202,8 @@ def weighted_std(data, dim=None, weights=None):
         New xarray object with weighted standard deviation applied to its data and the indicated
         dimension(s) removed.
     """
+    if isinstance(dim, str):
+        dim = [dim]
     if isinstance(data, xr.DataArray):
         return weighted_std_da(data, dim, weights)
     elif isinstance(data, xr.Dataset):
@@ -221,6 +231,10 @@ def weighted_rmsd(x, y, dim=None, weights=None):
         New DataArray with root mean square deviation applied to x, y and the indicated
         dimension(s) removed.
     """
+
+    if isinstance(dim, str):
+        dim = [dim]
+
     if not isinstance(x, xr.DataArray) or not isinstance(y, xr.DataArray):
         raise ValueError('x and y must be xarray DataArrays')
     dev = (x - y) ** 2
@@ -249,6 +263,9 @@ def weighted_cov(x, y, dim=None, weights=None):
         New DataArray with covariance applied to x, y and the indicated
         dimension(s) removed.
     """
+
+    if isinstance(dim, str):
+        dim = [dim]
 
     if not isinstance(x, xr.DataArray) or not isinstance(y, xr.DataArray):
         raise ValueError('x and y must be xarray DataArrays')
@@ -289,6 +306,9 @@ def weighted_corr(x, y, dim=None, weights=None, return_p=True):
         If `return_p` is True, appends the resulting p values to the
         returned Dataset.
     """
+
+    if isinstance(dim, str):
+        dim = [dim]
 
     if not isinstance(x, xr.DataArray) or not isinstance(y, xr.DataArray):
         raise ValueError('x and y must be xarray DataArrays')

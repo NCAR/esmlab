@@ -65,7 +65,7 @@ def test_weights_raise_error():
 
 
 @pytest.mark.parametrize(
-    'dim, level, wgts_name', [(['time'], ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
+    'dim, level, wgts_name', [('time', ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
 )
 def test_weighted_sum(dim, level, wgts_name):
     df = dset.to_dataframe()
@@ -77,7 +77,7 @@ def test_weighted_sum(dim, level, wgts_name):
 
 
 @pytest.mark.parametrize(
-    'dim, level, wgts_name', [(['time'], ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
+    'dim, level, wgts_name', [('time', ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
 )
 def test_weighted_mean(dim, level, wgts_name):
     res = esmlab.weighted_mean(dset, dim=dim, weights=wgts[wgts_name]).to_dataframe()
@@ -89,7 +89,7 @@ def test_weighted_mean(dim, level, wgts_name):
 
 
 @pytest.mark.parametrize(
-    'dim, level, wgts_name', [(['time'], ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
+    'dim, level, wgts_name', [('time', ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
 )
 def test_weighted_std(dim, level, wgts_name):
     res = esmlab.weighted_std(dset, dim=dim, weights=wgts[wgts_name]).to_dataframe()
@@ -109,7 +109,7 @@ def test_weighted_std(dim, level, wgts_name):
 
 
 @pytest.mark.parametrize(
-    'dim, level, wgts_name', [(['time'], ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
+    'dim, level, wgts_name', [('time', ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
 )
 def test_weighted_rmsd(dim, level, wgts_name):
     res = esmlab.weighted_rmsd(
@@ -126,7 +126,7 @@ def test_weighted_rmsd(dim, level, wgts_name):
 
 
 @pytest.mark.parametrize(
-    'dim, level, wgts_name', [(['time'], ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
+    'dim, level, wgts_name', [('time', ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
 )
 def test_weighted_cov(dim, level, wgts_name):
     res = esmlab.weighted_cov(
@@ -146,7 +146,7 @@ def test_weighted_cov(dim, level, wgts_name):
 
 
 @pytest.mark.parametrize(
-    'dim, level, wgts_name', [(['time'], ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
+    'dim, level, wgts_name', [('time', ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
 )
 def test_weighted_corr(dim, level, wgts_name):
     res = esmlab.weighted_corr(
