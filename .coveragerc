@@ -3,3 +3,4 @@ omit =
     tests/*.py
     setup.py
     esmlab/regrid.py
+    esmlab/utils/print_versions.py
