@@ -17,6 +17,7 @@ from .statistics import (
     weighted_std,
     weighted_sum,
 )
+from .utils.print_versions import show_versions
 
 try:
     __version__ = get_distribution(__name__).version
