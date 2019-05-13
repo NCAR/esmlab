@@ -359,7 +359,7 @@ def compute_corr_significance(r, N):
 
 def rmse(x, y, dim):
     """
-    Root Mean Squared Error.
+    Compute Root Mean Squared Error.
 
     Parameters
     ----------
@@ -369,11 +369,13 @@ def rmse(x, y, dim):
         Mix of labeled and/or unlabeled arrays to which to apply the function.
     dim : str
         The dimension to apply the correlation along.
+
     Returns
     -------
-    Single value or tuple of Dataset, DataArray, Variable, dask.array.Array or
-    numpy.ndarray, the first type on that list to appear on an input.
-        Root Mean Squared Error.
+    Root Mean Squared Error
+        Single value or tuple of Dataset, DataArray, Variable, dask.array.Array or
+        numpy.ndarray, the first type on that list to appear on an input.
+
     """
 
     return xs.rmse(x, y, dim)
@@ -381,7 +383,7 @@ def rmse(x, y, dim):
 
 def mse(x, y, dim):
     """
-    Mean Squared Error.
+    Compute Mean Squared Error.
 
     Parameters
     ----------
@@ -391,11 +393,13 @@ def mse(x, y, dim):
         Mix of labeled and/or unlabeled arrays to which to apply the function.
     dim : str
         The dimension to apply the correlation along.
+
     Returns
     -------
-    Single value or tuple of Dataset, DataArray, Variable, dask.array.Array or
-    numpy.ndarray, the first type on that list to appear on an input.
-        Mean Squared Error.
+    Mean Squared Error
+        Single value or tuple of Dataset, DataArray, Variable, dask.array.Array or
+        numpy.ndarray, the first type on that list to appear on an input.
+
     """
 
     return xs.mse(x, y, dim)
@@ -403,7 +407,7 @@ def mse(x, y, dim):
 
 def mae(x, y, dim):
     """
-    Mean Absolute Error.
+    Compute Mean Absolute Error.
 
     Parameters
     ----------
@@ -413,11 +417,12 @@ def mae(x, y, dim):
         Mix of labeled and/or unlabeled arrays to which to apply the function.
     dim : str
         The dimension to apply the correlation along.
+
     Returns
     -------
-    Single value or tuple of Dataset, DataArray, Variable, dask.array.Array or
-    numpy.ndarray, the first type on that list to appear on an input.
-        Mean Absolute Error.
+    Mean Absolute Error
+         Single value or tuple of Dataset, DataArray, Variable, dask.array.Array or
+         numpy.ndarray, the first type on that list to appear on an input.
 
     """
     return xs.mae(x, y, dim)
