@@ -551,24 +551,6 @@ class EsmlabAccessor(object):
 
         """
 
-        def month2date(mth_index, begin_datetime):
-            """ return a datetime object for a given month index"""
-            mth_index += begin_datetime.year * 12 + begin_datetime.month
-            calendar = begin_datetime.calendar
-            units = 'days since 0001-01-01 00:00:00'  # won't affect what's returned.
-
-            # base datetime object:
-            date = cftime.datetime((mth_index - 1) // 12, (mth_index - 1) % 12 + 1, 1)
-
-            # datetime object with the calendar encoded:
-            date_with_cal = cftime.num2date(
-                cftime.date2num(date, units, calendar),
-                units,
-                calendar,
-                only_use_cftime_datetimes=True,
-            )
-            return date_with_cal
-
         if self.time_bound is None:
             raise RuntimeError(
                 'Dataset must have time_bound variable to be able to'
@@ -622,27 +604,28 @@ class EsmlabAccessor(object):
             {self.time_coord_name: slice(t_slice_start, t_slice_stop)}
         )
 
-        # Step 6
-        computed_dset['month'] = computed_dset[self.time_coord_name].copy(True)
-        for m in range(len(computed_dset['month'])):
-            computed_dset[self.tb_name].data[m] = [
-                # month begin date:
-                cftime.date2num(
-                    month2date(m, tbegin_decoded),
-                    units=self.time_attrs['units'],
-                    calendar=self.time_attrs['calendar'],
-                ),
-                # month end date:
-                cftime.date2num(
-                    month2date(m + 1, tbegin_decoded),
-                    units=self.time_attrs['units'],
-                    calendar=self.time_attrs['calendar'],
-                ),
-            ]
+        if self.time_bound is not None:
+            tb_out_lo = (
+                self.time_bound[:, 0]
+                .groupby(time_dot_month)
+                .min(dim=self.time_coord_name)
+                .rename({'month': self.time_coord_name})
+            )
+            tb_out_hi = (
+                self.time_bound[:, 1]
+                .groupby(time_dot_month)
+                .max(dim=self.time_coord_name)
+                .rename({'month': self.time_coord_name})
+            )
 
+            tb_data_new_shape = (2, computed_dset[self.time_coord_name].data.shape[0])
+            tb_data = xr.concat((tb_out_lo, tb_out_hi), dim=self.tb_dim)
+            computed_dset[self.tb_name] = tb_data
+            computed_dset[self.tb_name].data = tb_data.data.reshape(tb_data_new_shape)
+        mid_time = self._ds_time_computed[self.time_coord_name].groupby(time_dot_month).mean()
+        computed_dset[self.time_coord_name].data = mid_time.data
         attrs, encoding = {}, {}
-        attrs['month'] = {'long_name': 'Month', 'units': 'month'}
-        encoding['month'] = {'dtype': 'int32', '_FillValue': None}
+
         encoding[self.time_coord_name] = {'dtype': 'float', '_FillValue': None}
         encoding[self.tb_name] = {'dtype': 'float', '_FillValue': None}
 
