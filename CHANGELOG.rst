@@ -9,7 +9,8 @@ Esmlab v2019.5.15 (2019-05-15)
 Features
 --------
 
-- Add utility functions for printing version information (:pr:`132`) `Anderson Banihirwe`_
+- Add utility functions for printing version information. (:pr:`132`) `Anderson Banihirwe`_
+- Add new verification metrics, namely ``rmse``, ``mse``, ``mae``. (:pr:`134`) `Anderson Banihirwe`_
 
 Bug Fixes
 ---------
