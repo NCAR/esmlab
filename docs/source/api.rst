@@ -24,6 +24,9 @@ Statistics functions
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autosummary::
+   statistics.mae
+   statistics.mse
+   statistics.rmse
    statistics.weighted_sum
    statistics.weighted_mean
    statistics.weighted_std
@@ -71,6 +74,9 @@ Resample
 
 .. currentmodule:: esmlab.statistics
 
+.. autofunction:: mae
+.. autofunction:: mse
+.. autofunction:: rmse
 .. autofunction:: weighted_sum
 .. autofunction:: weighted_mean
 .. autofunction:: weighted_std
