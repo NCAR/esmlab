@@ -432,13 +432,13 @@ class EsmlabAccessor(object):
             ds[self.tb_name].data = tb_data.data.reshape(tb_data_new_shape)
 
         if method == 'right':
-            time_values = ds[self.time_coord_name].groupby(time_dot).max()
+            time_values = self._ds_time_computed[self.time_coord_name].groupby(time_dot).max()
 
         elif method == 'left':
-            time_values = ds[self.time_coord_name].groupby(time_dot).min()
+            time_values = self._ds_time_computed[self.time_coord_name].groupby(time_dot).min()
 
         else:
-            time_values = ds[self.time_coord_name].groupby(time_dot).mean()
+            time_values = self._ds_time_computed[self.time_coord_name].groupby(time_dot).mean()
 
         ds[self.time_coord_name].data = time_values.data
 
