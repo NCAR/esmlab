@@ -22,4 +22,6 @@ dependencies:
   - pip:
     - pytest-lazy-fixture
     - pytest-xdist
+    - xskillscore
+    - docrep
     - git+https://github.com/NCAR/esmlab-regrid.git

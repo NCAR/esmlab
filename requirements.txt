@@ -7,3 +7,5 @@ pyyaml
 scipy
 xarray>=0.11.2
 xesmf
+xskillscore
+docrep

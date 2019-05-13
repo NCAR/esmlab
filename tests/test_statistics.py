@@ -245,3 +245,29 @@ def test_dimension_mismatch(function):
     w = xr.zeros_like(darr)
     res = function(darr, dim=['x', 'z'], weights=w)
     xr.testing.assert_equal(res, darr)
+
+
+expected_dset = xr.Dataset()
+expected_dset['da2'] = xr.DataArray(
+    np.zeros(5, dtype='float32'),
+    dims=['state'],
+    coords={'state': np.array(['CO', 'CA', 'NH', 'MA', 'WA'])},
+)
+expected_dset['da1'] = xr.DataArray(
+    np.array([None, None, None, None, 0.0], dtype='float32'),
+    dims=['state'],
+    coords={'state': np.array(['CO', 'CA', 'NH', 'MA', 'WA'])},
+)
+
+
+@pytest.mark.parametrize(
+    'function, ds, exp_ds',
+    [
+        (esmlab.rmse, dset, expected_dset),
+        (esmlab.mae, dset, expected_dset),
+        (esmlab.mse, dset, expected_dset),
+    ],
+)
+def test_metrics(function, ds, exp_ds):
+    res = function(ds, ds, 'time')
+    xr.testing.assert_identical(res, exp_ds)

@@ -6,6 +6,7 @@ from warnings import warn
 import dask.array as dask_array
 import numpy as np
 import xarray as xr
+import xskillscore as xs
 from scipy import special
 
 from .common_utils import esmlab_xr_set_options
@@ -354,3 +355,74 @@ def compute_corr_significance(r, N):
     # below 1 due to errors in floating point arithmetic.
     pval = special.betainc(0.5 * df, 0.5, np.fmin(df / (df + t_squared), 1.0))
     return xr.DataArray(pval, coords=t_squared.coords, dims=t_squared.dims)
+
+
+def rmse(x, y, dim):
+    """
+    Compute Root Mean Squared Error.
+
+    Parameters
+    ----------
+    x : Dataset, DataArray, GroupBy, Variable, numpy/dask arrays or scalars
+        Mix of labeled and/or unlabeled arrays to which to apply the function.
+    y : Dataset, DataArray, GroupBy, Variable, numpy/dask arrays or scalars
+        Mix of labeled and/or unlabeled arrays to which to apply the function.
+    dim : str
+        The dimension to apply the correlation along.
+
+    Returns
+    -------
+    Root Mean Squared Error
+        Single value or tuple of Dataset, DataArray, Variable, dask.array.Array or
+        numpy.ndarray, the first type on that list to appear on an input.
+
+    """
+
+    return xs.rmse(x, y, dim)
+
+
+def mse(x, y, dim):
+    """
+    Compute Mean Squared Error.
+
+    Parameters
+    ----------
+    x : Dataset, DataArray, GroupBy, Variable, numpy/dask arrays or scalars
+        Mix of labeled and/or unlabeled arrays to which to apply the function.
+    y : Dataset, DataArray, GroupBy, Variable, numpy/dask arrays or scalars
+        Mix of labeled and/or unlabeled arrays to which to apply the function.
+    dim : str
+        The dimension to apply the correlation along.
+
+    Returns
+    -------
+    Mean Squared Error
+        Single value or tuple of Dataset, DataArray, Variable, dask.array.Array or
+        numpy.ndarray, the first type on that list to appear on an input.
+
+    """
+
+    return xs.mse(x, y, dim)
+
+
+def mae(x, y, dim):
+    """
+    Compute Mean Absolute Error.
+
+    Parameters
+    ----------
+    x : Dataset, DataArray, GroupBy, Variable, numpy/dask arrays or scalars
+        Mix of labeled and/or unlabeled arrays to which to apply the function.
+    y : Dataset, DataArray, GroupBy, Variable, numpy/dask arrays or scalars
+        Mix of labeled and/or unlabeled arrays to which to apply the function.
+    dim : str
+        The dimension to apply the correlation along.
+
+    Returns
+    -------
+    Mean Absolute Error
+         Single value or tuple of Dataset, DataArray, Variable, dask.array.Array or
+         numpy.ndarray, the first type on that list to appear on an input.
+
+    """
+    return xs.mae(x, y, dim)
