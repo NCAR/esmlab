@@ -393,6 +393,57 @@ class EsmlabAccessor(object):
                 continue
         return ds
 
+    def compute_resample_times(self, ds, temporary_time_coord_name, time_dot, method=None):
+        """ Computes time values for resample operations
+
+        Parameters
+        ----------
+        ds : xarray.Dataset
+
+        temporary_time_coord_name : str
+               Name of the time coordinate name after the resample operation
+
+        time_dot : str
+               String used for time groupby
+
+        method : str, optional
+               Specify how time values will be decoded.
+
+
+        """
+
+        if self.time_bound is not None:
+            tb_out_lo = (
+                self.time_bound[:, 0]
+                .groupby(time_dot)
+                .min(dim=self.time_coord_name)
+                .rename({temporary_time_coord_name: self.time_coord_name})
+            )
+            tb_out_hi = (
+                self.time_bound[:, 1]
+                .groupby(time_dot)
+                .max(dim=self.time_coord_name)
+                .rename({temporary_time_coord_name: self.time_coord_name})
+            )
+
+            tb_data_new_shape = (2, ds[self.time_coord_name].data.shape[0])
+            tb_data = xr.concat((tb_out_lo, tb_out_hi), dim=self.tb_dim)
+            ds[self.tb_name] = tb_data
+            ds[self.tb_name].data = tb_data.data.reshape(tb_data_new_shape)
+
+        if method == 'right':
+            time_values = self._ds_time_computed[self.time_coord_name].groupby(time_dot).max()
+
+        elif method == 'left':
+            time_values = self._ds_time_computed[self.time_coord_name].groupby(time_dot).min()
+
+        else:
+            time_values = self._ds_time_computed[self.time_coord_name].groupby(time_dot).mean()
+
+        ds[self.time_coord_name].data = time_values.data
+
+        return ds
+
     @esmlab_xr_set_options(arithmetic_join='exact')
     def compute_mon_climatology(self):
         """ Calculates monthly climatology """
@@ -461,7 +512,7 @@ class EsmlabAccessor(object):
         return self.restore_dataset(computed_dset, attrs=attrs)
 
     @esmlab_xr_set_options(arithmetic_join='exact')
-    def compute_ann_mean(self, weights=None):
+    def compute_ann_mean(self, weights=None, method=None):
         """ Calculates annual mean """
         time_dot_year = '.'.join([self.time_coord_name, 'year'])
 
@@ -502,32 +553,19 @@ class EsmlabAccessor(object):
             da_weighted_mean = da_sum / ones_out
             return da_weighted_mean.where(mask)
 
-        ds_resample_mean = dset.apply(weighted_mean_arr, wgts=wgts)
+        computed_dset = dset.apply(weighted_mean_arr, wgts=wgts)
 
-        if self.time_bound is not None:
-            tb_out_lo = (
-                self.time_bound[:, 0]
-                .groupby(time_dot_year)
-                .min(dim=self.time_coord_name)
-                .rename({'year': self.time_coord_name})
-            )
-            tb_out_hi = (
-                self.time_bound[:, 1]
-                .groupby(time_dot_year)
-                .max(dim=self.time_coord_name)
-                .rename({'year': self.time_coord_name})
-            )
+        computed_dset = self.compute_resample_times(
+            ds=computed_dset,
+            temporary_time_coord_name='year',
+            time_dot=time_dot_year,
+            method=method,
+        )
 
-            tb_data_new_shape = (2, ds_resample_mean[self.time_coord_name].data.shape[0])
-            tb_data = xr.concat((tb_out_lo, tb_out_hi), dim=self.tb_dim)
-            ds_resample_mean[self.tb_name] = tb_data
-            ds_resample_mean[self.tb_name].data = tb_data.data.reshape(tb_data_new_shape)
-        mid_time = wgts[self.time_coord_name].groupby(time_dot_year).mean()
-        ds_resample_mean[self.time_coord_name].data = mid_time.data
-        return self.restore_dataset(ds_resample_mean)
+        return self.restore_dataset(computed_dset)
 
     @esmlab_xr_set_options(arithmetic_join='exact')
-    def compute_mon_mean(self):
+    def compute_mon_mean(self, method=None):
         """Calculates monthly averages of a dataset
 
         Notes
@@ -550,24 +588,6 @@ class EsmlabAccessor(object):
         Step 6. Correct time bounds
 
         """
-
-        def month2date(mth_index, begin_datetime):
-            """ return a datetime object for a given month index"""
-            mth_index += begin_datetime.year * 12 + begin_datetime.month
-            calendar = begin_datetime.calendar
-            units = 'days since 0001-01-01 00:00:00'  # won't affect what's returned.
-
-            # base datetime object:
-            date = cftime.datetime((mth_index - 1) // 12, (mth_index - 1) % 12 + 1, 1)
-
-            # datetime object with the calendar encoded:
-            date_with_cal = cftime.num2date(
-                cftime.date2num(date, units, calendar),
-                units,
-                calendar,
-                only_use_cftime_datetimes=True,
-            )
-            return date_with_cal
 
         if self.time_bound is None:
             raise RuntimeError(
@@ -622,27 +642,14 @@ class EsmlabAccessor(object):
             {self.time_coord_name: slice(t_slice_start, t_slice_stop)}
         )
 
-        # Step 6
-        computed_dset['month'] = computed_dset[self.time_coord_name].copy(True)
-        for m in range(len(computed_dset['month'])):
-            computed_dset[self.tb_name].data[m] = [
-                # month begin date:
-                cftime.date2num(
-                    month2date(m, tbegin_decoded),
-                    units=self.time_attrs['units'],
-                    calendar=self.time_attrs['calendar'],
-                ),
-                # month end date:
-                cftime.date2num(
-                    month2date(m + 1, tbegin_decoded),
-                    units=self.time_attrs['units'],
-                    calendar=self.time_attrs['calendar'],
-                ),
-            ]
+        computed_dset = self.compute_resample_times(
+            ds=computed_dset,
+            temporary_time_coord_name='month',
+            time_dot=time_dot_month,
+            method=method,
+        )
 
         attrs, encoding = {}, {}
-        attrs['month'] = {'long_name': 'Month', 'units': 'month'}
-        encoding['month'] = {'dtype': 'int32', '_FillValue': None}
         encoding[self.time_coord_name] = {'dtype': 'float', '_FillValue': None}
         encoding[self.tb_name] = {'dtype': 'float', '_FillValue': None}
 
@@ -724,7 +731,7 @@ def anomaly(dset, clim_freq, slice_mon_clim_time=None, time_coord_name=None):
         return ds
 
 
-def resample(dset, freq, weights=None, time_coord_name=None):
+def resample(dset, freq, weights=None, time_coord_name=None, method=None):
     """ Resample given dataset and computes the mean for specified sampling time frequecy
 
     Parameters
@@ -745,6 +752,16 @@ def resample(dset, freq, weights=None, time_coord_name=None):
     time_coord_name : str
             Name for time coordinate to use
 
+    method : str, optional
+           Specify how the time values of returned dataset are computed.
+           if none, time values are computed as midpoints.
+
+           Accepted values:
+
+           - ``left``: for leftmost time values
+           - ``right``: for rightmost time values
+
+
     Returns
     -------
     computed_dset : xarray.Dataset
@@ -756,10 +773,12 @@ def resample(dset, freq, weights=None, time_coord_name=None):
         raise ValueError(f'{freq} is not among supported frequency aliases={accepted_freq}')
 
     if freq == 'mon':
-        ds = dset.esmlab.set_time(time_coord_name=time_coord_name).compute_mon_mean()
+        ds = dset.esmlab.set_time(time_coord_name=time_coord_name).compute_mon_mean(method=method)
 
     else:
-        ds = dset.esmlab.set_time(time_coord_name=time_coord_name).compute_ann_mean(weights=weights)
+        ds = dset.esmlab.set_time(time_coord_name=time_coord_name).compute_ann_mean(
+            weights=weights, method=method
+        )
 
     new_history = f'\n{datetime.now()} esmlab.resample(<DATASET>, freq="{freq}")'
     ds.attrs['history'] = new_history

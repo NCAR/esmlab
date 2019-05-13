@@ -17,6 +17,9 @@ Bug Fixes
 -  Add a check for the ``dim`` argument to make sure that if it's a string,
    it's passed to respective functions as a list of strings all the time (:pr:`131`) `Anderson Banihirwe`_
 
+- Assure that resampling daily to monthly data using resample returns correct
+  time axis and time_bounds. (:pr:`133`) `Anderson Banihirwe`_
+
 
 Esmlab v2019.4.27 (2019-04-27)
 ==============================
