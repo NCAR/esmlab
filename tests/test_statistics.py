@@ -60,7 +60,7 @@ def wavg(x, weights, col_names):
 def test_weights_raise_error():
     w = [1, 2, 3, 4, 5]
     arr = xr.DataArray(range(5))
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         esmlab.statistics.validate_weights(da=arr, dim=None, weights=w)
 
 

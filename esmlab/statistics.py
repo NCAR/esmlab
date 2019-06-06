@@ -17,9 +17,9 @@ def validate_weights(da, dim, weights):
     if dim is None:
         dim = list(da.dims)
 
-    if isinstance(weights, (list, np.ndarray, dask_array.Array)):
-        raise ValueError(
-            'weights must be an xarray.DataArray with shape that is broadcastable to shape= {da.data.shape} of da.'
+    if not isinstance(weights, xr.DataArray):
+        raise TypeError(
+            f'You provided weights with type={type(weights)}.\nWeights must be an xarray.DataArray with shape that is broadcastable \nto shape= {da.data.shape} of da = {da}.'
         )
     # if NaN are present, we need to use individual weights
     total_weights = weights.where(da.notnull()).sum(dim=dim)
