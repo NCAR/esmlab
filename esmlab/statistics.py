@@ -13,10 +13,6 @@ from .common_utils import esmlab_xr_set_options
 
 
 def validate_weights(da, dim, weights):
-
-    if dim is None:
-        dim = list(da.dims)
-
     if not isinstance(weights, xr.DataArray):
         raise TypeError(
             f'You provided weights with type={type(weights)}.\n'
@@ -52,6 +48,10 @@ def weighted_sum_da(da, dim=None, weights=None):
         dimension(s) removed.
 
     """
+
+    if dim is None:
+        dim = list(da.dims)
+
     if weights is None:
         return da.sum(dim)
     else:
@@ -109,6 +109,8 @@ def weighted_mean_da(da, dim=None, weights=None):
         dimension(s) removed.
 
     """
+    if dim is None:
+        dim = list(da.dims)
     if weights is None:
         return da.mean(dim)
 
@@ -173,6 +175,9 @@ def weighted_std_da(da, dim=None, weights=None, ddof=0):
         dimension(s) removed.
 
     """
+    if dim is None:
+        dim = list(da.dims)
+
     if weights is None:
         return da.std(dim)
 
