@@ -3,7 +3,7 @@ Changelog History
 ==================
 
 
-Esmlab v2019.5.15 (2019-05-15)
+Esmlab v2019.6.xx (2019-06-xx)
 ==============================
 
 Features
@@ -21,6 +21,8 @@ Bug Fixes
 - Assure that resampling daily to monthly data using resample returns correct
   time axis and time_bounds. (:pr:`133`) `Anderson Banihirwe`_
 
+- Fix bug that made functions in``statistics.py`` module break when ``dim=None`` with weights
+  are specified.  (:pr:`138`) `Anderson Banihirwe`_
 
 Esmlab v2019.4.27 (2019-04-27)
 ==============================
