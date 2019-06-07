@@ -13,13 +13,11 @@ from .common_utils import esmlab_xr_set_options
 
 
 def validate_weights(da, dim, weights):
-
-    if dim is None:
-        dim = list(da.dims)
-
-    if isinstance(weights, (list, np.ndarray, dask_array.Array)):
-        raise ValueError(
-            'weights must be an xarray.DataArray with shape that is broadcastable to shape= {da.data.shape} of da.'
+    if not isinstance(weights, xr.DataArray):
+        raise TypeError(
+            f'You provided weights with type={type(weights)}.\n'
+            'Weights must be an xarray.DataArray with shape that is broadcastable \n'
+            'to shape= {da.data.shape} of da = {da}.'
         )
     # if NaN are present, we need to use individual weights
     total_weights = weights.where(da.notnull()).sum(dim=dim)
@@ -50,6 +48,10 @@ def weighted_sum_da(da, dim=None, weights=None):
         dimension(s) removed.
 
     """
+
+    if dim is None:
+        dim = list(da.dims)
+
     if weights is None:
         return da.sum(dim)
     else:
@@ -107,6 +109,8 @@ def weighted_mean_da(da, dim=None, weights=None):
         dimension(s) removed.
 
     """
+    if dim is None:
+        dim = list(da.dims)
     if weights is None:
         return da.mean(dim)
 
@@ -171,6 +175,9 @@ def weighted_std_da(da, dim=None, weights=None, ddof=0):
         dimension(s) removed.
 
     """
+    if dim is None:
+        dim = list(da.dims)
+
     if weights is None:
         return da.std(dim)
 

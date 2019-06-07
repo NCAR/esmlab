@@ -60,52 +60,94 @@ def wavg(x, weights, col_names):
 def test_weights_raise_error():
     w = [1, 2, 3, 4, 5]
     arr = xr.DataArray(range(5))
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         esmlab.statistics.validate_weights(da=arr, dim=None, weights=w)
 
 
 @pytest.mark.parametrize(
-    'dim, level, wgts_name', [('time', ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
+    'dim, level, wgts_name',
+    [('time', ['state'], 't_wgts'), (['state'], ['time'], 's_wgts'), (None, None, 't_s_wgts')],
 )
 def test_weighted_sum(dim, level, wgts_name):
     df = dset.to_dataframe()
     df_w = wgts.to_dataframe()
     w = wgts[wgts_name]
-    res = esmlab.weighted_sum(dset, dim=dim, weights=w).to_dataframe()
     expected = df.multiply(df_w[wgts_name], axis='index').sum(level=level)
-    assert_frame_equal(res.sort_index(), expected.sort_index())
+    res = esmlab.weighted_sum(dset, dim=dim, weights=w)
+
+    if not dim:
+        res = res.to_array().data
+        expected = expected.to_xarray().data
+        np.testing.assert_allclose(res, expected)
+    else:
+        res = res.to_dataframe()
+        assert_frame_equal(res.sort_index(), expected.sort_index())
 
 
 @pytest.mark.parametrize(
-    'dim, level, wgts_name', [('time', ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
+    'dim, level, wgts_name',
+    [('time', ['state'], 't_wgts'), (['state'], ['time'], 's_wgts'), (None, None, 't_s_wgts')],
 )
 def test_weighted_mean(dim, level, wgts_name):
-    res = esmlab.weighted_mean(dset, dim=dim, weights=wgts[wgts_name]).to_dataframe()
+    res = esmlab.weighted_mean(dset, dim=dim, weights=wgts[wgts_name])
     df = dset.to_dataframe()
-    expected = df.groupby(level=level).apply(
-        wavg, weights=wgts[wgts_name].data, col_names=['da1', 'da2']
-    )
-    assert_frame_equal(res.sort_index(), expected.sort_index())
+    df_w = wgts.to_dataframe()[wgts_name]
+    if not dim:
+        res = res.to_array().data
+        d = pd.concat([df, df_w], axis=1)
+        expected = d.apply(
+            lambda x: np.ma.average(np.ma.MaskedArray(x, mask=np.isnan(x)), weights=d.t_s_wgts)
+        )[['da1', 'da2']]
+        expected = expected.to_xarray().data
+        np.testing.assert_allclose(res, expected)
+    else:
+
+        expected = df.groupby(level=level).apply(
+            wavg, weights=wgts[wgts_name].data, col_names=['da1', 'da2']
+        )
+
+        res = res.to_dataframe()
+        assert_frame_equal(res.sort_index(), expected.sort_index())
 
 
 @pytest.mark.parametrize(
-    'dim, level, wgts_name', [('time', ['state'], 't_wgts'), (['state'], ['time'], 's_wgts')]
+    'dim, level, wgts_name',
+    [('time', ['state'], 't_wgts'), (['state'], ['time'], 's_wgts'), (None, None, 't_s_wgts')],
 )
 def test_weighted_std(dim, level, wgts_name):
-    res = esmlab.weighted_std(dset, dim=dim, weights=wgts[wgts_name]).to_dataframe()
+    res = esmlab.weighted_std(dset, dim=dim, weights=wgts[wgts_name])
     df = dset.to_dataframe()
-    df_w = wgts.to_dataframe()
-    df_w_mean = df.groupby(level=level).apply(
-        wavg, weights=wgts[wgts_name].data, col_names=['da1', 'da2']
-    )
-    temp_df = (df - df_w_mean) ** 2
-    temp_df = temp_df.multiply(df_w[wgts_name], axis='index').sum(level=level)
-    total_weights_da1 = df_w[df['da1'].notnull()][wgts_name].sum(level=level)
-    total_weights_da2 = df_w[df['da2'].notnull()][wgts_name].sum(level=level)
-    expected = pd.DataFrame(columns=res.columns)
-    expected['da1'] = np.sqrt(temp_df['da1'] / total_weights_da1)
-    expected['da2'] = np.sqrt(temp_df['da2'] / total_weights_da2)
-    assert_frame_equal(res.sort_index(), expected.sort_index())
+    df_w = wgts.to_dataframe()[wgts_name]
+
+    if not dim:
+
+        d = pd.concat([df, df_w], axis=1)
+        df_w_mean = d.apply(
+            lambda x: np.ma.average(np.ma.MaskedArray(x, mask=np.isnan(x)), weights=d.t_s_wgts)
+        )[['da1', 'da2']]
+        temp_df = (df - df_w_mean) ** 2
+        temp_df = temp_df.multiply(df_w, axis='index').sum()
+        total_weights_da1 = df_w[df['da1'].notnull()].sum()
+        total_weights_da2 = df_w[df['da2'].notnull()].sum()
+        res = res.to_array().to_pandas()
+        expected = res.copy(True)
+        expected['da1'] = np.sqrt(temp_df['da1'] / total_weights_da1)
+        expected['da2'] = np.sqrt(temp_df['da2'] / total_weights_da2)
+        np.testing.assert_allclose(res, expected)
+
+    else:
+        df_w_mean = df.groupby(level=level).apply(
+            wavg, weights=wgts[wgts_name].data, col_names=['da1', 'da2']
+        )
+        temp_df = (df - df_w_mean) ** 2
+        temp_df = temp_df.multiply(df_w, axis='index').sum(level=level)
+        total_weights_da1 = df_w[df['da1'].notnull()].sum(level=level)
+        total_weights_da2 = df_w[df['da2'].notnull()].sum(level=level)
+        res = res.to_dataframe()
+        expected = pd.DataFrame(columns=res.columns)
+        expected['da1'] = np.sqrt(temp_df['da1'] / total_weights_da1)
+        expected['da2'] = np.sqrt(temp_df['da2'] / total_weights_da2)
+        assert_frame_equal(res.sort_index(), expected.sort_index())
 
 
 @pytest.mark.parametrize(
