@@ -19,6 +19,7 @@ dependencies:
   - scipy
   - xarray>=0.12
   - xesmf
+  - pre_commit
   - pip:
     - pytest-lazy-fixture
     - pytest-xdist
