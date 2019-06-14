@@ -26,6 +26,7 @@ dependencies:
   - tornado
   - xarray>=0.12
   - xesmf
+  - pre_commit
   - pip:
     - nbsphinx
     - numpydoc

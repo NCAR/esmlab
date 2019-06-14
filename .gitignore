@@ -108,3 +108,4 @@ notes/
 worker-*
 slurm-*
 dask-worker*
+.idea/
