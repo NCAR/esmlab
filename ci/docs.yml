@@ -4,7 +4,6 @@ channels:
 dependencies:
   - jupyterlab
   - nbsphinx
-  - numpy
   - numpydoc
   - pip
   - python=3.7
@@ -12,11 +11,6 @@ dependencies:
   - sphinx_rtd_theme
   - sphinx>=1.6
   - esmpy
-  - xesmf
-  - xarray
-  - netcdf4
-  - dask
-  - cftime
   - bottleneck
   - scipy
   - pip:
