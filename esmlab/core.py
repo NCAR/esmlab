@@ -326,7 +326,7 @@ class EsmlabAccessor(object):
         self.year_offset = year_offset
         self.compute_time()
         ds = self._ds_time_computed.copy(True)
-        ds = ds.sel(**{self.time_coord_name: indexer_val, "method": method, "tolerance": tolerance})
+        ds = ds.sel(**{self.time_coord_name: indexer_val, 'method': method, 'tolerance': tolerance})
         return ds
 
     def set_time(self, time_coord_name=None, year_offset=None):
