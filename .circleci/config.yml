@@ -93,13 +93,13 @@ jobs:
           name: Install conda environment
           command: |
             conda env update -f ./ci/docs.yml
-            conda activate ${ENV_NAME}
+            source activate ${ENV_NAME}
             python setup.py install
 
       - run:
           name: Check documentation build
           command: |
-            conda activate ${ENV_NAME}
+            source activate ${ENV_NAME}
             pushd docs
             make html
             popd
