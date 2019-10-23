@@ -2,17 +2,12 @@ name: esmlab-dev
 channels:
   - conda-forge
 dependencies:
-  - autopep8
-  - black
   - bottleneck
   - codecov
   - dask
   - esmpy
-  - flake8
   - ipykernel
-  - isort
   - make
-  - matplotlib
   - netcdf4
   - numpy
   - pandoc==1.19
@@ -21,20 +16,12 @@ dependencies:
   - pytest-cov
   - python=3.7
   - scipy
-  - tornado
-  - xarray>=0.12
   - xesmf
-  - pre_commit
   - cftime==1.0.3.4
   - pip:
-    - nbsphinx
-    - numpydoc
     - pytest-lazy-fixture
     - pytest-xdist
-    - recommonmark
-    - sphinx_copybutton
-    - sphinx_rtd_theme
-    - sphinx==1.8
     - xskillscore
     - docrep
+    - git+https://github.com/pydata/xarray.git
     - git+https://github.com/NCAR/esmlab-regrid.git
