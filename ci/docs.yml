@@ -2,17 +2,17 @@ name: esmlab-dev
 channels:
   - conda-forge
 dependencies:
-  - jupyterlab
+  - ipython
   - nbsphinx
-  - numpydoc
+  - numpydoc=0.8.0
   - pip
   - python=3.7
   - recommonmark
-  - sphinx_rtd_theme
-  - sphinx>=1.6
+  - sphinx_rtd_theme=0.4.2
+  - sphinx=1.8.2
+  - sphinx-copybutton=0.2.5
   - esmpy
   - bottleneck
   - scipy
   - pip:
-    - sphinx_copybutton
     - git+https://github.com/NCAR/esmlab-regrid.git

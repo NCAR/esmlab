@@ -7,7 +7,6 @@ dependencies:
   - bottleneck
   - codecov
   - dask
-  - distributed
   - esmpy
   - flake8
   - git
@@ -27,6 +26,7 @@ dependencies:
   - xarray>=0.12
   - xesmf
   - pre_commit
+  - cftime==1.0.3.4
   - pip:
     - nbsphinx
     - numpydoc

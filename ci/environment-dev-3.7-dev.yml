@@ -15,14 +15,14 @@ dependencies:
   - pip
   - pytest
   - pytest-cov
-  - python=3.8
+  - python=3.7
   - scipy
   - xesmf
   - cftime==1.0.3.4
-  - xarray
   - pip:
     - pytest-lazy-fixture
     - pytest-xdist
     - xskillscore
     - docrep
+    - git+https://github.com/pydata/xarray.git
     - git+https://github.com/NCAR/esmlab-regrid.git

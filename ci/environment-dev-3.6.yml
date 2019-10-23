@@ -5,11 +5,8 @@ dependencies:
   - bottleneck
   - codecov
   - dask
-  - distributed
   - esmpy
   - git
-  - ipykernel
-  - matplotlib
   - netcdf4
   - numpy
   - pip
@@ -20,6 +17,7 @@ dependencies:
   - xarray>=0.12
   - xesmf
   - pre_commit
+  - cftime==1.0.3.4
   - pip:
     - pytest-lazy-fixture
     - pytest-xdist
