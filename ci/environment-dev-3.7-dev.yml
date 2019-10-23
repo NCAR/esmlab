@@ -6,7 +6,6 @@ dependencies:
   - codecov
   - dask
   - esmpy
-  - git
   - ipykernel
   - make
   - netcdf4
