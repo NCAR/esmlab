@@ -14,5 +14,6 @@ dependencies:
   - esmpy
   - bottleneck
   - scipy
+  - make
   - pip:
     - git+https://github.com/NCAR/esmlab-regrid.git

@@ -92,7 +92,7 @@ jobs:
       - run: # install and activate conda environment
           name: Install conda environment
           command: |
-            conda env update -f ./ci/docs.yml
+            conda env update -f ./docs/environment.yml
             source activate ${ENV_NAME}
             python setup.py install
 
