@@ -29,8 +29,9 @@ default-job: &default-job
         paths:
           - "/opt/conda/envs/${ENV_NAME}/"
           - "/opt/conda/pkgs"
+
     - store_test_results:
-      path: test-reports
+        path: test-reports
 
     - store_artifacts:
         path: test-reports
