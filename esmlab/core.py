@@ -143,7 +143,7 @@ class EsmlabAccessor(object):
             v: {
                 key: val
                 for key, val in self._ds[v].encoding.items()
-                if key in ['dtype', '_FillValue', 'missing_value']
+                if key in ['dtype', '_FillValue', 'missing_value', 'units', 'calendar']
             }
             for v in self._ds.variables
         }
