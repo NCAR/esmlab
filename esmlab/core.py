@@ -84,11 +84,11 @@ class EsmlabAccessor(object):
         else:
             groupby_coord = self.get_time_decoded(midpoint=False)
 
-        ds[self.time_coord_name] = groupby_coord
+        ds[self.time_coord_name] = groupby_coord.data
 
         if self.time_bound is not None:
             ds[self.tb_name] = self.time_bound
-            self.time_bound[self.time_coord_name] = groupby_coord
+            self.time_bound[self.time_coord_name] = groupby_coord.data
         self.time_bound_diff = self.compute_time_bound_diff(ds)
 
         self._ds_time_computed = ds
@@ -441,7 +441,7 @@ class EsmlabAccessor(object):
         else:
             time_values = self._ds_time_computed[self.time_coord_name].groupby(time_dot).mean()
 
-        ds[self.time_coord_name] = time_values
+        ds[self.time_coord_name] = time_values.data
 
         return ds
 
