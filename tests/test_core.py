@@ -33,6 +33,7 @@ def test_esmlab_accessor():
     attrs = {'calendar': 'noleap', 'units': 'days since 2000-01-01 00:00:00'}
     ds.time.attrs = attrs
     esm = ds.esmlab.set_time(time_coord_name='time')
+    xr.testing._assert_internal_invariants(esm._ds_time_computed)
     # Time and Time bound Attributes
     expected = dict(esm.time_attrs)
     attrs['bounds'] = None
@@ -96,6 +97,7 @@ def test_datetime_cftime_exception():
 
 def test_time_bound_var(dset, time_coord_name='time'):
     esm = dset.esmlab.set_time(time_coord_name=time_coord_name)
+    xr.testing._assert_internal_invariants(esm._ds_time_computed)
     results = esm.tb_name, esm.tb_dim
     expected = ('time_bound', 'd2')
     assert results == expected
@@ -114,6 +116,7 @@ def test_get_time_attrs(dset, time_coord_name='time'):
         'bounds': 'time_bound',
     }
     esm = dset.esmlab.set_time(time_coord_name=time_coord_name)
+    xr.testing._assert_internal_invariants(esm._ds_time_computed)
     results = esm.time_attrs
     assert results == expected
 
@@ -122,12 +125,14 @@ def test_compute_time_var(dset, time_coord_name='time'):
     idx = dset.indexes[time_coord_name]
     assert isinstance(idx, pd.core.indexes.numeric.Index)
     esm = dset.esmlab.set_time(time_coord_name=time_coord_name)
+    xr.testing._assert_internal_invariants(esm._ds_time_computed)
     results = esm.get_time_decoded()
     assert isinstance(results, xr.DataArray)
 
 
 def test_uncompute_time_var(dset, time_coord_name='time'):
     esm = dset.esmlab.set_time(time_coord_name=time_coord_name)
+    xr.testing._assert_internal_invariants(esm._ds_time_computed)
     ds = esm.compute_time_var()
     assert ds[time_coord_name].dtype == np.dtype('O')
     dset_with_uncomputed_time = esm.uncompute_time_var()
@@ -137,6 +142,7 @@ def test_uncompute_time_var(dset, time_coord_name='time'):
 # For some strange reason, this case fails when using pytest parametrization
 def test_sel_time_(dset):
     esm = dset.esmlab.set_time()
+    xr.testing._assert_internal_invariants(esm._ds_time_computed)
     dset = esm.sel_time(indexer_val=slice('1850-01-01', '1850-12-31'), year_offset=1850)
     assert len(dset.time) == 12
 
@@ -155,10 +161,10 @@ def test_sel_time_(dset):
 def test_mon_climatology(ds_name, decoded, variables, time_coord_name):
     ds = esmlab.datasets.open_dataset(ds_name, decode_times=decoded)
     esm = ds.esmlab.set_time(time_coord_name=time_coord_name)
+    xr.testing._assert_internal_invariants(esm._ds_time_computed)
     computed_dset = esmlab.climatology(ds, freq='mon')
-    esmlab_res = computed_dset.drop(esm.static_variables).to_dataframe()
+    esmlab_res = computed_dset.to_dataframe()
     esmlab_res = esmlab_res.groupby('month').mean()[variables]
-
     df = (
         esm._ds_time_computed.drop(esm.static_variables)
         .to_dataframe()
@@ -170,11 +176,6 @@ def test_mon_climatology(ds_name, decoded, variables, time_coord_name):
     pd_res = pd_res[variables]
 
     assert_both_frames_equal(esmlab_res, pd_res)
-
-    assert computed_dset[esm.time_coord_name].dtype == ds[esm.time_coord_name].dtype
-    for key, value in ds[esm.time_coord_name].attrs.items():
-        assert key in computed_dset[esm.time_coord_name].attrs
-        assert value == computed_dset[esm.time_coord_name].attrs[key]
 
 
 @pytest.mark.parametrize(
@@ -196,9 +197,10 @@ def test_mon_climatology_drop_time_bounds(
     ds = ds.drop(ds_time_bound)
     del ds[time_coord_name].attrs[time_bound_name]
     esm = ds.esmlab.set_time(time_coord_name=time_coord_name)
+    xr.testing._assert_internal_invariants(esm._ds_time_computed)
     computed_dset = esmlab.climatology(ds, freq='mon')
 
-    esmlab_res = computed_dset.drop(esm.static_variables).to_dataframe()
+    esmlab_res = computed_dset.to_dataframe()
     esmlab_res = esmlab_res.groupby('month').mean()[variables]
 
     df = (
@@ -212,11 +214,6 @@ def test_mon_climatology_drop_time_bounds(
     pd_res = pd_res[variables]
 
     assert_both_frames_equal(esmlab_res, pd_res)
-
-    assert computed_dset[esm.time_coord_name].dtype == ds[esm.time_coord_name].dtype
-    for key, value in ds[esm.time_coord_name].attrs.items():
-        assert key in computed_dset[esm.time_coord_name].attrs
-        assert value == computed_dset[esm.time_coord_name].attrs[key]
 
 
 def test_anomaly_with_monthly_clim(dset):
@@ -276,7 +273,6 @@ def test_resample_mon_mean(dset):
     for method in {'left', 'right'}:
         ds = esmlab.resample(dset, freq='mon', method=method)
         assert len(ds.time) == 12
-
     computed_dset = esmlab.resample(dset, freq='mon')
     res = computed_dset.variable_1.data
     expected = np.full(shape=(12, 2, 2), fill_value=0.5, dtype=np.float32)
