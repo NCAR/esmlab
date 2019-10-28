@@ -156,9 +156,8 @@ def test_mon_climatology(ds_name, decoded, variables, time_coord_name):
     ds = esmlab.datasets.open_dataset(ds_name, decode_times=decoded)
     esm = ds.esmlab.set_time(time_coord_name=time_coord_name)
     computed_dset = esmlab.climatology(ds, freq='mon')
-    esmlab_res = computed_dset.drop(esm.static_variables).to_dataframe()
+    esmlab_res = computed_dset.to_dataframe()
     esmlab_res = esmlab_res.groupby('month').mean()[variables]
-
     df = (
         esm._ds_time_computed.drop(esm.static_variables)
         .to_dataframe()
@@ -170,11 +169,6 @@ def test_mon_climatology(ds_name, decoded, variables, time_coord_name):
     pd_res = pd_res[variables]
 
     assert_both_frames_equal(esmlab_res, pd_res)
-
-    assert computed_dset[esm.time_coord_name].dtype == ds[esm.time_coord_name].dtype
-    for key, value in ds[esm.time_coord_name].attrs.items():
-        assert key in computed_dset[esm.time_coord_name].attrs
-        assert value == computed_dset[esm.time_coord_name].attrs[key]
 
 
 @pytest.mark.parametrize(
@@ -198,7 +192,7 @@ def test_mon_climatology_drop_time_bounds(
     esm = ds.esmlab.set_time(time_coord_name=time_coord_name)
     computed_dset = esmlab.climatology(ds, freq='mon')
 
-    esmlab_res = computed_dset.drop(esm.static_variables).to_dataframe()
+    esmlab_res = computed_dset.to_dataframe()
     esmlab_res = esmlab_res.groupby('month').mean()[variables]
 
     df = (
@@ -212,11 +206,6 @@ def test_mon_climatology_drop_time_bounds(
     pd_res = pd_res[variables]
 
     assert_both_frames_equal(esmlab_res, pd_res)
-
-    assert computed_dset[esm.time_coord_name].dtype == ds[esm.time_coord_name].dtype
-    for key, value in ds[esm.time_coord_name].attrs.items():
-        assert key in computed_dset[esm.time_coord_name].attrs
-        assert value == computed_dset[esm.time_coord_name].attrs[key]
 
 
 def test_anomaly_with_monthly_clim(dset):
@@ -276,7 +265,6 @@ def test_resample_mon_mean(dset):
     for method in {'left', 'right'}:
         ds = esmlab.resample(dset, freq='mon', method=method)
         assert len(ds.time) == 12
-
     computed_dset = esmlab.resample(dset, freq='mon')
     res = computed_dset.variable_1.data
     expected = np.full(shape=(12, 2, 2), fill_value=0.5, dtype=np.float32)
