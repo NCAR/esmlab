@@ -296,7 +296,7 @@ class EsmlabAccessor(object):
 
         return self.update_metadata(ds, new_attrs=attrs, new_encoding=encoding)
 
-    def sel_time(self, indexer_val, year_offset=None):
+    def sel_time(self, indexer_val, year_offset=None, method=None, tolerance=None):
         """Return dataset truncated to specified time range.
 
         Parameters
@@ -306,6 +306,17 @@ class EsmlabAccessor(object):
             value passed to ds.isel(**{time_coord_name: indexer_val})
         year_offset : numeric, optional
             Integer year by which to offset the time axis.
+        method : {None, 'nearest', 'pad'/'ffill', 'backfill'/'bfill'}, optional
+            Method to use for inexact matches (requires pandas>=0.16):
+            * None (default): only exact matches
+            * pad / ffill: propagate last valid index value forward
+            * backfill / bfill: propagate next valid index value backward
+            * nearest: use nearest valid index value
+        tolerance : optional
+            Maximum distance between original and new labels for inexact
+            matches. The values of the index at the matching locations must
+            satisfy the equation ``abs(index[indexer] - target) <= tolerance``.
+
 
         Returns
         -------
@@ -315,7 +326,7 @@ class EsmlabAccessor(object):
         self.year_offset = year_offset
         self.compute_time()
         ds = self._ds_time_computed.copy(True)
-        ds = ds.sel(**{self.time_coord_name: indexer_val})
+        ds = ds.sel(**{self.time_coord_name: indexer_val, 'method': method, 'tolerance': tolerance})
         return ds
 
     def set_time(self, time_coord_name=None, year_offset=None):
