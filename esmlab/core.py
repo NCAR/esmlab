@@ -84,11 +84,10 @@ class EsmlabAccessor(object):
         else:
             groupby_coord = self.get_time_decoded(midpoint=False)
 
-        ds[self.time_coord_name].data = groupby_coord.data
+        ds[self.time_coord_name] = groupby_coord.data
 
         if self.time_bound is not None:
-            ds[self.tb_name].data = self.time_bound.data
-            self.time_bound[self.time_coord_name].data = groupby_coord.data
+            self.time_bound[self.time_coord_name] = groupby_coord.data
         self.time_bound_diff = self.compute_time_bound_diff(ds)
 
         self._ds_time_computed = ds
@@ -101,6 +100,7 @@ class EsmlabAccessor(object):
         if self.time_bound is not None:
             time_bound_diff.name = self.tb_name + '_diff'
             time_bound_diff.attrs = {}
+            # Compute
             time_bound_diff.data = self.time_bound.diff(dim=self.tb_dim)[:, 0]
             if self.tb_dim in time_bound_diff.coords:
                 time_bound_diff = time_bound_diff.drop(self.tb_dim)
@@ -142,7 +142,7 @@ class EsmlabAccessor(object):
             v: {
                 key: val
                 for key, val in self._ds[v].encoding.items()
-                if key in ['dtype', '_FillValue', 'missing_value']
+                if key in ['dtype', '_FillValue', 'missing_value', 'units', 'calendar']
             }
             for v in self._ds.variables
         }
@@ -440,7 +440,7 @@ class EsmlabAccessor(object):
         else:
             time_values = self._ds_time_computed[self.time_coord_name].groupby(time_dot).mean()
 
-        ds[self.time_coord_name].data = time_values.data
+        ds[self.time_coord_name] = time_values.data
 
         return ds
 
@@ -453,24 +453,13 @@ class EsmlabAccessor(object):
             self._ds_time_computed.drop(self.static_variables)
             .groupby(time_dot_month)
             .mean(self.time_coord_name)
-            .rename({'month': self.time_coord_name})
         )
-        computed_dset['month'] = computed_dset[self.time_coord_name].copy()
         attrs = {'month': {'long_name': 'Month', 'units': 'month'}}
-        encoding = {
-            'month': {'dtype': 'int32', '_FillValue': None},
-            self.time_coord_name: {'dtype': 'float', '_FillValue': None},
-        }
+        encoding = {'month': {'dtype': 'int32', '_FillValue': None}}
 
-        if self.time_bound is not None:
-            time_data = computed_dset[self.tb_name] - computed_dset[self.tb_name][0, 0]
-            computed_dset[self.tb_name] = time_data
-            computed_dset[self.time_coord_name].data = (
-                computed_dset[self.tb_name].mean(self.tb_dim).data
-            )
-            encoding[self.tb_name] = {'dtype': 'float', '_FillValue': None}
-
-        return self.restore_dataset(computed_dset, attrs=attrs, encoding=encoding)
+        if self.tb_name in computed_dset.data_vars:
+            computed_dset = computed_dset.drop(self.tb_name)
+        return self.update_metadata(computed_dset, attrs, encoding)
 
     @esmlab_xr_set_options(arithmetic_join='exact')
     def compute_mon_anomaly(self, slice_mon_clim_time=None):
@@ -504,9 +493,9 @@ class EsmlabAccessor(object):
         # reset month to become a variable
         computed_dset = computed_dset.reset_coords('month')
 
-        computed_dset[self.time_coord_name].data = self.time.data
+        computed_dset[self.time_coord_name] = self.time
         if self.time_bound is not None:
-            computed_dset[self.tb_name].data = self.time_bound.data
+            computed_dset[self.tb_name] = self.time_bound
 
         attrs = {'month': {'long_name': 'Month'}}
         return self.restore_dataset(computed_dset, attrs=attrs)
