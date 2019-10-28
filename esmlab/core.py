@@ -87,6 +87,7 @@ class EsmlabAccessor(object):
         ds[self.time_coord_name] = groupby_coord.data
 
         if self.time_bound is not None:
+            ds[self.tb_name] = self.time_bound
             self.time_bound[self.time_coord_name] = groupby_coord.data
         self.time_bound_diff = self.compute_time_bound_diff(ds)
 
@@ -430,6 +431,8 @@ class EsmlabAccessor(object):
             tb_data = xr.concat((tb_out_lo, tb_out_hi), dim=self.tb_dim)
             ds[self.tb_name] = tb_data
             ds[self.tb_name].data = tb_data.data.reshape(tb_data_new_shape)
+
+        # TODO: Investigate the correctness of method="right", and "left". Do we need them?
 
         if method == 'right':
             time_values = self._ds_time_computed[self.time_coord_name].groupby(time_dot).max()
