@@ -269,10 +269,6 @@ def test_resample_ann_mean_values_missing(ds, weights):
 
 
 def test_resample_mon_mean(dset):
-
-    for method in {'left', 'right'}:
-        ds = esmlab.resample(dset, freq='mon', method=method)
-        assert len(ds.time) == 12
     computed_dset = esmlab.resample(dset, freq='mon')
     res = computed_dset.variable_1.data
     expected = np.full(shape=(12, 2, 2), fill_value=0.5, dtype=np.float32)
