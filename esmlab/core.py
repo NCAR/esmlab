@@ -87,7 +87,7 @@ class EsmlabAccessor(object):
         ds[self.time_coord_name] = groupby_coord.data
 
         if self.time_bound is not None:
-            ds[self.tb_name] = self.time_bound
+            ds[self.tb_name].data = self.time_bound.data
             self.time_bound[self.time_coord_name] = groupby_coord.data
         self.time_bound_diff = self.compute_time_bound_diff(ds)
 
