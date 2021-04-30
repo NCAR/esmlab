@@ -1,3 +1,6 @@
+⚠️⚠️ ESMLab functionality has been moved into `<https://github.com/NCAR/geocat-comp>`_. ⚠️⚠️
+=====
+
 ESMLab: Earth System Model Lab
 ================================
 
